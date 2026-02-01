@@ -39,14 +39,14 @@ export function RatingDisplay({
               key={i}
               className={cn(
                 sizes[size],
-                isFull || isHalf ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                isFull || isHalf ? 'text-[#f97316] fill-[#f97316]' : 'text-[#444444]'
               )}
             />
           );
         })}
       </div>
       {showValue && (
-        <span className="text-sm font-medium text-gray-700">
+        <span className="text-sm font-medium text-white">
           {rating.toFixed(1)}
         </span>
       )}

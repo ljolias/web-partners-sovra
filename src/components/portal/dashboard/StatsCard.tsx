@@ -34,16 +34,32 @@ interface StatsCardProps {
     value: number;
     isPositive: boolean;
   };
-  color?: 'indigo' | 'green' | 'yellow' | 'blue' | 'purple';
+  color?: 'primary' | 'green' | 'purple' | 'orange';
 }
 
-export function StatsCard({ title, value, iconName, trend, color = 'indigo' }: StatsCardProps) {
+export function StatsCard({ title, value, iconName, trend, color = 'primary' }: StatsCardProps) {
+  // Sovra brand colors
   const colors = {
-    indigo: 'bg-indigo-50 text-indigo-600',
-    green: 'bg-green-50 text-green-600',
-    yellow: 'bg-yellow-50 text-yellow-600',
-    blue: 'bg-blue-50 text-blue-600',
-    purple: 'bg-purple-50 text-purple-600',
+    primary: {
+      bg: 'bg-[#0099ff]/10',
+      border: 'border-[#0099ff]/20',
+      icon: 'text-[#0099ff]',
+    },
+    green: {
+      bg: 'bg-[#22c55e]/10',
+      border: 'border-[#22c55e]/20',
+      icon: 'text-[#22c55e]',
+    },
+    purple: {
+      bg: 'bg-[#8b5cf6]/10',
+      border: 'border-[#8b5cf6]/20',
+      icon: 'text-[#8b5cf6]',
+    },
+    orange: {
+      bg: 'bg-[#f97316]/10',
+      border: 'border-[#f97316]/20',
+      icon: 'text-[#f97316]',
+    },
   };
 
   const Icon = iconMap[iconName];
@@ -52,25 +68,25 @@ export function StatsCard({ title, value, iconName, trend, color = 'indigo' }: S
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl border border-gray-200 bg-white p-6"
+      className="rounded-2xl border border-white/5 bg-[#0f0d1a] p-6"
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          <p className="mt-2 text-3xl font-semibold text-gray-900">{value}</p>
+          <p className="text-sm font-medium text-[#888888]">{title}</p>
+          <p className="mt-2 text-3xl font-bold text-white">{value}</p>
           {trend && (
             <p
               className={cn(
-                'mt-2 text-sm',
-                trend.isPositive ? 'text-green-600' : 'text-red-600'
+                'mt-2 text-sm font-medium',
+                trend.isPositive ? 'text-[#22c55e]' : 'text-red-400'
               )}
             >
               {trend.isPositive ? '+' : ''}{trend.value}%
             </p>
           )}
         </div>
-        <div className={cn('rounded-lg p-3', colors[color])}>
-          <Icon className="h-6 w-6" />
+        <div className={cn('rounded-xl p-3 border', colors[color].bg, colors[color].border)}>
+          <Icon className={cn('h-6 w-6', colors[color].icon)} />
         </div>
       </div>
     </motion.div>

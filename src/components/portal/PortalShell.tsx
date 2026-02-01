@@ -20,7 +20,7 @@ export function PortalShell({ children, partner, user, locale }: PortalShellProp
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-[#0a0915]">
       <Sidebar partner={partner} user={user} locale={locale} onLogout={handleLogout} />
       <main className="flex-1 overflow-y-auto">
         <div className="p-8">{children}</div>

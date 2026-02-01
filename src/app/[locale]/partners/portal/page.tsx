@@ -5,7 +5,6 @@ import { StatsCard } from '@/components/portal/dashboard/StatsCard';
 import { RatingDisplay } from '@/components/portal/dashboard/RatingDisplay';
 import { AlertsList } from '@/components/portal/dashboard/AlertsList';
 import { RecentDeals } from '@/components/portal/dashboard/RecentDeals';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 import { formatCurrency } from '@/lib/utils';
 import { Star, Award, DollarSign } from 'lucide-react';
 
@@ -88,8 +87,8 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
-        <p className="text-gray-500">{t('welcome', { name: user.name })}</p>
+        <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
+        <p className="text-[#888888]">{t('welcome', { name: user.name })}</p>
       </div>
 
       {/* Alerts */}
@@ -103,13 +102,13 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
           title={t('stats.totalDeals')}
           value={deals.length}
           iconName="briefcase"
-          color="indigo"
+          color="primary"
         />
         <StatsCard
           title={t('stats.activeDeals')}
           value={activeDeals.length}
           iconName="trending-up"
-          color="blue"
+          color="purple"
         />
         <StatsCard
           title={t('stats.wonDeals')}
@@ -121,56 +120,44 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
           title={t('stats.totalRevenue')}
           value={formatCurrency(totalRevenue)}
           iconName="dollar-sign"
-          color="purple"
+          color="orange"
         />
       </div>
 
       {/* Second Row */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Star className="h-5 w-5 text-yellow-500" />
-              {t('stats.rating')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RatingDisplay rating={partner.rating} size="lg" />
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl border border-white/5 bg-[#0f0d1a] p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Star className="h-5 w-5 text-[#f97316]" />
+            <h3 className="font-semibold text-white">{t('stats.rating')}</h3>
+          </div>
+          <RatingDisplay rating={partner.rating} size="lg" />
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5 text-indigo-500" />
-              {t('stats.certifications')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-gray-900">{activeCerts.length}</div>
-            <p className="text-sm text-gray-500">Active certifications</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl border border-white/5 bg-[#0f0d1a] p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Award className="h-5 w-5 text-[#0099ff]" />
+            <h3 className="font-semibold text-white">{t('stats.certifications')}</h3>
+          </div>
+          <div className="text-3xl font-bold text-white">{activeCerts.length}</div>
+          <p className="text-sm text-[#888888]">Active certifications</p>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-green-500" />
-              {t('stats.pendingCommissions')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-gray-900">
-              {formatCurrency(pendingAmount)}
-            </div>
-            <p className="text-sm text-gray-500">{pendingCommissions.length} pending</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl border border-white/5 bg-[#0f0d1a] p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <DollarSign className="h-5 w-5 text-[#22c55e]" />
+            <h3 className="font-semibold text-white">{t('stats.pendingCommissions')}</h3>
+          </div>
+          <div className="text-3xl font-bold text-white">
+            {formatCurrency(pendingAmount)}
+          </div>
+          <p className="text-sm text-[#888888]">{pendingCommissions.length} pending</p>
+        </div>
       </div>
 
       {/* Recent Deals */}
       <div>
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">{t('recentDeals')}</h2>
+        <h2 className="mb-4 text-lg font-semibold text-white">{t('recentDeals')}</h2>
         <RecentDeals
           deals={deals}
           locale={locale}
