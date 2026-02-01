@@ -19,9 +19,9 @@ export function RatingDisplay({
   const rating = typeof rawRating === 'string' ? parseFloat(rawRating) : rawRating;
 
   const sizes = {
-    sm: 'h-4 w-4',
-    md: 'h-5 w-5',
-    lg: 'h-6 w-6',
+    sm: 'h-3 w-3 sm:h-4 sm:w-4',
+    md: 'h-4 w-4 sm:h-5 sm:w-5',
+    lg: 'h-5 w-5 sm:h-6 sm:w-6',
   };
 
   const fullStars = Math.floor(rating);
@@ -39,14 +39,14 @@ export function RatingDisplay({
               key={i}
               className={cn(
                 sizes[size],
-                isFull || isHalf ? 'text-[#f97316] fill-[#f97316]' : 'text-[#444444]'
+                isFull || isHalf ? 'text-[var(--color-accent-orange)] fill-[var(--color-accent-orange)]' : 'text-[var(--color-neutral-dark)]'
               )}
             />
           );
         })}
       </div>
       {showValue && (
-        <span className="text-sm font-medium text-white">
+        <span className="text-sm font-medium text-[var(--color-text-primary)]">
           {rating.toFixed(1)}
         </span>
       )}

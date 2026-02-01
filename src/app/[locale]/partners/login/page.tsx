@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, use } from 'react';
+import { useState, use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { NextIntlClientProvider, useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
-import { Globe, ArrowRight } from 'lucide-react';
-import { Alert } from '@/components/ui';
+import { Globe, ArrowRight, Sun, Moon } from 'lucide-react';
 
 const languages = [
   { code: 'es', name: 'Espanol', flag: '🇪🇸' },
@@ -14,52 +13,85 @@ const languages = [
   { code: 'pt', name: 'Portugues', flag: '🇧🇷' },
 ];
 
+function ThemeToggle() {
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const saved = localStorage.getItem('sovra-partners-theme') as 'dark' | 'light' | null;
+    if (saved) {
+      setTheme(saved);
+      document.documentElement.classList.remove('dark', 'light');
+      document.documentElement.classList.add(saved);
+    }
+  }, []);
+
+  const toggle = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    document.documentElement.classList.remove('dark', 'light');
+    document.documentElement.classList.add(newTheme);
+    localStorage.setItem('sovra-partners-theme', newTheme);
+  };
+
+  if (!mounted) return null;
+
+  return (
+    <button
+      onClick={toggle}
+      className="p-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] transition-all"
+      aria-label="Toggle theme"
+    >
+      {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </button>
+  );
+}
+
 function LanguageSelector({ currentLocale }: { currentLocale: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const currentLang = languages.find((l) => l.code === currentLocale) || languages[0];
 
   return (
-    <div className="absolute top-6 right-6">
-      <div className="relative">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/80 backdrop-blur-sm hover:bg-white/10 hover:text-white transition-all"
-        >
-          <Globe className="h-4 w-4" />
-          <span>{currentLang.flag}</span>
-          <span>{currentLang.name}</span>
-        </button>
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] transition-all"
+      >
+        <Globe className="h-4 w-4" />
+        <span>{currentLang.flag}</span>
+        <span className="hidden sm:inline">{currentLang.name}</span>
+      </button>
 
-        {isOpen && (
-          <>
-            <div
-              className="fixed inset-0 z-10"
-              onClick={() => setIsOpen(false)}
-            />
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="absolute right-0 z-20 mt-2 w-44 rounded-xl border border-white/5 bg-[#0f0d1a] py-2 shadow-2xl"
-            >
-              {languages.map((lang) => (
-                <Link
-                  key={lang.code}
-                  href={`/${lang.code}/partners/login`}
-                  className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
-                    lang.code === currentLocale
-                      ? 'bg-[#0099ff]/10 text-[#0099ff] font-medium'
-                      : 'text-[#888888] hover:bg-white/5 hover:text-white'
-                  }`}
-                  onClick={() => setIsOpen(false)}
-                >
-                  <span className="text-lg">{lang.flag}</span>
-                  <span>{lang.name}</span>
-                </Link>
-              ))}
-            </motion.div>
-          </>
-        )}
-      </div>
+      {isOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setIsOpen(false)}
+          />
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="absolute right-0 z-20 mt-2 w-44 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] py-2 shadow-2xl"
+          >
+            {languages.map((lang) => (
+              <Link
+                key={lang.code}
+                href={`/${lang.code}/partners/login`}
+                className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
+                  lang.code === currentLocale
+                    ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-medium'
+                    : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)]'
+                }`}
+                onClick={() => setIsOpen(false)}
+              >
+                <span className="text-lg">{lang.flag}</span>
+                <span>{lang.name}</span>
+              </Link>
+            ))}
+          </motion.div>
+        </>
+      )}
     </div>
   );
 }
@@ -98,44 +130,30 @@ function LoginForm({ locale }: { locale: string }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Background - Sovra Brand Colors */}
-      <div className="absolute inset-0 bg-[#0a0915]">
-        {/* Gradient mesh - Sovra style */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `
-              radial-gradient(at 40% 20%, rgba(0, 153, 255, 0.15) 0px, transparent 50%),
-              radial-gradient(at 80% 80%, rgba(139, 92, 246, 0.1) 0px, transparent 50%),
-              radial-gradient(at 10% 90%, rgba(34, 197, 94, 0.08) 0px, transparent 50%)
-            `
-          }}
-        />
-        {/* Grid pattern */}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)`,
-            backgroundSize: '40px 40px'
-          }}
-        />
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-[var(--color-bg)]">
+      {/* Background */}
+      <div className="absolute inset-0">
+        <div className="dark:gradient-mesh-dark light:gradient-mesh-light absolute inset-0 gradient-mesh-dark" />
+        <div className="absolute inset-0 grid-pattern opacity-50" />
       </div>
 
-      <LanguageSelector currentLocale={locale} />
+      {/* Header */}
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-2">
+        <ThemeToggle />
+        <LanguageSelector currentLocale={locale} />
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md px-6 relative z-10"
+        className="w-full max-w-md px-4 sm:px-6 relative z-10"
       >
         {/* Logo */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-8 sm:mb-10">
           <Link href={`/${locale}`} className="inline-block">
             <motion.h1
-              className="text-4xl font-bold bg-gradient-to-r from-white via-white to-white/60 bg-clip-text text-transparent"
+              className="text-3xl sm:text-4xl font-bold text-[var(--color-text-primary)]"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
@@ -144,7 +162,7 @@ function LoginForm({ locale }: { locale: string }) {
             </motion.h1>
           </Link>
           <motion.p
-            className="mt-3 text-white/50 text-sm tracking-wide uppercase"
+            className="mt-2 sm:mt-3 text-[var(--color-text-secondary)] text-xs sm:text-sm tracking-wide uppercase"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
@@ -153,26 +171,26 @@ function LoginForm({ locale }: { locale: string }) {
           </motion.p>
         </div>
 
-        {/* Card - Sovra Surface Style */}
+        {/* Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="rounded-2xl border border-white/5 bg-[#0f0d1a] p-8 shadow-2xl"
+          className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 sm:p-8 shadow-2xl"
         >
-          <div className="text-center mb-8">
-            <h2 className="text-xl font-semibold text-white">{tLogin('subtitle')}</h2>
+          <div className="text-center mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl font-semibold text-[var(--color-text-primary)]">{tLogin('subtitle')}</h2>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             {error && (
-              <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+              <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-500 dark:text-red-400">
                 {error}
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-[#888888] mb-2">
+              <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                 {t('email')}
               </label>
               <input
@@ -181,13 +199,13 @@ function LoginForm({ locale }: { locale: string }) {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="w-full rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-white placeholder-[#444444] outline-none transition-all focus:border-[#0099ff]/50 focus:ring-2 focus:ring-[#0099ff]/20"
+                className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 text-[var(--color-text-primary)] placeholder-[var(--color-neutral-dark)] outline-none transition-all focus:border-[var(--color-primary)]/50 focus:ring-2 focus:ring-[var(--color-primary)]/20"
                 placeholder="partner@company.com"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#888888] mb-2">
+              <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                 {t('password')}
               </label>
               <input
@@ -196,7 +214,7 @@ function LoginForm({ locale }: { locale: string }) {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                className="w-full rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-white placeholder-[#444444] outline-none transition-all focus:border-[#0099ff]/50 focus:ring-2 focus:ring-[#0099ff]/20"
+                className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 text-[var(--color-text-primary)] placeholder-[var(--color-neutral-dark)] outline-none transition-all focus:border-[var(--color-primary)]/50 focus:ring-2 focus:ring-[var(--color-primary)]/20"
                 placeholder="••••••••"
               />
             </div>
@@ -204,7 +222,7 @@ function LoginForm({ locale }: { locale: string }) {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full overflow-hidden rounded-xl bg-[#0099ff] px-6 py-3.5 text-sm font-semibold !text-white shadow-lg shadow-[#0099ff]/20 transition-all hover:bg-[#0099ff]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative w-full overflow-hidden rounded-xl bg-[var(--color-primary)] px-6 py-3 sm:py-3.5 text-sm font-semibold text-white shadow-lg shadow-[var(--color-primary)]/20 transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="relative z-10 flex items-center justify-center gap-2">
                 {isLoading ? (
@@ -222,7 +240,7 @@ function LoginForm({ locale }: { locale: string }) {
 
         {/* Footer */}
         <motion.p
-          className="mt-8 text-center text-sm text-white/30"
+          className="mt-6 sm:mt-8 text-center text-xs sm:text-sm text-[var(--color-text-muted)]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
@@ -241,20 +259,20 @@ interface LoginPageProps {
 export default function LoginPage({ params }: LoginPageProps) {
   const { locale } = use(params);
 
-  // We need to load messages client-side for this page
-  // since it's outside the portal layout
   return <LoginPageWithMessages locale={locale} />;
 }
 
 function LoginPageWithMessages({ locale }: { locale: string }) {
   const [messages, setMessages] = useState<Record<string, unknown> | null>(null);
 
-  // Load messages on mount
-  if (!messages) {
+  useEffect(() => {
     import(`@/messages/${locale}.json`).then((m) => setMessages(m.default));
+  }, [locale]);
+
+  if (!messages) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)]">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary)] border-t-transparent" />
       </div>
     );
   }

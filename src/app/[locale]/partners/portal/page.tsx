@@ -84,11 +84,11 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
-        <p className="text-[#888888]">{t('welcome', { name: user.name })}</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-[var(--color-text-primary)]">{t('title')}</h1>
+        <p className="text-sm sm:text-base text-[var(--color-text-secondary)]">{t('welcome', { name: user.name })}</p>
       </div>
 
       {/* Alerts */}
@@ -97,7 +97,7 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
       )}
 
       {/* Stats Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title={t('stats.totalDeals')}
           value={deals.length}
@@ -125,39 +125,39 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
       </div>
 
       {/* Second Row */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-2xl border border-white/5 bg-[#0f0d1a] p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Star className="h-5 w-5 text-[#f97316]" />
-            <h3 className="font-semibold text-white">{t('stats.rating')}</h3>
+      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-6">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <Star className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-accent-orange)]" />
+            <h3 className="text-sm sm:text-base font-semibold text-[var(--color-text-primary)]">{t('stats.rating')}</h3>
           </div>
           <RatingDisplay rating={partner.rating} size="lg" />
         </div>
 
-        <div className="rounded-2xl border border-white/5 bg-[#0f0d1a] p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Award className="h-5 w-5 text-[#0099ff]" />
-            <h3 className="font-semibold text-white">{t('stats.certifications')}</h3>
+        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-6">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <Award className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-primary)]" />
+            <h3 className="text-sm sm:text-base font-semibold text-[var(--color-text-primary)]">{t('stats.certifications')}</h3>
           </div>
-          <div className="text-3xl font-bold text-white">{activeCerts.length}</div>
-          <p className="text-sm text-[#888888]">Active certifications</p>
+          <div className="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)]">{activeCerts.length}</div>
+          <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">Active certifications</p>
         </div>
 
-        <div className="rounded-2xl border border-white/5 bg-[#0f0d1a] p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <DollarSign className="h-5 w-5 text-[#22c55e]" />
-            <h3 className="font-semibold text-white">{t('stats.pendingCommissions')}</h3>
+        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-accent-green)]" />
+            <h3 className="text-sm sm:text-base font-semibold text-[var(--color-text-primary)]">{t('stats.pendingCommissions')}</h3>
           </div>
-          <div className="text-3xl font-bold text-white">
+          <div className="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)]">
             {formatCurrency(pendingAmount)}
           </div>
-          <p className="text-sm text-[#888888]">{pendingCommissions.length} pending</p>
+          <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">{pendingCommissions.length} pending</p>
         </div>
       </div>
 
       {/* Recent Deals */}
       <div>
-        <h2 className="mb-4 text-lg font-semibold text-white">{t('recentDeals')}</h2>
+        <h2 className="mb-3 sm:mb-4 text-base sm:text-lg font-semibold text-[var(--color-text-primary)]">{t('recentDeals')}</h2>
         <RecentDeals
           deals={deals}
           locale={locale}

@@ -38,27 +38,26 @@ interface StatsCardProps {
 }
 
 export function StatsCard({ title, value, iconName, trend, color = 'primary' }: StatsCardProps) {
-  // Sovra brand colors
   const colors = {
     primary: {
-      bg: 'bg-[#0099ff]/10',
-      border: 'border-[#0099ff]/20',
-      icon: 'text-[#0099ff]',
+      bg: 'bg-[var(--color-primary)]/10',
+      border: 'border-[var(--color-primary)]/20',
+      icon: 'text-[var(--color-primary)]',
     },
     green: {
-      bg: 'bg-[#22c55e]/10',
-      border: 'border-[#22c55e]/20',
-      icon: 'text-[#22c55e]',
+      bg: 'bg-[var(--color-accent-green)]/10',
+      border: 'border-[var(--color-accent-green)]/20',
+      icon: 'text-[var(--color-accent-green)]',
     },
     purple: {
-      bg: 'bg-[#8b5cf6]/10',
-      border: 'border-[#8b5cf6]/20',
-      icon: 'text-[#8b5cf6]',
+      bg: 'bg-[var(--color-accent-purple)]/10',
+      border: 'border-[var(--color-accent-purple)]/20',
+      icon: 'text-[var(--color-accent-purple)]',
     },
     orange: {
-      bg: 'bg-[#f97316]/10',
-      border: 'border-[#f97316]/20',
-      icon: 'text-[#f97316]',
+      bg: 'bg-[var(--color-accent-orange)]/10',
+      border: 'border-[var(--color-accent-orange)]/20',
+      icon: 'text-[var(--color-accent-orange)]',
     },
   };
 
@@ -68,25 +67,25 @@ export function StatsCard({ title, value, iconName, trend, color = 'primary' }: 
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl border border-white/5 bg-[#0f0d1a] p-6"
+      className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-6"
     >
       <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-[#888888]">{title}</p>
-          <p className="mt-2 text-3xl font-bold text-white">{value}</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs sm:text-sm font-medium text-[var(--color-text-secondary)] truncate">{title}</p>
+          <p className="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)]">{value}</p>
           {trend && (
             <p
               className={cn(
-                'mt-2 text-sm font-medium',
-                trend.isPositive ? 'text-[#22c55e]' : 'text-red-400'
+                'mt-1 sm:mt-2 text-xs sm:text-sm font-medium',
+                trend.isPositive ? 'text-[var(--color-accent-green)]' : 'text-red-500'
               )}
             >
               {trend.isPositive ? '+' : ''}{trend.value}%
             </p>
           )}
         </div>
-        <div className={cn('rounded-xl p-3 border', colors[color].bg, colors[color].border)}>
-          <Icon className={cn('h-6 w-6', colors[color].icon)} />
+        <div className={cn('rounded-xl p-2 sm:p-3 border shrink-0', colors[color].bg, colors[color].border)}>
+          <Icon className={cn('h-5 w-5 sm:h-6 sm:w-6', colors[color].icon)} />
         </div>
       </div>
     </motion.div>

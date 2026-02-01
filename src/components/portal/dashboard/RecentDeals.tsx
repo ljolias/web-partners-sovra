@@ -22,51 +22,49 @@ export function RecentDeals({
 }: RecentDealsProps) {
   const basePath = `/${locale}/partners/portal/deals`;
 
-  // Sovra brand colors for stages
   const stageColors: Record<string, string> = {
-    registered: 'bg-[#888888]/10 text-[#888888] border-[#888888]/20',
-    qualified: 'bg-[#0099ff]/10 text-[#0099ff] border-[#0099ff]/20',
-    proposal: 'bg-[#8b5cf6]/10 text-[#8b5cf6] border-[#8b5cf6]/20',
-    negotiation: 'bg-[#f97316]/10 text-[#f97316] border-[#f97316]/20',
-    closed_won: 'bg-[#22c55e]/10 text-[#22c55e] border-[#22c55e]/20',
-    closed_lost: 'bg-red-500/10 text-red-400 border-red-500/20',
+    registered: 'bg-[var(--color-neutral)]/10 text-[var(--color-neutral)] border-[var(--color-neutral)]/20',
+    qualified: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border-[var(--color-primary)]/20',
+    proposal: 'bg-[var(--color-accent-purple)]/10 text-[var(--color-accent-purple)] border-[var(--color-accent-purple)]/20',
+    negotiation: 'bg-[var(--color-accent-orange)]/10 text-[var(--color-accent-orange)] border-[var(--color-accent-orange)]/20',
+    closed_won: 'bg-[var(--color-accent-green)]/10 text-[var(--color-accent-green)] border-[var(--color-accent-green)]/20',
+    closed_lost: 'bg-red-500/10 text-red-500 border-red-500/20',
   };
 
   if (deals.length === 0) {
     return (
-      <div className="rounded-2xl border border-white/5 bg-[#0f0d1a] p-6">
-        <p className="text-center text-[#888888]">{emptyLabel}</p>
+      <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
+        <p className="text-center text-[var(--color-text-secondary)]">{emptyLabel}</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-2xl border border-white/5 bg-[#0f0d1a] overflow-hidden">
-      <div className="divide-y divide-white/5">
+    <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden">
+      <div className="divide-y divide-[var(--color-border)]">
         {deals.slice(0, 5).map((deal) => (
           <Link
             key={deal.id}
             href={`${basePath}/${deal.id}`}
-            className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+            className="flex items-center justify-between p-3 sm:p-4 hover:bg-[var(--color-surface-hover)] transition-colors"
           >
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-white truncate">{deal.companyName}</p>
-              <p className="text-sm text-[#888888]">
-                {formatCurrency(deal.dealValue, deal.currency)} &middot;{' '}
-                {formatDate(deal.createdAt, locale)}
+            <div className="flex-1 min-w-0 mr-3">
+              <p className="font-medium text-sm sm:text-base text-[var(--color-text-primary)] truncate">{deal.companyName}</p>
+              <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">
+                {formatCurrency(deal.dealValue, deal.currency)} · {formatDate(deal.createdAt, locale)}
               </p>
             </div>
-            <span className={`text-xs px-2.5 py-1 rounded-full border ${stageColors[deal.stage]}`}>
+            <span className={`text-xs px-2 py-1 rounded-full border whitespace-nowrap ${stageColors[deal.stage]}`}>
               {stageLabels[deal.stage]}
             </span>
           </Link>
         ))}
       </div>
       {deals.length > 5 && (
-        <div className="border-t border-white/5 p-4">
+        <div className="border-t border-[var(--color-border)] p-3 sm:p-4">
           <Link
             href={basePath}
-            className="flex items-center justify-center gap-2 text-sm font-medium text-[#0099ff] hover:text-[#0099ff]/80 transition-colors"
+            className="flex items-center justify-center gap-2 text-sm font-medium text-[var(--color-primary)] hover:opacity-80 transition-opacity"
           >
             {viewAllLabel}
             <ArrowRight className="h-4 w-4" />
