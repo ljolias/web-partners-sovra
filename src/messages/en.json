@@ -1,0 +1,179 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "all": "All",
+    "none": "None",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "auth": {
+    "login": "Log In",
+    "logout": "Log Out",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "loginError": "Invalid email or password",
+    "sessionExpired": "Your session has expired. Please log in again."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "deals": "Deal Registration",
+    "training": "Training",
+    "certifications": "Certifications",
+    "legal": "Legal Documents",
+    "commissions": "Commissions",
+    "copilot": "Sales Copilot"
+  },
+  "dashboard": {
+    "title": "Partner Dashboard",
+    "welcome": "Welcome back, {name}",
+    "stats": {
+      "totalDeals": "Total Deals",
+      "activeDeals": "Active Deals",
+      "wonDeals": "Deals Won",
+      "totalRevenue": "Total Revenue",
+      "rating": "Partner Rating",
+      "certifications": "Active Certifications",
+      "pendingCommissions": "Pending Commissions"
+    },
+    "alerts": {
+      "certExpiring": "Your certification expires in {days} days",
+      "legalPending": "You have pending legal documents to sign",
+      "dealExpiring": "Deal \"{name}\" exclusivity expires in {days} days"
+    },
+    "recentDeals": "Recent Deals",
+    "quickActions": "Quick Actions"
+  },
+  "deals": {
+    "title": "Deal Registration",
+    "newDeal": "Register New Deal",
+    "list": {
+      "empty": "No deals registered yet",
+      "search": "Search deals..."
+    },
+    "form": {
+      "title": "New Deal Registration",
+      "companyName": "Company Name",
+      "companyDomain": "Company Domain",
+      "contactName": "Contact Name",
+      "contactEmail": "Contact Email",
+      "contactPhone": "Contact Phone",
+      "dealValue": "Deal Value",
+      "currency": "Currency",
+      "notes": "Notes",
+      "submit": "Register Deal"
+    },
+    "validation": {
+      "certRequired": "You need an active certification to register deals",
+      "legalRequired": "Please sign all required legal documents before registering deals",
+      "domainConflict": "This domain is already registered by another partner",
+      "required": "This field is required",
+      "invalidEmail": "Please enter a valid email address",
+      "invalidDomain": "Please enter a valid domain"
+    },
+    "stages": {
+      "registered": "Registered",
+      "qualified": "Qualified",
+      "proposal": "Proposal",
+      "negotiation": "Negotiation",
+      "closed_won": "Closed Won",
+      "closed_lost": "Closed Lost"
+    },
+    "detail": {
+      "exclusivity": "Exclusivity until {date}",
+      "meddic": "MEDDIC Score",
+      "startCopilot": "Start MEDDIC Review"
+    }
+  },
+  "meddic": {
+    "title": "MEDDIC Analysis",
+    "metrics": "Metrics",
+    "economicBuyer": "Economic Buyer",
+    "decisionCriteria": "Decision Criteria",
+    "decisionProcess": "Decision Process",
+    "identifyPain": "Identify Pain",
+    "champion": "Champion",
+    "overall": "Overall Score",
+    "updateScore": "Update Score"
+  },
+  "copilot": {
+    "title": "Sales Copilot",
+    "subtitle": "AI-powered MEDDIC Review",
+    "placeholder": "Ask about your deal qualification...",
+    "send": "Send",
+    "scoreSuggestion": "Score Suggestion",
+    "acceptScore": "Accept",
+    "rejectScore": "Reject",
+    "thinking": "Thinking..."
+  },
+  "training": {
+    "title": "Partner Training",
+    "progress": "Your Progress",
+    "modules": "Training Modules",
+    "module": {
+      "start": "Start Module",
+      "continue": "Continue",
+      "completed": "Completed",
+      "duration": "{minutes} min",
+      "quiz": "Take Quiz",
+      "quizPassed": "Quiz Passed",
+      "quizFailed": "Quiz not passed. Score: {score}%",
+      "passingScore": "Passing score: {score}%"
+    },
+    "quiz": {
+      "title": "Module Quiz",
+      "question": "Question {current} of {total}",
+      "submit": "Submit Answers",
+      "passed": "Congratulations! You passed with {score}%",
+      "failed": "You scored {score}%. You need {required}% to pass."
+    }
+  },
+  "certifications": {
+    "title": "Certifications",
+    "active": "Active Certifications",
+    "expired": "Expired",
+    "types": {
+      "sales_fundamentals": "Sales Fundamentals",
+      "technical_specialist": "Technical Specialist",
+      "solution_architect": "Solution Architect"
+    },
+    "validUntil": "Valid until {date}",
+    "earn": "Complete all training modules to earn this certification"
+  },
+  "legal": {
+    "title": "Legal Documents",
+    "pending": "Pending Signature",
+    "signed": "Signed Documents",
+    "sign": "Review & Sign",
+    "signedOn": "Signed on {date}",
+    "required": "Required for deal registration"
+  },
+  "commissions": {
+    "title": "Commissions",
+    "pending": "Pending",
+    "approved": "Approved",
+    "paid": "Paid",
+    "total": "Total Commissions",
+    "deal": "Deal",
+    "amount": "Amount",
+    "status": "Status",
+    "empty": "No commissions yet"
+  },
+  "tier": {
+    "bronze": "Bronze",
+    "silver": "Silver",
+    "gold": "Gold",
+    "platinum": "Platinum"
+  }
+}

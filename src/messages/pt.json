@@ -1,0 +1,179 @@
+{
+  "common": {
+    "loading": "Carregando...",
+    "error": "Ocorreu um erro",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "submit": "Enviar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "back": "Voltar",
+    "next": "Proximo",
+    "previous": "Anterior",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "all": "Todos",
+    "none": "Nenhum",
+    "yes": "Sim",
+    "no": "Nao"
+  },
+  "auth": {
+    "login": "Entrar",
+    "logout": "Sair",
+    "email": "E-mail",
+    "password": "Senha",
+    "forgotPassword": "Esqueceu a senha?",
+    "loginError": "E-mail ou senha invalidos",
+    "sessionExpired": "Sua sessao expirou. Por favor entre novamente."
+  },
+  "nav": {
+    "dashboard": "Painel",
+    "deals": "Registro de Oportunidades",
+    "training": "Treinamento",
+    "certifications": "Certificacoes",
+    "legal": "Documentos Legais",
+    "commissions": "Comissoes",
+    "copilot": "Sales Copilot"
+  },
+  "dashboard": {
+    "title": "Painel do Parceiro",
+    "welcome": "Bem-vindo, {name}",
+    "stats": {
+      "totalDeals": "Total de Oportunidades",
+      "activeDeals": "Oportunidades Ativas",
+      "wonDeals": "Oportunidades Ganhas",
+      "totalRevenue": "Receita Total",
+      "rating": "Rating do Parceiro",
+      "certifications": "Certificacoes Ativas",
+      "pendingCommissions": "Comissoes Pendentes"
+    },
+    "alerts": {
+      "certExpiring": "Sua certificacao expira em {days} dias",
+      "legalPending": "Voce tem documentos legais pendentes de assinatura",
+      "dealExpiring": "A exclusividade de \"{name}\" expira em {days} dias"
+    },
+    "recentDeals": "Oportunidades Recentes",
+    "quickActions": "Acoes Rapidas"
+  },
+  "deals": {
+    "title": "Registro de Oportunidades",
+    "newDeal": "Registrar Nova Oportunidade",
+    "list": {
+      "empty": "Nenhuma oportunidade registrada",
+      "search": "Buscar oportunidades..."
+    },
+    "form": {
+      "title": "Nova Oportunidade",
+      "companyName": "Nome da Empresa",
+      "companyDomain": "Dominio da Empresa",
+      "contactName": "Nome do Contato",
+      "contactEmail": "E-mail do Contato",
+      "contactPhone": "Telefone do Contato",
+      "dealValue": "Valor da Oportunidade",
+      "currency": "Moeda",
+      "notes": "Notas",
+      "submit": "Registrar Oportunidade"
+    },
+    "validation": {
+      "certRequired": "Voce precisa de uma certificacao ativa para registrar oportunidades",
+      "legalRequired": "Por favor assine todos os documentos legais necessarios antes de registrar oportunidades",
+      "domainConflict": "Este dominio ja esta registrado por outro parceiro",
+      "required": "Este campo e obrigatorio",
+      "invalidEmail": "Por favor insira um e-mail valido",
+      "invalidDomain": "Por favor insira um dominio valido"
+    },
+    "stages": {
+      "registered": "Registrada",
+      "qualified": "Qualificada",
+      "proposal": "Proposta",
+      "negotiation": "Negociacao",
+      "closed_won": "Ganha",
+      "closed_lost": "Perdida"
+    },
+    "detail": {
+      "exclusivity": "Exclusividade ate {date}",
+      "meddic": "Pontuacao MEDDIC",
+      "startCopilot": "Iniciar Revisao MEDDIC"
+    }
+  },
+  "meddic": {
+    "title": "Analise MEDDIC",
+    "metrics": "Metricas",
+    "economicBuyer": "Comprador Economico",
+    "decisionCriteria": "Criterios de Decisao",
+    "decisionProcess": "Processo de Decisao",
+    "identifyPain": "Identificar Dor",
+    "champion": "Champion",
+    "overall": "Pontuacao Geral",
+    "updateScore": "Atualizar Pontuacao"
+  },
+  "copilot": {
+    "title": "Sales Copilot",
+    "subtitle": "Revisao MEDDIC com IA",
+    "placeholder": "Pergunte sobre a qualificacao da sua oportunidade...",
+    "send": "Enviar",
+    "scoreSuggestion": "Sugestao de Pontuacao",
+    "acceptScore": "Aceitar",
+    "rejectScore": "Rejeitar",
+    "thinking": "Pensando..."
+  },
+  "training": {
+    "title": "Treinamento para Parceiros",
+    "progress": "Seu Progresso",
+    "modules": "Modulos de Treinamento",
+    "module": {
+      "start": "Iniciar Modulo",
+      "continue": "Continuar",
+      "completed": "Concluido",
+      "duration": "{minutes} min",
+      "quiz": "Fazer Quiz",
+      "quizPassed": "Quiz Aprovado",
+      "quizFailed": "Quiz nao aprovado. Pontuacao: {score}%",
+      "passingScore": "Pontuacao minima: {score}%"
+    },
+    "quiz": {
+      "title": "Quiz do Modulo",
+      "question": "Pergunta {current} de {total}",
+      "submit": "Enviar Respostas",
+      "passed": "Parabens! Voce passou com {score}%",
+      "failed": "Voce obteve {score}%. Precisa de {required}% para passar."
+    }
+  },
+  "certifications": {
+    "title": "Certificacoes",
+    "active": "Certificacoes Ativas",
+    "expired": "Expirada",
+    "types": {
+      "sales_fundamentals": "Fundamentos de Vendas",
+      "technical_specialist": "Especialista Tecnico",
+      "solution_architect": "Arquiteto de Solucoes"
+    },
+    "validUntil": "Valida ate {date}",
+    "earn": "Complete todos os modulos de treinamento para obter esta certificacao"
+  },
+  "legal": {
+    "title": "Documentos Legais",
+    "pending": "Pendentes de Assinatura",
+    "signed": "Documentos Assinados",
+    "sign": "Revisar e Assinar",
+    "signedOn": "Assinado em {date}",
+    "required": "Necessario para registro de oportunidades"
+  },
+  "commissions": {
+    "title": "Comissoes",
+    "pending": "Pendente",
+    "approved": "Aprovada",
+    "paid": "Paga",
+    "total": "Comissoes Totais",
+    "deal": "Oportunidade",
+    "amount": "Valor",
+    "status": "Status",
+    "empty": "Nenhuma comissao ainda"
+  },
+  "tier": {
+    "bronze": "Bronze",
+    "silver": "Prata",
+    "gold": "Ouro",
+    "platinum": "Platina"
+  }
+}
