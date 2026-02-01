@@ -26,6 +26,9 @@
     "loginError": "Invalid email or password",
     "sessionExpired": "Your session has expired. Please log in again."
   },
+  "login": {
+    "subtitle": "Sign in to your partner account"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "deals": "Deal Registration",

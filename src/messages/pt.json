@@ -26,6 +26,9 @@
     "loginError": "E-mail ou senha invalidos",
     "sessionExpired": "Sua sessao expirou. Por favor entre novamente."
   },
+  "login": {
+    "subtitle": "Entre na sua conta de parceiro"
+  },
   "nav": {
     "dashboard": "Painel",
     "deals": "Registro de Oportunidades",
