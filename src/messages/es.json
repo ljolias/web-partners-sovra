@@ -58,6 +58,9 @@
   "deals": {
     "title": "Registro de Oportunidades",
     "newDeal": "Registrar Nueva Oportunidad",
+    "common": {
+      "all": "Todos"
+    },
     "list": {
       "empty": "No hay oportunidades registradas",
       "search": "Buscar oportunidades..."

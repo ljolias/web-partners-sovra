@@ -58,6 +58,9 @@
   "deals": {
     "title": "Deal Registration",
     "newDeal": "Register New Deal",
+    "common": {
+      "all": "All"
+    },
     "list": {
       "empty": "No deals registered yet",
       "search": "Search deals..."
