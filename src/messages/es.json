@@ -46,6 +46,7 @@
       "activeDeals": "Oportunidades Activas",
       "wonDeals": "Oportunidades Ganadas",
       "totalRevenue": "Ingresos Totales",
+      "tier": "Nivel del Partner",
       "rating": "Rating del Partner",
       "certifications": "Certificaciones Activas",
       "pendingCommissions": "Comisiones Pendientes"
@@ -181,5 +182,31 @@
     "silver": "Plata",
     "gold": "Oro",
     "platinum": "Platino"
+  },
+  "rating": {
+    "factorsTitle": "Factores de Calificacion",
+    "factorsDescription": "Tu nivel de partner se calcula en base a estos factores clave.",
+    "factors": {
+      "dealQuality": {
+        "name": "Calidad de Oportunidades",
+        "description": "Puntajes MEDDIC y tasa de conversion de tus oportunidades registradas."
+      },
+      "engagement": {
+        "name": "Compromiso",
+        "description": "Uso del Copilot, progreso en capacitacion y frecuencia de inicio de sesion."
+      },
+      "certification": {
+        "name": "Certificaciones",
+        "description": "Certificaciones activas obtenidas a traves de modulos de capacitacion."
+      },
+      "compliance": {
+        "name": "Cumplimiento",
+        "description": "Documentos legales firmados y acuerdos actualizados."
+      },
+      "revenue": {
+        "name": "Ingresos",
+        "description": "Oportunidades cerradas exitosamente y valor promedio de las mismas."
+      }
+    }
   }
 }

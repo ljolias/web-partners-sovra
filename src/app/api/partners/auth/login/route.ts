@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { login } from '@/lib/auth';
+import { updatePartnerLastLogin } from '@/lib/rating';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +15,9 @@ export async function POST(request: NextRequest) {
     if (!sessionData) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
+
+    // Track login for activity monitoring
+    await updatePartnerLastLogin(sessionData.partner.id);
 
     return NextResponse.json({
       user: {

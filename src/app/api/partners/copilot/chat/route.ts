@@ -8,6 +8,7 @@ import {
   updateCopilotMeddic,
 } from '@/lib/redis';
 import { anthropic, MODEL, buildSystemPrompt, parseScoreSuggestions, cleanResponseContent } from '@/lib/claude';
+import { logRatingEvent, recalculateAndUpdatePartner } from '@/lib/rating';
 import type { CopilotMessage, CopilotSession } from '@/types';
 
 export async function POST(request: NextRequest) {
@@ -136,6 +137,17 @@ export async function POST(request: NextRequest) {
             const scoreData = JSON.stringify({ suggestedScores });
             controller.enqueue(encoder.encode(`data: ${scoreData}\n\n`));
           }
+
+          // Log copilot session completion event
+          await logRatingEvent(
+            partner.id,
+            user.id,
+            'COPILOT_SESSION_COMPLETED',
+            { dealId, sessionId: session?.id }
+          );
+
+          // Recalculate rating in background (non-blocking)
+          recalculateAndUpdatePartner(partner.id, user.id).catch(console.error);
 
           // Send done signal
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));

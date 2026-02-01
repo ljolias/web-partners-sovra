@@ -46,6 +46,7 @@
       "activeDeals": "Active Deals",
       "wonDeals": "Deals Won",
       "totalRevenue": "Total Revenue",
+      "tier": "Partner Tier",
       "rating": "Partner Rating",
       "certifications": "Active Certifications",
       "pendingCommissions": "Pending Commissions"
@@ -181,5 +182,31 @@
     "silver": "Silver",
     "gold": "Gold",
     "platinum": "Platinum"
+  },
+  "rating": {
+    "factorsTitle": "Rating Factors",
+    "factorsDescription": "Your partner tier is calculated based on these key factors.",
+    "factors": {
+      "dealQuality": {
+        "name": "Deal Quality",
+        "description": "MEDDIC scores and win rate of your registered deals."
+      },
+      "engagement": {
+        "name": "Engagement",
+        "description": "Copilot usage, training progress, and login frequency."
+      },
+      "certification": {
+        "name": "Certifications",
+        "description": "Active certifications earned through training modules."
+      },
+      "compliance": {
+        "name": "Compliance",
+        "description": "Signed legal documents and up-to-date agreements."
+      },
+      "revenue": {
+        "name": "Revenue",
+        "description": "Successfully closed deals and average deal value."
+      }
+    }
   }
 }

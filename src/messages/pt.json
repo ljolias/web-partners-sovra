@@ -46,6 +46,7 @@
       "activeDeals": "Oportunidades Ativas",
       "wonDeals": "Oportunidades Ganhas",
       "totalRevenue": "Receita Total",
+      "tier": "Nivel do Parceiro",
       "rating": "Rating do Parceiro",
       "certifications": "Certificacoes Ativas",
       "pendingCommissions": "Comissoes Pendentes"
@@ -181,5 +182,31 @@
     "silver": "Prata",
     "gold": "Ouro",
     "platinum": "Platina"
+  },
+  "rating": {
+    "factorsTitle": "Fatores de Classificacao",
+    "factorsDescription": "Seu nivel de parceiro e calculado com base nesses fatores principais.",
+    "factors": {
+      "dealQuality": {
+        "name": "Qualidade das Oportunidades",
+        "description": "Pontuacoes MEDDIC e taxa de conversao das suas oportunidades registradas."
+      },
+      "engagement": {
+        "name": "Engajamento",
+        "description": "Uso do Copilot, progresso no treinamento e frequencia de login."
+      },
+      "certification": {
+        "name": "Certificacoes",
+        "description": "Certificacoes ativas obtidas atraves dos modulos de treinamento."
+      },
+      "compliance": {
+        "name": "Conformidade",
+        "description": "Documentos legais assinados e acordos atualizados."
+      },
+      "revenue": {
+        "name": "Receita",
+        "description": "Oportunidades fechadas com sucesso e valor medio das mesmas."
+      }
+    }
   }
 }

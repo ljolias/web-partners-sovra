@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireSession } from '@/lib/auth';
 import { getDeal, updateDeal } from '@/lib/redis';
+import { logRatingEvent, recalculateAndUpdatePartner } from '@/lib/rating';
 
 const meddicSchema = z.object({
   metrics: z.number().min(1).max(5).optional(),
@@ -17,7 +18,7 @@ export async function PUT(
   { params }: { params: Promise<{ dealId: string }> }
 ) {
   try {
-    const { partner } = await requireSession();
+    const { user, partner } = await requireSession();
     const { dealId } = await params;
 
     const deal = await getDeal(dealId);
@@ -41,6 +42,16 @@ export async function PUT(
       );
     }
 
+    // Calculate previous total MEDDIC score
+    const previousMeddic = deal.meddic;
+    const previousTotal =
+      previousMeddic.metrics +
+      previousMeddic.economicBuyer +
+      previousMeddic.decisionCriteria +
+      previousMeddic.decisionProcess +
+      previousMeddic.identifyPain +
+      previousMeddic.champion;
+
     const updatedMeddic = {
       ...deal.meddic,
       ...validation.data,
@@ -48,6 +59,28 @@ export async function PUT(
 
     await updateDeal(dealId, { meddic: updatedMeddic });
     const updatedDeal = await getDeal(dealId);
+
+    // Calculate new total MEDDIC score
+    const newTotal =
+      updatedMeddic.metrics +
+      updatedMeddic.economicBuyer +
+      updatedMeddic.decisionCriteria +
+      updatedMeddic.decisionProcess +
+      updatedMeddic.identifyPain +
+      updatedMeddic.champion;
+
+    // Log event if MEDDIC score improved
+    if (newTotal > previousTotal) {
+      await logRatingEvent(
+        partner.id,
+        user.id,
+        'MEDDIC_SCORE_IMPROVED',
+        { dealId, previousTotal, newTotal }
+      );
+
+      // Recalculate rating in background
+      recalculateAndUpdatePartner(partner.id, user.id).catch(console.error);
+    }
 
     return NextResponse.json({ deal: updatedDeal });
   } catch (error) {

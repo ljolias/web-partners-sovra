@@ -9,6 +9,7 @@ import {
   createCertification,
   generateId,
 } from '@/lib/redis';
+import { logRatingEvent, recalculateAndUpdatePartner } from '@/lib/rating';
 import type { TrainingProgress, Certification } from '@/types';
 
 const submitSchema = z.object({
@@ -68,6 +69,16 @@ export async function POST(request: NextRequest) {
 
     await updateTrainingProgress(user.id, progress);
 
+    // Log training module completion event if passed
+    if (passed) {
+      await logRatingEvent(
+        partner.id,
+        user.id,
+        'TRAINING_MODULE_COMPLETED',
+        { moduleId, score }
+      );
+    }
+
     // Check if user completed all modules and grant certification
     if (passed) {
       const allModules = await getAllTrainingModules();
@@ -95,6 +106,17 @@ export async function POST(request: NextRequest) {
 
         await createCertification(certification);
 
+        // Log certification earned event
+        await logRatingEvent(
+          partner.id,
+          user.id,
+          'CERTIFICATION_EARNED',
+          { certificationId: certification.id, type: certification.type }
+        );
+
+        // Recalculate rating after certification
+        await recalculateAndUpdatePartner(partner.id, user.id);
+
         return NextResponse.json({
           passed,
           score,
@@ -102,6 +124,11 @@ export async function POST(request: NextRequest) {
           certification,
         });
       }
+    }
+
+    // Recalculate rating if module was passed
+    if (passed) {
+      recalculateAndUpdatePartner(partner.id, user.id).catch(console.error);
     }
 
     return NextResponse.json({ passed, score, progress });

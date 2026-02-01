@@ -2,11 +2,12 @@ import { getTranslations } from 'next-intl/server';
 import { getCurrentSession } from '@/lib/auth';
 import { getPartnerDeals, getUserCertifications, getPartnerCommissions } from '@/lib/redis';
 import { StatsCard } from '@/components/portal/dashboard/StatsCard';
-import { RatingDisplay } from '@/components/portal/dashboard/RatingDisplay';
+import { TierDisplay } from '@/components/portal/dashboard/TierDisplay';
+import { RatingFactorsCard } from '@/components/portal/dashboard/RatingFactorsCard';
 import { AlertsList } from '@/components/portal/dashboard/AlertsList';
 import { RecentDeals } from '@/components/portal/dashboard/RecentDeals';
 import { formatCurrency } from '@/lib/utils';
-import { Star, Award, DollarSign } from 'lucide-react';
+import { Trophy, Award, DollarSign } from 'lucide-react';
 
 interface DashboardPageProps {
   params: Promise<{ locale: string }>;
@@ -128,10 +129,11 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
       <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-3 sm:mb-4">
-            <Star className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-accent-orange)]" />
-            <h3 className="text-sm sm:text-base font-semibold text-[var(--color-text-primary)]">{t('stats.rating')}</h3>
+            <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-accent-orange)]" />
+            <h3 className="text-sm sm:text-base font-semibold text-[var(--color-text-primary)]">{t('stats.tier')}</h3>
           </div>
-          <RatingDisplay rating={partner.rating} size="lg" />
+          <TierDisplay tier={partner.tier} size="lg" />
+          <RatingFactorsCard className="mt-4 pt-4 border-t border-[var(--color-border)]" />
         </div>
 
         <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-6">

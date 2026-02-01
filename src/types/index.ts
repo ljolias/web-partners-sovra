@@ -181,6 +181,43 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
+// Rating Types
+export type RatingEventType =
+  | 'COPILOT_SESSION_COMPLETED'
+  | 'TRAINING_MODULE_COMPLETED'
+  | 'CERTIFICATION_EARNED'
+  | 'DEAL_CLOSED_WON'
+  | 'MEDDIC_SCORE_IMPROVED'
+  | 'DEAL_CLOSED_LOST_POOR_QUALIFICATION'
+  | 'CERTIFICATION_EXPIRED'
+  | 'LEGAL_EXPIRED'
+  | 'DEAL_STALE_30_DAYS'
+  | 'LOGIN_INACTIVE_30_DAYS';
+
+export interface RatingEvent {
+  id: string;
+  partnerId: string;
+  userId: string;
+  eventType: RatingEventType;
+  points: number;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface RatingCalculation {
+  partnerId: string;
+  totalScore: number;
+  tier: PartnerTier;
+  factors: {
+    dealQuality: number;
+    engagement: number;
+    certification: number;
+    compliance: number;
+    revenue: number;
+  };
+  calculatedAt: string;
+}
+
 // Form Types
 export interface DealFormData {
   companyName: string;
