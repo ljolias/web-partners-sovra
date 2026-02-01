@@ -1,13 +1,35 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { type LucideIcon } from 'lucide-react';
+import {
+  Briefcase,
+  TrendingUp,
+  CheckCircle,
+  DollarSign,
+  Award,
+  Star,
+  Users,
+  FileText,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const iconMap = {
+  briefcase: Briefcase,
+  'trending-up': TrendingUp,
+  'check-circle': CheckCircle,
+  'dollar-sign': DollarSign,
+  award: Award,
+  star: Star,
+  users: Users,
+  'file-text': FileText,
+} as const;
+
+type IconName = keyof typeof iconMap;
 
 interface StatsCardProps {
   title: string;
   value: string | number;
-  icon: LucideIcon;
+  iconName: IconName;
   trend?: {
     value: number;
     isPositive: boolean;
@@ -15,7 +37,7 @@ interface StatsCardProps {
   color?: 'indigo' | 'green' | 'yellow' | 'blue' | 'purple';
 }
 
-export function StatsCard({ title, value, icon: Icon, trend, color = 'indigo' }: StatsCardProps) {
+export function StatsCard({ title, value, iconName, trend, color = 'indigo' }: StatsCardProps) {
   const colors = {
     indigo: 'bg-indigo-50 text-indigo-600',
     green: 'bg-green-50 text-green-600',
@@ -23,6 +45,8 @@ export function StatsCard({ title, value, icon: Icon, trend, color = 'indigo' }:
     blue: 'bg-blue-50 text-blue-600',
     purple: 'bg-purple-50 text-purple-600',
   };
+
+  const Icon = iconMap[iconName];
 
   return (
     <motion.div

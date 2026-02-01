@@ -4,18 +4,20 @@ import { Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface RatingDisplayProps {
-  rating: number;
+  rating: number | string;
   maxRating?: number;
   showValue?: boolean;
   size?: 'sm' | 'md' | 'lg';
 }
 
 export function RatingDisplay({
-  rating,
+  rating: rawRating,
   maxRating = 5,
   showValue = true,
   size = 'md',
 }: RatingDisplayProps) {
+  const rating = typeof rawRating === 'string' ? parseFloat(rawRating) : rawRating;
+
   const sizes = {
     sm: 'h-4 w-4',
     md: 'h-5 w-5',

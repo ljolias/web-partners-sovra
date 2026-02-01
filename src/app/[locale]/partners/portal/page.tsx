@@ -1,5 +1,4 @@
 import { getTranslations } from 'next-intl/server';
-import { Briefcase, TrendingUp, Award, DollarSign, Star, CheckCircle } from 'lucide-react';
 import { getCurrentSession } from '@/lib/auth';
 import { getPartnerDeals, getUserCertifications, getPartnerCommissions } from '@/lib/redis';
 import { StatsCard } from '@/components/portal/dashboard/StatsCard';
@@ -8,6 +7,7 @@ import { AlertsList } from '@/components/portal/dashboard/AlertsList';
 import { RecentDeals } from '@/components/portal/dashboard/RecentDeals';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 import { formatCurrency } from '@/lib/utils';
+import { Star, Award, DollarSign } from 'lucide-react';
 
 interface DashboardPageProps {
   params: Promise<{ locale: string }>;
@@ -102,25 +102,25 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
         <StatsCard
           title={t('stats.totalDeals')}
           value={deals.length}
-          icon={Briefcase}
+          iconName="briefcase"
           color="indigo"
         />
         <StatsCard
           title={t('stats.activeDeals')}
           value={activeDeals.length}
-          icon={TrendingUp}
+          iconName="trending-up"
           color="blue"
         />
         <StatsCard
           title={t('stats.wonDeals')}
           value={wonDeals.length}
-          icon={CheckCircle}
+          iconName="check-circle"
           color="green"
         />
         <StatsCard
           title={t('stats.totalRevenue')}
           value={formatCurrency(totalRevenue)}
-          icon={DollarSign}
+          iconName="dollar-sign"
           color="purple"
         />
       </div>
