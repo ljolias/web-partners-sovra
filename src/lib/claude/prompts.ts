@@ -99,7 +99,76 @@ export const MEDDIC_DEFINITIONS = {
   },
 };
 
-export function buildSystemPrompt(deal: Deal, currentScores: MEDDICScores, locale: string): string {
+const governmentLevelLabels: Record<string, Record<string, string>> = {
+  es: {
+    municipality: 'Municipio',
+    province: 'Provincia / Estado',
+    nation: 'Nacional',
+  },
+  en: {
+    municipality: 'Municipality',
+    province: 'Province / State',
+    nation: 'National',
+  },
+  pt: {
+    municipality: 'Municipio',
+    province: 'Provincia / Estado',
+    nation: 'Nacional',
+  },
+};
+
+export function buildSystemPrompt(deal: Deal, locale: string): string {
+  const localeMessages = {
+    es: {
+      role: 'Eres un asistente experto en ventas a gobiernos y sector publico.',
+      context: 'Estas ayudando a un partner de Sovra a gestionar una oportunidad de venta con un cliente gubernamental.',
+      instructions: 'Ayuda al partner a entender mejor la oportunidad, responde preguntas sobre el proceso de venta a gobiernos, y proporciona consejos practicos para avanzar en el deal.',
+    },
+    en: {
+      role: 'You are an expert assistant in government and public sector sales.',
+      context: 'You are helping a Sovra partner manage a sales opportunity with a government client.',
+      instructions: 'Help the partner better understand the opportunity, answer questions about the government sales process, and provide practical advice to advance the deal.',
+    },
+    pt: {
+      role: 'Voce e um assistente especialista em vendas para governos e setor publico.',
+      context: 'Voce esta ajudando um parceiro da Sovra a gerenciar uma oportunidade de venda com um cliente governamental.',
+      instructions: 'Ajude o parceiro a entender melhor a oportunidade, responda perguntas sobre o processo de venda para governos e forneca conselhos praticos para avancar no deal.',
+    },
+  };
+
+  const messages = localeMessages[locale as keyof typeof localeMessages] || localeMessages.en;
+  const govLabels = governmentLevelLabels[locale] || governmentLevelLabels.en;
+
+  return `${messages.role}
+
+${messages.context}
+
+## Deal Information
+- Client: ${deal.clientName}
+- Country: ${deal.country}
+- Government Level: ${govLabels[deal.governmentLevel] || deal.governmentLevel}
+- Population: ${deal.population.toLocaleString()}
+- Contact: ${deal.contactName} (${deal.contactRole})
+- Email: ${deal.contactEmail}
+${deal.contactPhone ? `- Phone: ${deal.contactPhone}` : ''}
+- Lead Source: ${deal.partnerGeneratedLead ? 'Partner generated' : 'Sovra lead'}
+- Status: ${deal.status}
+- Description: ${deal.description || 'None'}
+
+## ${messages.instructions}
+
+Key areas to help with:
+- Understanding the government procurement process
+- Identifying key stakeholders and decision makers
+- Preparing for government RFPs and proposals
+- Pricing strategies for government clients
+- Building relationships with public sector contacts
+- Compliance and regulatory considerations
+`;
+}
+
+// Legacy function for MEDDIC scoring (kept for backward compatibility)
+export function buildMeddicSystemPrompt(deal: Deal, currentScores: MEDDICScores, locale: string): string {
   const localeMessages = {
     es: {
       role: 'Eres un Sales Coach experto en la metodología MEDDIC.',
@@ -125,12 +194,10 @@ export function buildSystemPrompt(deal: Deal, currentScores: MEDDICScores, local
 ${messages.context}
 
 ## Deal Information
-- Company: ${deal.companyName}
-- Domain: ${deal.companyDomain}
+- Client: ${deal.clientName}
+- Country: ${deal.country}
 - Contact: ${deal.contactName} (${deal.contactEmail})
-- Deal Value: ${deal.currency} ${deal.dealValue.toLocaleString()}
-- Stage: ${deal.stage}
-- Notes: ${deal.notes || 'None'}
+- Status: ${deal.status}
 
 ## Current MEDDIC Scores
 ${Object.entries(currentScores)

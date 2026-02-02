@@ -2,10 +2,9 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, MessageSquare, Clock, Mail, Phone, Globe } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Building2, MapPin, Users, FileText, Calendar } from 'lucide-react';
 import { Button, Badge, Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
-import { MEDDICDisplay } from './MEDDICDisplay';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
 import type { Deal } from '@/types';
 
 interface DealDetailProps {
@@ -13,24 +12,38 @@ interface DealDetailProps {
   locale: string;
 }
 
+const governmentLevelLabels: Record<string, string> = {
+  municipality: 'Municipio',
+  province: 'Provincia / Estado',
+  nation: 'Nacional',
+};
+
+const statusVariants: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
+  pending_approval: 'warning',
+  approved: 'success',
+  rejected: 'danger',
+  more_info: 'warning',
+  closed_won: 'success',
+  closed_lost: 'danger',
+};
+
+const statusLabels: Record<string, string> = {
+  pending_approval: 'Pendiente de Aprobacion',
+  approved: 'Aprobada',
+  rejected: 'Rechazada',
+  more_info: 'Mas Informacion Requerida',
+  closed_won: 'Cerrada Ganada',
+  closed_lost: 'Cerrada Perdida',
+};
+
 export function DealDetail({ deal, locale }: DealDetailProps) {
   const t = useTranslations('deals');
-  const tMeddic = useTranslations('meddic');
 
   const basePath = `/${locale}/partners/portal/deals`;
 
-  const stageVariants: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-    registered: 'default',
-    qualified: 'info',
-    proposal: 'info',
-    negotiation: 'warning',
-    closed_won: 'success',
-    closed_lost: 'danger',
+  const formatPopulation = (pop: number): string => {
+    return pop.toLocaleString();
   };
-
-  const daysUntilExpiry = Math.ceil(
-    (new Date(deal.exclusivityExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-  );
 
   return (
     <div className="space-y-6">
@@ -39,7 +52,7 @@ export function DealDetail({ deal, locale }: DealDetailProps) {
         <Link href={basePath}>
           <Button variant="ghost" size="sm">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {t('common.back')}
+            Volver
           </Button>
         </Link>
       </div>
@@ -52,39 +65,44 @@ export function DealDetail({ deal, locale }: DealDetailProps) {
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div>
-                  <CardTitle className="text-2xl">{deal.companyName}</CardTitle>
+                  <CardTitle className="text-2xl">{deal.clientName}</CardTitle>
                   <div className="mt-2 flex items-center gap-3">
-                    <Badge variant={stageVariants[deal.stage]}>
-                      {t(`stages.${deal.stage}`)}
+                    <Badge variant={statusVariants[deal.status]}>
+                      {statusLabels[deal.status]}
                     </Badge>
-                    <span className="text-lg font-semibold text-gray-900">
-                      {formatCurrency(deal.dealValue, deal.currency)}
+                    <span className="text-gray-500">
+                      {governmentLevelLabels[deal.governmentLevel]}
                     </span>
                   </div>
                 </div>
-                <Link href={`${basePath}/${deal.id}/copilot`}>
-                  <Button>
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    {t('detail.startCopilot')}
-                  </Button>
-                </Link>
+                {deal.status === 'approved' && (
+                  <Link href={`${basePath}/${deal.id}/quote`}>
+                    <Button>
+                      <FileText className="mr-2 h-4 w-4" />
+                      Crear Cotizacion
+                    </Button>
+                  </Link>
+                )}
               </div>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="flex items-center gap-3 text-gray-600">
-                  <Globe className="h-5 w-5 text-gray-400" />
-                  <span>{deal.companyDomain}</span>
+                  <MapPin className="h-5 w-5 text-gray-400" />
+                  <span>{deal.country}</span>
                 </div>
                 <div className="flex items-center gap-3 text-gray-600">
-                  <Clock className="h-5 w-5 text-gray-400" />
+                  <Users className="h-5 w-5 text-gray-400" />
+                  <span>{formatPopulation(deal.population)} habitantes</span>
+                </div>
+                <div className="flex items-center gap-3 text-gray-600">
+                  <Calendar className="h-5 w-5 text-gray-400" />
+                  <span>Creado: {formatDate(deal.createdAt, locale)}</span>
+                </div>
+                <div className="flex items-center gap-3 text-gray-600">
+                  <Building2 className="h-5 w-5 text-gray-400" />
                   <span>
-                    {t('detail.exclusivity', { date: formatDate(deal.exclusivityExpiresAt, locale) })}
-                    {daysUntilExpiry <= 30 && daysUntilExpiry > 0 && (
-                      <Badge variant="warning" className="ml-2">
-                        {daysUntilExpiry} days
-                      </Badge>
-                    )}
+                    {deal.partnerGeneratedLead ? 'Lead generado por partner' : 'Lead de Sovra'}
                   </span>
                 </div>
               </div>
@@ -94,11 +112,14 @@ export function DealDetail({ deal, locale }: DealDetailProps) {
           {/* Contact Info */}
           <Card>
             <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
+              <CardTitle>Informacion de Contacto</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <p className="font-medium text-gray-900">{deal.contactName}</p>
+                <div>
+                  <p className="font-medium text-gray-900">{deal.contactName}</p>
+                  <p className="text-sm text-gray-500">{deal.contactRole}</p>
+                </div>
                 <div className="flex items-center gap-3 text-gray-600">
                   <Mail className="h-4 w-4 text-gray-400" />
                   <a href={`mailto:${deal.contactEmail}`} className="hover:text-indigo-600">
@@ -117,27 +138,62 @@ export function DealDetail({ deal, locale }: DealDetailProps) {
             </CardContent>
           </Card>
 
-          {/* Notes */}
-          {deal.notes && (
+          {/* Description */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Descripcion de la Oportunidad</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="whitespace-pre-wrap text-gray-600">{deal.description}</p>
+            </CardContent>
+          </Card>
+
+          {/* Status Message */}
+          {deal.rejectionReason && (deal.status === 'rejected' || deal.status === 'more_info') && (
             <Card>
               <CardHeader>
-                <CardTitle>Notes</CardTitle>
+                <CardTitle>
+                  {deal.status === 'rejected' ? 'Razon del Rechazo' : 'Informacion Solicitada'}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="whitespace-pre-wrap text-gray-600">{deal.notes}</p>
+                <div className={`p-4 rounded-lg ${
+                  deal.status === 'rejected' ? 'bg-red-50 text-red-800' : 'bg-yellow-50 text-yellow-800'
+                }`}>
+                  <p>{deal.rejectionReason}</p>
+                </div>
               </CardContent>
             </Card>
           )}
         </div>
 
-        {/* Sidebar - MEDDIC */}
-        <div className="w-full lg:w-96">
+        {/* Sidebar */}
+        <div className="w-full lg:w-80">
           <Card>
             <CardHeader>
-              <CardTitle>{tMeddic('title')}</CardTitle>
+              <CardTitle>Estado</CardTitle>
             </CardHeader>
-            <CardContent>
-              <MEDDICDisplay scores={deal.meddic} />
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-500">Estado actual</p>
+                <Badge variant={statusVariants[deal.status]} className="mt-1">
+                  {statusLabels[deal.status]}
+                </Badge>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Ultimo cambio</p>
+                <p className="font-medium">{formatDate(deal.statusChangedAt, locale)}</p>
+              </div>
+              {deal.status === 'approved' && (
+                <div className="pt-4 border-t border-gray-200">
+                  <Link href={`${basePath}/${deal.id}/quote`}>
+                    <Button className="w-full">
+                      <FileText className="mr-2 h-4 w-4" />
+                      Crear Cotizacion
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

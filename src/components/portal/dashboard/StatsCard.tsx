@@ -10,6 +10,8 @@ import {
   Star,
   Users,
   FileText,
+  Clock,
+  Trophy,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -22,6 +24,8 @@ const iconMap = {
   star: Star,
   users: Users,
   'file-text': FileText,
+  clock: Clock,
+  trophy: Trophy,
 } as const;
 
 type IconName = keyof typeof iconMap;

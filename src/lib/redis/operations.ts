@@ -6,6 +6,9 @@ import type {
   Session,
   Deal,
   DealStage,
+  DealStatus,
+  Quote,
+  PricingConfig,
   TrainingModule,
   TrainingProgress,
   Certification,
@@ -126,9 +129,13 @@ export async function deleteSession(id: string): Promise<void> {
 export async function getDeal(id: string): Promise<Deal | null> {
   const deal = await redis.hgetall(keys.deal(id)) as Deal | null;
   if (!deal || !deal.id) return null;
-  // Parse MEDDIC if stored as string
-  if (typeof deal.meddic === 'string') {
-    deal.meddic = JSON.parse(deal.meddic);
+  // Parse population as number if stored as string
+  if (typeof deal.population === 'string') {
+    deal.population = parseInt(deal.population, 10);
+  }
+  // Parse boolean if stored as string
+  if (typeof deal.partnerGeneratedLead === 'string') {
+    deal.partnerGeneratedLead = deal.partnerGeneratedLead === 'true';
   }
   return deal;
 }
@@ -146,12 +153,7 @@ export async function getPartnerDeals(partnerId: string, limit = 50): Promise<De
 export async function createDeal(deal: Deal): Promise<void> {
   const pipeline = redis.pipeline();
 
-  // Store deal with MEDDIC as JSON string
-  const dealData = {
-    ...deal,
-    meddic: JSON.stringify(deal.meddic),
-  };
-  pipeline.hset(keys.deal(deal.id), toRedisHash(dealData));
+  pipeline.hset(keys.deal(deal.id), toRedisHash(deal));
 
   // Add to partner's deals sorted by creation time
   pipeline.zadd(keys.partnerDeals(deal.partnerId), {
@@ -159,11 +161,14 @@ export async function createDeal(deal: Deal): Promise<void> {
     member: deal.id,
   });
 
-  // Add to domain index for conflict checking
-  pipeline.sadd(keys.dealsByDomain(deal.companyDomain), deal.id);
+  // Add to all deals index
+  pipeline.zadd(keys.allDeals(), {
+    score: new Date(deal.createdAt).getTime(),
+    member: deal.id,
+  });
 
-  // Add to stage index
-  pipeline.sadd(keys.dealsByStage(deal.stage), deal.id);
+  // Add to status index
+  pipeline.sadd(keys.dealsByStatus(deal.status), deal.id);
 
   await pipeline.exec();
 }
@@ -174,23 +179,36 @@ export async function updateDeal(id: string, updates: Partial<Deal>): Promise<vo
 
   const pipeline = redis.pipeline();
 
-  // Handle MEDDIC serialization
   const updateData: Record<string, unknown> = { ...updates, updatedAt: new Date().toISOString() };
-  if (updates.meddic) {
-    updateData.meddic = JSON.stringify(updates.meddic);
-  }
 
   pipeline.hset(keys.deal(id), toRedisHash(updateData as Record<string, unknown>));
 
-  // Update stage index if changed
-  if (updates.stage && updates.stage !== deal.stage) {
-    pipeline.srem(keys.dealsByStage(deal.stage), id);
-    pipeline.sadd(keys.dealsByStage(updates.stage), id);
+  // Update status index if changed
+  if (updates.status && updates.status !== deal.status) {
+    pipeline.srem(keys.dealsByStatus(deal.status), id);
+    pipeline.sadd(keys.dealsByStatus(updates.status), id);
   }
 
   await pipeline.exec();
 }
 
+export async function getDealsByStatus(status: DealStatus): Promise<Deal[]> {
+  const dealIds = await redis.smembers<string[]>(keys.dealsByStatus(status));
+  if (!dealIds.length) return [];
+  const deals = await Promise.all(dealIds.map((id) => getDeal(id)));
+  return deals.filter((d): d is Deal => d !== null);
+}
+
+export async function getAllDeals(limit = 100): Promise<Deal[]> {
+  const dealIds = await redis.zrange<string[]>(keys.allDeals(), 0, limit - 1, {
+    rev: true,
+  });
+  if (!dealIds.length) return [];
+  const deals = await Promise.all(dealIds.map((id) => getDeal(id)));
+  return deals.filter((d): d is Deal => d !== null);
+}
+
+// Legacy function - kept for backward compatibility
 export async function checkDomainConflict(domain: string, excludeDealId?: string): Promise<string[]> {
   const existingDealIds = await redis.smembers<string[]>(keys.dealsByDomain(domain.toLowerCase()));
   if (excludeDealId) {
@@ -416,3 +434,136 @@ export async function createCommission(commission: Commission): Promise<void> {
 export async function updateCommission(id: string, updates: Partial<Commission>): Promise<void> {
   await redis.hset(keys.commission(id), toRedisHash(updates as Record<string, unknown>));
 }
+
+// ============ Quote Operations ============
+
+export async function getQuote(id: string): Promise<Quote | null> {
+  const quote = await redis.hgetall(keys.quote(id)) as Quote | null;
+  if (!quote || !quote.id) return null;
+  // Parse JSON fields
+  if (typeof quote.products === 'string') quote.products = JSON.parse(quote.products);
+  if (typeof quote.services === 'string') quote.services = JSON.parse(quote.services);
+  if (typeof quote.discounts === 'string') quote.discounts = JSON.parse(quote.discounts);
+  // Parse numbers
+  if (typeof quote.version === 'string') quote.version = parseInt(quote.version, 10);
+  if (typeof quote.subtotal === 'string') quote.subtotal = parseFloat(quote.subtotal);
+  if (typeof quote.totalDiscount === 'string') quote.totalDiscount = parseFloat(quote.totalDiscount);
+  if (typeof quote.total === 'string') quote.total = parseFloat(quote.total);
+  return quote;
+}
+
+export async function getDealQuotes(dealId: string): Promise<Quote[]> {
+  const quoteIds = await redis.zrange<string[]>(keys.dealQuotes(dealId), 0, -1, {
+    rev: true,
+  });
+  if (!quoteIds.length) return [];
+  const quotes = await Promise.all(quoteIds.map((id) => getQuote(id)));
+  return quotes.filter((q): q is Quote => q !== null);
+}
+
+export async function getPartnerQuotes(partnerId: string, limit = 50): Promise<Quote[]> {
+  const quoteIds = await redis.zrange<string[]>(keys.partnerQuotes(partnerId), 0, limit - 1, {
+    rev: true,
+  });
+  if (!quoteIds.length) return [];
+  const quotes = await Promise.all(quoteIds.map((id) => getQuote(id)));
+  return quotes.filter((q): q is Quote => q !== null);
+}
+
+export async function createQuote(quote: Quote): Promise<void> {
+  const pipeline = redis.pipeline();
+
+  const quoteData = {
+    ...quote,
+    products: JSON.stringify(quote.products),
+    services: JSON.stringify(quote.services),
+    discounts: JSON.stringify(quote.discounts),
+  };
+
+  pipeline.hset(keys.quote(quote.id), toRedisHash(quoteData));
+
+  // Add to deal's quotes sorted by version
+  pipeline.zadd(keys.dealQuotes(quote.dealId), {
+    score: quote.version,
+    member: quote.id,
+  });
+
+  // Add to partner's quotes sorted by creation time
+  pipeline.zadd(keys.partnerQuotes(quote.partnerId), {
+    score: new Date(quote.createdAt).getTime(),
+    member: quote.id,
+  });
+
+  await pipeline.exec();
+}
+
+export async function updateQuote(id: string, updates: Partial<Quote>): Promise<void> {
+  const updateData: Record<string, unknown> = { ...updates, updatedAt: new Date().toISOString() };
+
+  // Serialize nested objects
+  if (updates.products) updateData.products = JSON.stringify(updates.products);
+  if (updates.services) updateData.services = JSON.stringify(updates.services);
+  if (updates.discounts) updateData.discounts = JSON.stringify(updates.discounts);
+
+  await redis.hset(keys.quote(id), toRedisHash(updateData as Record<string, unknown>));
+}
+
+export async function getNextQuoteVersion(dealId: string): Promise<number> {
+  const quotes = await getDealQuotes(dealId);
+  if (!quotes.length) return 1;
+  return Math.max(...quotes.map(q => q.version)) + 1;
+}
+
+// ============ Pricing Config Operations ============
+
+const DEFAULT_PRICING_CONFIG: PricingConfig = {
+  sovraGov: {
+    tiers: [
+      { maxPopulation: 100000, pricePerInhabitant: 0.50 },
+      { maxPopulation: 250000, pricePerInhabitant: 0.40 },
+      { maxPopulation: 500000, pricePerInhabitant: 0.32 },
+      { maxPopulation: 1000000, pricePerInhabitant: 0.26 },
+      { maxPopulation: 2500000, pricePerInhabitant: 0.20 },
+      { maxPopulation: 5000000, pricePerInhabitant: 0.16 },
+      { maxPopulation: 10000000, pricePerInhabitant: 0.13 },
+    ],
+  },
+  sovraId: {
+    essentials: { monthlyLimit: 10000, monthlyPrice: 1000 },
+    professional: { monthlyLimit: 30000, monthlyPrice: 2000 },
+    enterprise: { monthlyLimit: 50000, monthlyPrice: 3000 },
+  },
+  services: {
+    walletImplementation: 5000,
+    integrationHourlyRate: 150,
+  },
+  discounts: {
+    bronze: { base: 5, leadBonus: 0 },
+    silver: { base: 20, leadBonus: 10 },
+    gold: { base: 25, leadBonus: 15 },
+    platinum: { base: 30, leadBonus: 20 },
+  },
+};
+
+export async function getPricingConfig(): Promise<PricingConfig> {
+  const config = await redis.get<string>(keys.pricingConfig());
+  if (!config) {
+    // Initialize with default config
+    await savePricingConfig(DEFAULT_PRICING_CONFIG);
+    return DEFAULT_PRICING_CONFIG;
+  }
+  return typeof config === 'string' ? JSON.parse(config) : config;
+}
+
+export async function savePricingConfig(config: PricingConfig): Promise<void> {
+  await redis.set(keys.pricingConfig(), JSON.stringify(config));
+}
+
+export async function updatePricingConfig(updates: Partial<PricingConfig>): Promise<PricingConfig> {
+  const current = await getPricingConfig();
+  const updated = { ...current, ...updates };
+  await savePricingConfig(updated);
+  return updated;
+}
+
+export { DEFAULT_PRICING_CONFIG };

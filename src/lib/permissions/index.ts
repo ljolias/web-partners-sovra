@@ -1,6 +1,6 @@
 // Role-Based Access Control (RBAC) System
 
-export type UserRole = 'admin' | 'sales' | 'viewer';
+export type UserRole = 'admin' | 'sales' | 'viewer' | 'sovra_admin';
 
 export type Permission =
   | 'deals:view'
@@ -8,7 +8,8 @@ export type Permission =
   | 'training:view'
   | 'legal:view'
   | 'commissions:view'
-  | 'team:view';
+  | 'team:view'
+  | 'sovra:manage';
 
 // Permissions granted to each role
 export const rolePermissions: Record<UserRole, Permission[]> = {
@@ -28,6 +29,9 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
   viewer: [
     'deals:view',
     'training:view',
+  ],
+  sovra_admin: [
+    'sovra:manage',
   ],
 };
 

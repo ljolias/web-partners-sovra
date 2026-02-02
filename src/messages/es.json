@@ -212,6 +212,67 @@
     "gold": "Oro",
     "platinum": "Platino"
   },
+  "quotes": {
+    "title": "Cotizaciones",
+    "newQuote": "Nueva Cotizacion",
+    "createQuote": "Crear Cotizacion",
+    "downloadPdf": "Descargar PDF",
+    "version": "Version {number}",
+    "products": {
+      "sovraGov": "SovraGov",
+      "sovraId": "SovraID"
+    },
+    "services": {
+      "title": "Servicios Profesionales",
+      "walletImplementation": "Implementacion Wallet",
+      "integrationHours": "Horas de Integracion"
+    },
+    "summary": {
+      "subtotal": "Subtotal",
+      "discount": "Descuento",
+      "total": "Total"
+    },
+    "notApproved": "Solo puedes crear cotizaciones para oportunidades aprobadas"
+  },
+  "dealStatus": {
+    "pending_approval": "Pendiente de Aprobacion",
+    "approved": "Aprobada",
+    "rejected": "Rechazada",
+    "more_info": "Mas Informacion Requerida",
+    "closed_won": "Cerrada Ganada",
+    "closed_lost": "Cerrada Perdida"
+  },
+  "governmentLevel": {
+    "municipality": "Municipio",
+    "province": "Provincia / Estado",
+    "nation": "Nacional"
+  },
+  "sovra": {
+    "admin": {
+      "title": "Sovra Admin",
+      "dashboard": "Panel de Administracion",
+      "approvals": "Aprobar Oportunidades",
+      "pricing": "Configurar Precios",
+      "settings": "Configuracion"
+    },
+    "approval": {
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "requestInfo": "Pedir mas informacion",
+      "rejectionReason": "Razon del rechazo",
+      "infoRequest": "Que informacion necesitas?",
+      "noPending": "No hay oportunidades pendientes"
+    },
+    "pricing": {
+      "title": "Configuracion de Precios",
+      "sovraGov": "SovraGov - Precios por Poblacion",
+      "sovraId": "SovraID - Planes",
+      "services": "Servicios Profesionales",
+      "discounts": "Descuentos por Tier",
+      "save": "Guardar Cambios",
+      "saved": "Cambios guardados"
+    }
+  },
   "rating": {
     "factorsTitle": "Factores de Calificacion",
     "factorsDescription": "Tu nivel de partner se calcula en base a estos factores clave.",

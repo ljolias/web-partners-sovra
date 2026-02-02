@@ -3,49 +3,99 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, MapPin, Users, Building2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { formatCurrency, formatDate, calculateMEDDICAverage } from '@/lib/utils';
-import type { Deal, DealStage } from '@/types';
+import { formatDate } from '@/lib/utils';
+import type { Deal, DealStatus } from '@/types';
 
 interface DealsListProps {
   deals: Deal[];
   locale: string;
 }
 
+const governmentLevelLabels: Record<string, string> = {
+  municipality: 'Municipio',
+  province: 'Provincia',
+  nation: 'Nacional',
+};
+
+// Helper to get display name (supports both old and new schema)
+const getDisplayName = (deal: Deal & { companyName?: string }): string => {
+  return deal.clientName || (deal as any).companyName || 'Sin nombre';
+};
+
+// Helper to get status/stage (supports both old and new schema)
+const getStatus = (deal: Deal & { stage?: string }): string => {
+  return deal.status || (deal as any).stage || 'pending_approval';
+};
+
 export function DealsList({ deals, locale }: DealsListProps) {
   const t = useTranslations('deals');
   const [search, setSearch] = useState('');
-  const [stageFilter, setStageFilter] = useState<DealStage | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<DealStatus | 'all'>('all');
 
   const basePath = `/${locale}/partners/portal/deals`;
 
-  const stageColors: Record<string, string> = {
-    registered: 'bg-[var(--color-neutral)]/10 text-[var(--color-neutral)] border-[var(--color-neutral)]/20',
-    qualified: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border-[var(--color-primary)]/20',
-    proposal: 'bg-[var(--color-accent-purple)]/10 text-[var(--color-accent-purple)] border-[var(--color-accent-purple)]/20',
-    negotiation: 'bg-[var(--color-accent-orange)]/10 text-[var(--color-accent-orange)] border-[var(--color-accent-orange)]/20',
-    closed_won: 'bg-[var(--color-accent-green)]/10 text-[var(--color-accent-green)] border-[var(--color-accent-green)]/20',
-    closed_lost: 'bg-red-500/10 text-red-500 border-red-500/20',
+  const statusColors: Record<string, string> = {
+    // New schema statuses
+    pending_approval: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
+    approved: 'bg-green-500/10 text-green-600 border-green-500/20',
+    rejected: 'bg-red-500/10 text-red-600 border-red-500/20',
+    more_info: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+    closed_won: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+    closed_lost: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
+    // Old schema stages (for backwards compatibility)
+    registered: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
+    qualified: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+    proposal: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+    negotiation: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+  };
+
+  const statusLabels: Record<string, string> = {
+    // New schema statuses
+    pending_approval: 'Pendiente',
+    approved: 'Aprobada',
+    rejected: 'Rechazada',
+    more_info: 'Mas Info',
+    closed_won: 'Ganada',
+    closed_lost: 'Perdida',
+    // Old schema stages (for backwards compatibility)
+    registered: 'Registrado',
+    qualified: 'Calificado',
+    proposal: 'Propuesta',
+    negotiation: 'Negociacion',
   };
 
   const filteredDeals = deals.filter((deal) => {
+    const displayName = getDisplayName(deal);
+    const contactName = deal.contactName || '';
+    const country = deal.country || (deal as any).companyDomain || '';
+    const status = getStatus(deal);
+
     const matchesSearch =
-      deal.companyName.toLowerCase().includes(search.toLowerCase()) ||
-      deal.contactName.toLowerCase().includes(search.toLowerCase());
-    const matchesStage = stageFilter === 'all' || deal.stage === stageFilter;
-    return matchesSearch && matchesStage;
+      displayName.toLowerCase().includes(search.toLowerCase()) ||
+      contactName.toLowerCase().includes(search.toLowerCase()) ||
+      country.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || status === statusFilter;
+    return matchesSearch && matchesStatus;
   });
 
-  const stages: (DealStage | 'all')[] = [
+  const statuses: (DealStatus | 'all')[] = [
     'all',
-    'registered',
-    'qualified',
-    'proposal',
-    'negotiation',
+    'pending_approval',
+    'approved',
+    'rejected',
+    'more_info',
     'closed_won',
     'closed_lost',
   ];
+
+  const formatPopulation = (pop: number | undefined): string => {
+    if (pop === undefined || pop === null) return 'N/A';
+    if (pop >= 1000000) return `${(pop / 1000000).toFixed(1)}M`;
+    if (pop >= 1000) return `${Math.round(pop / 1000)}K`;
+    return pop.toString();
+  };
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -74,17 +124,17 @@ export function DealsList({ deals, locale }: DealsListProps) {
           />
         </div>
         <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
-          {stages.map((stage) => (
+          {statuses.map((status) => (
             <button
-              key={stage}
-              onClick={() => setStageFilter(stage)}
+              key={status}
+              onClick={() => setStatusFilter(status)}
               className={`whitespace-nowrap rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all ${
-                stageFilter === stage
+                statusFilter === status
                   ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20'
                   : 'bg-[var(--color-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)]'
               }`}
             >
-              {stage === 'all' ? t('common.all') : t(`stages.${stage}`)}
+              {status === 'all' ? t('common.all') : statusLabels[status]}
             </button>
           ))}
         </div>
@@ -97,49 +147,89 @@ export function DealsList({ deals, locale }: DealsListProps) {
         </div>
       ) : (
         <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredDeals.map((deal, index) => (
-            <motion.div
-              key={deal.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <Link href={`${basePath}/${deal.id}`}>
-                <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-5 h-full transition-all hover:border-[var(--color-border-hover)] hover:bg-[var(--color-surface-hover)]">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-sm sm:text-base text-[var(--color-text-primary)] truncate">
-                        {deal.companyName}
-                      </h3>
-                      <p className="text-xs sm:text-sm text-[var(--color-text-secondary)] truncate">{deal.contactName}</p>
-                    </div>
-                    <span className={`text-xs px-2 py-1 rounded-full border shrink-0 ${stageColors[deal.stage]}`}>
-                      {t(`stages.${deal.stage}`)}
-                    </span>
-                  </div>
+          {filteredDeals.map((deal, index) => {
+            const displayName = getDisplayName(deal);
+            const status = getStatus(deal);
+            const hasNewSchema = 'population' in deal && deal.population !== undefined;
 
-                  <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2">
-                    <div className="flex justify-between text-xs sm:text-sm">
-                      <span className="text-[var(--color-text-secondary)]">Value</span>
-                      <span className="font-medium text-[var(--color-text-primary)]">
-                        {formatCurrency(deal.dealValue, deal.currency)}
+            return (
+              <motion.div
+                key={deal.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <Link href={`${basePath}/${deal.id}`}>
+                  <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-5 h-full transition-all hover:border-[var(--color-border-hover)] hover:bg-[var(--color-surface-hover)]">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm sm:text-base text-[var(--color-text-primary)] truncate">
+                          {displayName}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-[var(--color-text-secondary)] truncate">
+                          {hasNewSchema
+                            ? governmentLevelLabels[deal.governmentLevel] || deal.governmentLevel
+                            : (deal as any).companyDomain || deal.contactEmail
+                          }
+                        </p>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded-full border shrink-0 ${statusColors[status] || statusColors.pending_approval}`}>
+                        {statusLabels[status] || status}
                       </span>
                     </div>
-                    <div className="flex justify-between text-xs sm:text-sm">
-                      <span className="text-[var(--color-text-secondary)]">MEDDIC</span>
-                      <span className="font-medium text-[var(--color-text-primary)]">
-                        {calculateMEDDICAverage(deal.meddic).toFixed(1)}/5
-                      </span>
+
+                    <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2">
+                      {hasNewSchema ? (
+                        <>
+                          <div className="flex justify-between text-xs sm:text-sm">
+                            <span className="text-[var(--color-text-secondary)] flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              Pais
+                            </span>
+                            <span className="font-medium text-[var(--color-text-primary)]">
+                              {deal.country || 'N/A'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-xs sm:text-sm">
+                            <span className="text-[var(--color-text-secondary)] flex items-center gap-1">
+                              <Users className="w-3 h-3" />
+                              Poblacion
+                            </span>
+                            <span className="font-medium text-[var(--color-text-primary)]">
+                              {formatPopulation(deal.population)} hab.
+                            </span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex justify-between text-xs sm:text-sm">
+                          <span className="text-[var(--color-text-secondary)] flex items-center gap-1">
+                            <Building2 className="w-3 h-3" />
+                            Contacto
+                          </span>
+                          <span className="font-medium text-[var(--color-text-primary)]">
+                            {deal.contactName}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-xs sm:text-sm">
+                        <span className="text-[var(--color-text-secondary)]">Creado</span>
+                        <span className="text-[var(--color-text-secondary)]">{formatDate(deal.createdAt, locale)}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-xs sm:text-sm">
-                      <span className="text-[var(--color-text-secondary)]">Created</span>
-                      <span className="text-[var(--color-text-secondary)]">{formatDate(deal.createdAt, locale)}</span>
-                    </div>
+
+                    {/* Quote button for approved deals */}
+                    {status === 'approved' && (
+                      <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+                        <span className="text-xs text-green-600 font-medium">
+                          Lista para cotizar
+                        </span>
+                      </div>
+                    )}
                   </div>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
+                </Link>
+              </motion.div>
+            );
+          })}
         </div>
       )}
     </div>

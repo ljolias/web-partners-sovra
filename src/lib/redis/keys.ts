@@ -16,6 +16,16 @@ export const keys = {
   partnerDeals: (partnerId: string) => `partner:${partnerId}:deals`,
   dealsByDomain: (domain: string) => `deals:by-domain:${domain.toLowerCase()}`,
   dealsByStage: (stage: string) => `deals:by-stage:${stage}`,
+  dealsByStatus: (status: string) => `deals:by-status:${status}`,
+  allDeals: () => `deals:all`,
+
+  // Quotes
+  quote: (id: string) => `quote:${id}`,
+  dealQuotes: (dealId: string) => `deal:${dealId}:quotes`,
+  partnerQuotes: (partnerId: string) => `partner:${partnerId}:quotes`,
+
+  // Pricing Configuration
+  pricingConfig: () => `pricing:config`,
 
   // Training & Certifications
   trainingModule: (id: string) => `training:module:${id}`,

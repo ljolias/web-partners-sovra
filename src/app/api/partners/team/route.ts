@@ -43,12 +43,11 @@ export async function GET() {
         // Calculate metrics
         const totalDeals = userDeals.length;
         const activeDeals = userDeals.filter(
-          (d) => !['closed_won', 'closed_lost'].includes(d.stage)
+          (d) => !['closed_won', 'closed_lost', 'rejected'].includes(d.status)
         ).length;
-        const wonDeals = userDeals.filter((d) => d.stage === 'closed_won').length;
-        const totalRevenue = userDeals
-          .filter((d) => d.stage === 'closed_won')
-          .reduce((sum, d) => sum + d.dealValue, 0);
+        const wonDeals = userDeals.filter((d) => d.status === 'closed_won').length;
+        // Note: totalRevenue would need to be calculated from quotes in the new schema
+        const totalRevenue = 0;
 
         // Calculate training completion rate
         const completedModules = Object.values(trainingProgress).filter(

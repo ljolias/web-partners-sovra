@@ -42,39 +42,30 @@ export function getTierFromScore(score: number): PartnerTier {
 
 /**
  * Calculate deal quality factor (0-100)
- * Based on MEDDIC scores and win rate
+ * Based on approval rate and win rate for government deals
  */
 function calculateDealQualityFactor(deals: Deal[]): number {
   if (deals.length === 0) return 50; // Neutral score for new partners
 
-  const closedDeals = deals.filter((d) =>
-    ['closed_won', 'closed_lost'].includes(d.stage)
+  // Calculate approval rate (how many deals get approved)
+  const approvedOrClosedDeals = deals.filter((d) =>
+    ['approved', 'closed_won', 'closed_lost'].includes(d.status)
   );
+  const approvalRate = deals.length > 0 ? approvedOrClosedDeals.length / deals.length : 0;
 
-  // Calculate win rate
-  const wonDeals = closedDeals.filter((d) => d.stage === 'closed_won');
+  // Calculate win rate for closed deals
+  const closedDeals = deals.filter((d) =>
+    ['closed_won', 'closed_lost'].includes(d.status)
+  );
+  const wonDeals = closedDeals.filter((d) => d.status === 'closed_won');
   const winRate = closedDeals.length > 0 ? wonDeals.length / closedDeals.length : 0;
 
-  // Calculate average MEDDIC score
-  const meddicScores = deals.map((d) => {
-    const meddic = d.meddic;
-    const total =
-      meddic.metrics +
-      meddic.economicBuyer +
-      meddic.decisionCriteria +
-      meddic.decisionProcess +
-      meddic.identifyPain +
-      meddic.champion;
-    return (total / 30) * 100; // Max score is 30 (6 factors x 5)
-  });
+  // Calculate partner lead generation rate
+  const partnerLeads = deals.filter((d) => d.partnerGeneratedLead).length;
+  const leadGenerationRate = deals.length > 0 ? partnerLeads / deals.length : 0;
 
-  const avgMeddic =
-    meddicScores.length > 0
-      ? meddicScores.reduce((sum, s) => sum + s, 0) / meddicScores.length
-      : 50;
-
-  // Weighted combination: 60% MEDDIC, 40% win rate
-  return avgMeddic * 0.6 + winRate * 100 * 0.4;
+  // Weighted combination: 40% approval rate, 40% win rate, 20% lead generation
+  return (approvalRate * 40) + (winRate * 40) + (leadGenerationRate * 20);
 }
 
 /**
@@ -158,25 +149,23 @@ async function calculateComplianceFactor(
 
 /**
  * Calculate revenue factor (0-100)
- * Based on closed deals and average value
+ * Based on closed deals (count-based since deal values are in quotes now)
  */
 function calculateRevenueFactor(deals: Deal[]): number {
-  const wonDeals = deals.filter((d) => d.stage === 'closed_won');
+  const wonDeals = deals.filter((d) => d.status === 'closed_won');
 
   if (wonDeals.length === 0) return 30; // Minimum score for new partners
 
   // Score based on number of won deals
-  let score = Math.min(wonDeals.length * 15, 60); // Max 60 from deal count
+  let score = Math.min(wonDeals.length * 15, 70); // Max 70 from deal count
 
-  // Bonus for deal value (in USD equivalent, simplified)
-  const totalValue = wonDeals.reduce((sum, d) => sum + d.dealValue, 0);
-  const avgValue = totalValue / wonDeals.length;
+  // Bonus for larger populations (bigger government deals)
+  const avgPopulation = wonDeals.reduce((sum, d) => sum + d.population, 0) / wonDeals.length;
 
-  // Add bonus based on average deal value
-  if (avgValue >= 100000) score += 40;
-  else if (avgValue >= 50000) score += 30;
-  else if (avgValue >= 25000) score += 20;
-  else if (avgValue >= 10000) score += 10;
+  // Add bonus based on average population served
+  if (avgPopulation >= 1000000) score += 30;
+  else if (avgPopulation >= 500000) score += 20;
+  else if (avgPopulation >= 100000) score += 10;
 
   return Math.min(100, score);
 }

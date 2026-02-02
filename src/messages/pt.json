@@ -212,6 +212,67 @@
     "gold": "Ouro",
     "platinum": "Platina"
   },
+  "quotes": {
+    "title": "Cotacoes",
+    "newQuote": "Nova Cotacao",
+    "createQuote": "Criar Cotacao",
+    "downloadPdf": "Baixar PDF",
+    "version": "Versao {number}",
+    "products": {
+      "sovraGov": "SovraGov",
+      "sovraId": "SovraID"
+    },
+    "services": {
+      "title": "Servicos Profissionais",
+      "walletImplementation": "Implementacao Wallet",
+      "integrationHours": "Horas de Integracao"
+    },
+    "summary": {
+      "subtotal": "Subtotal",
+      "discount": "Desconto",
+      "total": "Total"
+    },
+    "notApproved": "Voce so pode criar cotacoes para oportunidades aprovadas"
+  },
+  "dealStatus": {
+    "pending_approval": "Pendente de Aprovacao",
+    "approved": "Aprovada",
+    "rejected": "Rejeitada",
+    "more_info": "Mais Informacoes Necessarias",
+    "closed_won": "Fechada Ganha",
+    "closed_lost": "Fechada Perdida"
+  },
+  "governmentLevel": {
+    "municipality": "Municipio",
+    "province": "Provincia / Estado",
+    "nation": "Nacional"
+  },
+  "sovra": {
+    "admin": {
+      "title": "Sovra Admin",
+      "dashboard": "Painel de Administracao",
+      "approvals": "Aprovar Oportunidades",
+      "pricing": "Configurar Precos",
+      "settings": "Configuracoes"
+    },
+    "approval": {
+      "approve": "Aprovar",
+      "reject": "Rejeitar",
+      "requestInfo": "Pedir mais informacoes",
+      "rejectionReason": "Motivo da rejeicao",
+      "infoRequest": "Que informacao voce precisa?",
+      "noPending": "Nenhuma oportunidade pendente"
+    },
+    "pricing": {
+      "title": "Configuracao de Precos",
+      "sovraGov": "SovraGov - Precos por Populacao",
+      "sovraId": "SovraID - Planos",
+      "services": "Servicos Profissionais",
+      "discounts": "Descontos por Nivel",
+      "save": "Salvar Alteracoes",
+      "saved": "Alteracoes salvas"
+    }
+  },
   "rating": {
     "factorsTitle": "Fatores de Classificacao",
     "factorsDescription": "Seu nivel de parceiro e calculado com base nesses fatores principais.",

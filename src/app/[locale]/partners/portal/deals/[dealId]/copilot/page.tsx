@@ -3,12 +3,11 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button, Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 import { CopilotChat } from '@/components/portal/copilot/CopilotChat';
-import { MEDDICDisplay } from '@/components/portal/deals/MEDDICDisplay';
-import type { Deal, MEDDICScores } from '@/types';
+import type { Deal } from '@/types';
 
 interface CopilotPageProps {
   params: Promise<{ locale: string; dealId: string }>;
@@ -18,7 +17,6 @@ export default function CopilotPage({ params }: CopilotPageProps) {
   const { locale, dealId } = use(params);
   const router = useRouter();
   const t = useTranslations('copilot');
-  const tMeddic = useTranslations('meddic');
   const [deal, setDeal] = useState<Deal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -41,25 +39,6 @@ export default function CopilotPage({ params }: CopilotPageProps) {
 
     fetchDeal();
   }, [dealId, locale, router]);
-
-  const handleScoreUpdate = async (scores: Partial<MEDDICScores>) => {
-    if (!deal) return;
-
-    try {
-      const res = await fetch(`/api/partners/deals/${dealId}/meddic`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(scores),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setDeal(data.deal);
-      }
-    } catch (error) {
-      console.error('Failed to update scores:', error);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -85,24 +64,43 @@ export default function CopilotPage({ params }: CopilotPageProps) {
         </Link>
         <div>
           <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
-          <p className="text-sm text-gray-500">{deal.companyName}</p>
+          <p className="text-sm text-gray-500">{deal.clientName}</p>
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Chat */}
         <div className="lg:col-span-2">
-          <CopilotChat deal={deal} onScoreUpdate={handleScoreUpdate} />
+          <CopilotChat deal={deal} />
         </div>
 
-        {/* MEDDIC Sidebar */}
+        {/* Deal Info Sidebar */}
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>{tMeddic('title')}</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="w-5 h-5" />
+                Informacion del Deal
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <MEDDICDisplay scores={deal.meddic} />
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-500">Cliente</p>
+                <p className="font-medium">{deal.clientName}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Pais</p>
+                <p className="font-medium">{deal.country}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Poblacion</p>
+                <p className="font-medium">{deal.population.toLocaleString()} habitantes</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Contacto</p>
+                <p className="font-medium">{deal.contactName}</p>
+                <p className="text-sm text-gray-600">{deal.contactRole}</p>
+              </div>
             </CardContent>
           </Card>
         </div>

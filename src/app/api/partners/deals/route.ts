@@ -4,23 +4,23 @@ import { requireSession } from '@/lib/auth';
 import {
   getPartnerDeals,
   createDeal,
-  checkDomainConflict,
   hasValidCertification,
   hasSignedRequiredDocs,
   generateId,
 } from '@/lib/redis';
-import { normalizeDomain } from '@/lib/utils';
-import type { Deal, MEDDICScores } from '@/types';
+import type { Deal, GovernmentLevel } from '@/types';
 
 const dealSchema = z.object({
-  companyName: z.string().min(1, 'Company name is required'),
-  companyDomain: z.string().min(1, 'Company domain is required'),
+  clientName: z.string().min(1, 'Client name is required'),
+  country: z.string().min(1, 'Country is required'),
+  governmentLevel: z.enum(['municipality', 'province', 'nation']),
+  population: z.number().positive('Population must be positive'),
   contactName: z.string().min(1, 'Contact name is required'),
+  contactRole: z.string().min(1, 'Contact role is required'),
   contactEmail: z.string().email('Invalid email address'),
-  contactPhone: z.string().optional().default(''),
-  dealValue: z.number().positive('Deal value must be positive'),
-  currency: z.enum(['USD', 'EUR', 'BRL']).default('USD'),
-  notes: z.string().optional().default(''),
+  contactPhone: z.string().optional(),
+  description: z.string().min(1, 'Description is required'),
+  partnerGeneratedLead: z.boolean().default(false),
 });
 
 export async function GET() {
@@ -72,47 +72,36 @@ export async function POST(request: NextRequest) {
     }
 
     const data = validation.data;
-    const normalizedDomain = normalizeDomain(data.companyDomain);
-
-    // Check for domain conflicts
-    const conflictingDeals = await checkDomainConflict(normalizedDomain);
-    if (conflictingDeals.length > 0) {
-      return NextResponse.json(
-        { error: 'This domain is already registered by another partner' },
-        { status: 409 }
-      );
-    }
-
-    const now = new Date();
-    const exclusivityDate = new Date(now);
-    exclusivityDate.setDate(exclusivityDate.getDate() + 90);
-
-    const defaultMEDDIC: MEDDICScores = {
-      metrics: 1,
-      economicBuyer: 1,
-      decisionCriteria: 1,
-      decisionProcess: 1,
-      identifyPain: 1,
-      champion: 1,
-    };
+    const now = new Date().toISOString();
 
     const deal: Deal = {
       id: generateId(),
       partnerId: partner.id,
-      companyName: data.companyName,
-      companyDomain: normalizedDomain,
+
+      // Client
+      clientName: data.clientName,
+      country: data.country,
+      governmentLevel: data.governmentLevel as GovernmentLevel,
+      population: data.population,
+
+      // Contact
       contactName: data.contactName,
+      contactRole: data.contactRole,
       contactEmail: data.contactEmail,
       contactPhone: data.contactPhone,
-      dealValue: data.dealValue,
-      currency: data.currency,
-      stage: 'registered',
-      notes: data.notes,
-      meddic: defaultMEDDIC,
-      exclusivityExpiresAt: exclusivityDate.toISOString(),
+
+      // Opportunity
+      description: data.description,
+      partnerGeneratedLead: data.partnerGeneratedLead,
+
+      // Status
+      status: 'pending_approval',
+      statusChangedAt: now,
+
+      // Metadata
       createdBy: user.id,
-      createdAt: now.toISOString(),
-      updatedAt: now.toISOString(),
+      createdAt: now,
+      updatedAt: now,
     };
 
     await createDeal(deal);

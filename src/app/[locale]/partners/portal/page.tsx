@@ -31,11 +31,11 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
     getPartnerCommissions(partner.id),
   ]);
 
-  const activeDeals = deals.filter(
-    (d) => !['closed_won', 'closed_lost'].includes(d.stage)
+  const pendingDeals = deals.filter(
+    (d) => d.status === 'pending_approval' || d.status === 'more_info'
   );
-  const wonDeals = deals.filter((d) => d.stage === 'closed_won');
-  const totalRevenue = wonDeals.reduce((sum, d) => sum + d.dealValue, 0);
+  const approvedDeals = deals.filter((d) => d.status === 'approved');
+  const wonDeals = deals.filter((d) => d.status === 'closed_won');
   const activeCerts = certifications.filter(
     (c) => c.status === 'active' && new Date(c.expiresAt) > new Date()
   );
@@ -60,29 +60,15 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
     }
   });
 
-  // Check for expiring deal exclusivity
-  activeDeals.forEach((deal) => {
-    const daysUntilExpiry = Math.ceil(
-      (new Date(deal.exclusivityExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-    );
-    if (daysUntilExpiry <= 30 && daysUntilExpiry > 0) {
-      alerts.push({
-        id: `deal-${deal.id}`,
-        type: 'warning',
-        title: 'Exclusivity Expiring',
-        message: t('alerts.dealExpiring', { name: deal.companyName, days: daysUntilExpiry }),
-      });
-    }
-  });
-
-  const stageLabels = {
-    registered: tDeals('stages.registered'),
-    qualified: tDeals('stages.qualified'),
-    proposal: tDeals('stages.proposal'),
-    negotiation: tDeals('stages.negotiation'),
-    closed_won: tDeals('stages.closed_won'),
-    closed_lost: tDeals('stages.closed_lost'),
-  };
+  // Check for pending approvals
+  if (pendingDeals.length > 0) {
+    alerts.push({
+      id: 'pending-deals',
+      type: 'info',
+      title: 'Oportunidades Pendientes',
+      message: `Tienes ${pendingDeals.length} oportunidad(es) pendientes de aprobacion`,
+    });
+  }
 
   return (
     <div className="space-y-6 lg:space-y-8">
@@ -106,22 +92,22 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
           color="primary"
         />
         <StatsCard
-          title={t('stats.activeDeals')}
-          value={activeDeals.length}
-          iconName="trending-up"
-          color="purple"
+          title="Pendientes"
+          value={pendingDeals.length}
+          iconName="clock"
+          color="orange"
         />
         <StatsCard
-          title={t('stats.wonDeals')}
-          value={wonDeals.length}
+          title="Aprobadas"
+          value={approvedDeals.length}
           iconName="check-circle"
           color="green"
         />
         <StatsCard
-          title={t('stats.totalRevenue')}
-          value={formatCurrency(totalRevenue)}
-          iconName="dollar-sign"
-          color="orange"
+          title={t('stats.wonDeals')}
+          value={wonDeals.length}
+          iconName="trophy"
+          color="purple"
         />
       </div>
 
@@ -142,7 +128,7 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
             <h3 className="text-sm sm:text-base font-semibold text-[var(--color-text-primary)]">{t('stats.certifications')}</h3>
           </div>
           <div className="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)]">{activeCerts.length}</div>
-          <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">Active certifications</p>
+          <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">Certificaciones activas</p>
         </div>
 
         <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
@@ -153,7 +139,7 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
           <div className="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)]">
             {formatCurrency(pendingAmount)}
           </div>
-          <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">{pendingCommissions.length} pending</p>
+          <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">{pendingCommissions.length} pendientes</p>
         </div>
       </div>
 
@@ -163,9 +149,8 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
         <RecentDeals
           deals={deals}
           locale={locale}
-          viewAllLabel="View all deals"
+          viewAllLabel="Ver todas las oportunidades"
           emptyLabel={tDeals('list.empty')}
-          stageLabels={stageLabels}
         />
       </div>
     </div>

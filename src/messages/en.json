@@ -212,6 +212,67 @@
     "gold": "Gold",
     "platinum": "Platinum"
   },
+  "quotes": {
+    "title": "Quotes",
+    "newQuote": "New Quote",
+    "createQuote": "Create Quote",
+    "downloadPdf": "Download PDF",
+    "version": "Version {number}",
+    "products": {
+      "sovraGov": "SovraGov",
+      "sovraId": "SovraID"
+    },
+    "services": {
+      "title": "Professional Services",
+      "walletImplementation": "Wallet Implementation",
+      "integrationHours": "Integration Hours"
+    },
+    "summary": {
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "total": "Total"
+    },
+    "notApproved": "You can only create quotes for approved opportunities"
+  },
+  "dealStatus": {
+    "pending_approval": "Pending Approval",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "more_info": "More Info Required",
+    "closed_won": "Closed Won",
+    "closed_lost": "Closed Lost"
+  },
+  "governmentLevel": {
+    "municipality": "Municipality",
+    "province": "Province / State",
+    "nation": "National"
+  },
+  "sovra": {
+    "admin": {
+      "title": "Sovra Admin",
+      "dashboard": "Admin Dashboard",
+      "approvals": "Approve Opportunities",
+      "pricing": "Configure Pricing",
+      "settings": "Settings"
+    },
+    "approval": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "requestInfo": "Request more info",
+      "rejectionReason": "Rejection reason",
+      "infoRequest": "What information do you need?",
+      "noPending": "No pending opportunities"
+    },
+    "pricing": {
+      "title": "Pricing Configuration",
+      "sovraGov": "SovraGov - Population Pricing",
+      "sovraId": "SovraID - Plans",
+      "services": "Professional Services",
+      "discounts": "Tier Discounts",
+      "save": "Save Changes",
+      "saved": "Changes saved"
+    }
+  },
   "rating": {
     "factorsTitle": "Rating Factors",
     "factorsDescription": "Your partner tier is calculated based on these key factors.",

@@ -1,5 +1,5 @@
 // User Role Types
-export type UserRole = 'admin' | 'sales' | 'viewer';
+export type UserRole = 'admin' | 'sales' | 'viewer' | 'sovra_admin';
 
 // Partner Types
 export interface Partner {
@@ -25,8 +25,11 @@ export interface User {
   partnerId: string;
   email: string;
   name: string;
-  role: 'admin' | 'sales' | 'viewer';
+  role: UserRole;
   passwordHash: string;
+  // Google OAuth fields (for sovra_admin)
+  googleId?: string;
+  avatarUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -39,26 +42,50 @@ export interface Session {
   createdAt: string;
 }
 
-// Deal Types
+// Deal Types - Government Opportunities
 export interface Deal {
   id: string;
   partnerId: string;
-  companyName: string;
-  companyDomain: string;
+
+  // Client (Government)
+  clientName: string;           // "Gobierno de San Juan"
+  country: string;              // "Argentina"
+  governmentLevel: GovernmentLevel;
+  population: number;           // 800000
+
+  // Contact
   contactName: string;
+  contactRole: string;          // "Director de Innovación"
   contactEmail: string;
-  contactPhone: string;
-  dealValue: number;
-  currency: 'USD' | 'EUR' | 'BRL';
-  stage: DealStage;
-  notes: string;
-  meddic: MEDDICScores;
-  exclusivityExpiresAt: string;
-  createdBy: string; // ID del vendedor que creó el deal
+  contactPhone?: string;
+
+  // Opportunity
+  description: string;
+  partnerGeneratedLead: boolean; // Did the partner generate this lead?
+
+  // Status (Approval Workflow)
+  status: DealStatus;
+  statusChangedAt: string;
+  statusChangedBy?: string;     // userId of admin who changed status
+  rejectionReason?: string;
+
+  // Metadata
+  createdBy: string;            // ID of the sales rep who created the deal
   createdAt: string;
   updatedAt: string;
 }
 
+export type GovernmentLevel = 'municipality' | 'province' | 'nation';
+
+export type DealStatus =
+  | 'pending_approval'  // Submitted, waiting for Sovra
+  | 'approved'          // Approved, can create quotes
+  | 'rejected'          // Rejected
+  | 'more_info'         // Sovra requested more information
+  | 'closed_won'        // Deal closed won
+  | 'closed_lost';      // Deal closed lost
+
+// Legacy Deal Stage (kept for backward compatibility)
 export type DealStage =
   | 'registered'
   | 'qualified'
@@ -66,6 +93,96 @@ export type DealStage =
   | 'negotiation'
   | 'closed_won'
   | 'closed_lost';
+
+// Quote Types
+export interface Quote {
+  id: string;
+  dealId: string;
+  partnerId: string;
+  version: number;              // 1, 2, 3... for versions
+
+  // Selected products
+  products: QuoteProducts;
+
+  // Professional services
+  services: QuoteServices;
+
+  // Discounts
+  discounts: QuoteDiscounts;
+
+  // Totals
+  subtotal: number;
+  totalDiscount: number;
+  total: number;
+  currency: 'USD';
+
+  // PDF
+  pdfUrl?: string;
+  pdfGeneratedAt?: string;
+
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface QuoteProducts {
+  sovraGov: {
+    included: boolean;
+    populationUsed: number;
+    pricePerInhabitant: number;
+    annualPrice: number;
+  };
+  sovraId: {
+    included: boolean;
+    plan: SovraIdPlan;
+    monthlyLimit: number;
+    monthlyPrice: number;
+    annualPrice: number;
+  };
+}
+
+export type SovraIdPlan = 'essentials' | 'professional' | 'enterprise';
+
+export interface QuoteServices {
+  walletImplementation: boolean;
+  walletPrice: number;
+  integrationHours: number;
+  integrationPricePerHour: number;
+  integrationTotal: number;
+}
+
+export interface QuoteDiscounts {
+  partnerTier: PartnerTier;
+  partnerGeneratedLead: boolean;
+  baseDiscountPercent: number;
+  leadBonusPercent: number;
+  totalDiscountPercent: number;
+  discountAmount: number;
+}
+
+// Pricing Configuration Types
+export interface PricingConfig {
+  sovraGov: {
+    tiers: Array<{
+      maxPopulation: number;
+      pricePerInhabitant: number;
+    }>;
+  };
+  sovraId: {
+    essentials: { monthlyLimit: number; monthlyPrice: number };
+    professional: { monthlyLimit: number; monthlyPrice: number };
+    enterprise: { monthlyLimit: number; monthlyPrice: number };
+  };
+  services: {
+    walletImplementation: number;
+    integrationHourlyRate: number;
+  };
+  discounts: {
+    bronze: { base: number; leadBonus: number };
+    silver: { base: number; leadBonus: number };
+    gold: { base: number; leadBonus: number };
+    platinum: { base: number; leadBonus: number };
+  };
+}
 
 export interface MEDDICScores {
   metrics: number;
@@ -224,14 +341,24 @@ export interface RatingCalculation {
 
 // Form Types
 export interface DealFormData {
-  companyName: string;
-  companyDomain: string;
+  clientName: string;
+  country: string;
+  governmentLevel: GovernmentLevel;
+  population: number;
   contactName: string;
+  contactRole: string;
   contactEmail: string;
-  contactPhone: string;
-  dealValue: number;
-  currency: 'USD' | 'EUR' | 'BRL';
-  notes: string;
+  contactPhone?: string;
+  description: string;
+  partnerGeneratedLead: boolean;
+}
+
+export interface QuoteFormData {
+  sovraGovIncluded: boolean;
+  sovraIdIncluded: boolean;
+  sovraIdPlan: SovraIdPlan;
+  walletImplementation: boolean;
+  integrationHours: number;
 }
 
 export interface LoginFormData {

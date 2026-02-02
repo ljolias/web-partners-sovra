@@ -2,17 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireSession } from '@/lib/auth';
 import { getDeal, updateDeal } from '@/lib/redis';
-import { logRatingEvent, recalculateAndUpdatePartner } from '@/lib/rating';
 
 const updateSchema = z.object({
-  companyName: z.string().min(1).optional(),
+  clientName: z.string().min(1).optional(),
+  country: z.string().min(1).optional(),
+  governmentLevel: z.enum(['municipality', 'province', 'nation']).optional(),
+  population: z.number().positive().optional(),
   contactName: z.string().min(1).optional(),
+  contactRole: z.string().min(1).optional(),
   contactEmail: z.string().email().optional(),
   contactPhone: z.string().optional(),
-  dealValue: z.number().positive().optional(),
-  currency: z.enum(['USD', 'EUR', 'BRL']).optional(),
-  stage: z.enum(['registered', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost']).optional(),
-  notes: z.string().optional(),
+  description: z.string().optional(),
+  partnerGeneratedLead: z.boolean().optional(),
 });
 
 export async function GET(
@@ -61,6 +62,14 @@ export async function PUT(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
+    // Only allow updates for deals in pending_approval or more_info status
+    if (deal.status !== 'pending_approval' && deal.status !== 'more_info') {
+      return NextResponse.json(
+        { error: 'Cannot update deal in current status' },
+        { status: 400 }
+      );
+    }
+
     const body = await request.json();
     const validation = updateSchema.safeParse(body);
 
@@ -72,46 +81,15 @@ export async function PUT(
       );
     }
 
-    const previousStage = deal.stage;
-    await updateDeal(dealId, validation.data);
+    // If updating from more_info, reset to pending_approval
+    const updates = {
+      ...validation.data,
+      ...(deal.status === 'more_info' ? { status: 'pending_approval' as const } : {}),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await updateDeal(dealId, updates);
     const updatedDeal = await getDeal(dealId);
-
-    // Log stage change events
-    if (validation.data.stage && validation.data.stage !== previousStage) {
-      if (validation.data.stage === 'closed_won') {
-        await logRatingEvent(
-          partner.id,
-          user.id,
-          'DEAL_CLOSED_WON',
-          { dealId, dealValue: updatedDeal?.dealValue }
-        );
-        // Recalculate rating after winning a deal
-        await recalculateAndUpdatePartner(partner.id, user.id);
-      } else if (validation.data.stage === 'closed_lost') {
-        // Check if deal was poorly qualified (low MEDDIC score)
-        const meddic = deal.meddic;
-        const meddicTotal =
-          meddic.metrics +
-          meddic.economicBuyer +
-          meddic.decisionCriteria +
-          meddic.decisionProcess +
-          meddic.identifyPain +
-          meddic.champion;
-        const meddicAvg = meddicTotal / 6;
-
-        // If MEDDIC average is below 3, consider it poor qualification
-        if (meddicAvg < 3) {
-          await logRatingEvent(
-            partner.id,
-            user.id,
-            'DEAL_CLOSED_LOST_POOR_QUALIFICATION',
-            { dealId, meddicAvg }
-          );
-        }
-        // Recalculate rating after losing a deal
-        await recalculateAndUpdatePartner(partner.id, user.id);
-      }
-    }
 
     return NextResponse.json({ deal: updatedDeal });
   } catch (error) {

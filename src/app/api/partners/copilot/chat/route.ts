@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     const locale = acceptLanguage.split(',')[0].split('-')[0];
 
     // Build system prompt
-    const systemPrompt = buildSystemPrompt(deal, deal.meddic, locale);
+    const systemPrompt = buildSystemPrompt(deal, locale);
 
     // Build messages for Claude
     const claudeMessages = [

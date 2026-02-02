@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { ArrowRight, MapPin, Users, Building2 } from 'lucide-react';
 import type { Deal } from '@/types';
 
 interface RecentDealsProps {
@@ -10,25 +9,61 @@ interface RecentDealsProps {
   locale: string;
   viewAllLabel: string;
   emptyLabel: string;
-  stageLabels: Record<string, string>;
 }
+
+const statusColors: Record<string, string> = {
+  // New schema statuses
+  pending_approval: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
+  approved: 'bg-green-500/10 text-green-600 border-green-500/20',
+  rejected: 'bg-red-500/10 text-red-600 border-red-500/20',
+  more_info: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+  closed_won: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+  closed_lost: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
+  // Old schema stages (for backwards compatibility)
+  registered: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
+  qualified: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+  proposal: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+  negotiation: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+};
+
+const statusLabels: Record<string, string> = {
+  // New schema statuses
+  pending_approval: 'Pendiente',
+  approved: 'Aprobada',
+  rejected: 'Rechazada',
+  more_info: 'Mas Info',
+  closed_won: 'Ganada',
+  closed_lost: 'Perdida',
+  // Old schema stages (for backwards compatibility)
+  registered: 'Registrado',
+  qualified: 'Calificado',
+  proposal: 'Propuesta',
+  negotiation: 'Negociacion',
+};
 
 export function RecentDeals({
   deals,
   locale,
   viewAllLabel,
   emptyLabel,
-  stageLabels,
 }: RecentDealsProps) {
   const basePath = `/${locale}/partners/portal/deals`;
 
-  const stageColors: Record<string, string> = {
-    registered: 'bg-[var(--color-neutral)]/10 text-[var(--color-neutral)] border-[var(--color-neutral)]/20',
-    qualified: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border-[var(--color-primary)]/20',
-    proposal: 'bg-[var(--color-accent-purple)]/10 text-[var(--color-accent-purple)] border-[var(--color-accent-purple)]/20',
-    negotiation: 'bg-[var(--color-accent-orange)]/10 text-[var(--color-accent-orange)] border-[var(--color-accent-orange)]/20',
-    closed_won: 'bg-[var(--color-accent-green)]/10 text-[var(--color-accent-green)] border-[var(--color-accent-green)]/20',
-    closed_lost: 'bg-red-500/10 text-red-500 border-red-500/20',
+  const formatPopulation = (pop: number | undefined): string => {
+    if (pop === undefined || pop === null) return 'N/A';
+    if (pop >= 1000000) return `${(pop / 1000000).toFixed(1)}M`;
+    if (pop >= 1000) return `${Math.round(pop / 1000)}K`;
+    return pop.toString();
+  };
+
+  // Helper to get display name (supports both old and new schema)
+  const getDisplayName = (deal: Deal & { companyName?: string }): string => {
+    return deal.clientName || (deal as any).companyName || 'Sin nombre';
+  };
+
+  // Helper to get status/stage (supports both old and new schema)
+  const getStatus = (deal: Deal & { stage?: string }): string => {
+    return deal.status || (deal as any).stage || 'pending_approval';
   };
 
   if (deals.length === 0) {
@@ -42,23 +77,46 @@ export function RecentDeals({
   return (
     <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden">
       <div className="divide-y divide-[var(--color-border)]">
-        {deals.slice(0, 5).map((deal) => (
-          <Link
-            key={deal.id}
-            href={`${basePath}/${deal.id}`}
-            className="flex items-center justify-between p-3 sm:p-4 hover:bg-[var(--color-surface-hover)] transition-colors"
-          >
-            <div className="flex-1 min-w-0 mr-3">
-              <p className="font-medium text-sm sm:text-base text-[var(--color-text-primary)] truncate">{deal.companyName}</p>
-              <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">
-                {formatCurrency(deal.dealValue, deal.currency)} · {formatDate(deal.createdAt, locale)}
-              </p>
-            </div>
-            <span className={`text-xs px-2 py-1 rounded-full border whitespace-nowrap ${stageColors[deal.stage]}`}>
-              {stageLabels[deal.stage]}
-            </span>
-          </Link>
-        ))}
+        {deals.slice(0, 5).map((deal) => {
+          const status = getStatus(deal);
+          const hasNewSchema = 'population' in deal && deal.population !== undefined;
+
+          return (
+            <Link
+              key={deal.id}
+              href={`${basePath}/${deal.id}`}
+              className="flex items-center justify-between p-3 sm:p-4 hover:bg-[var(--color-surface-hover)] transition-colors"
+            >
+              <div className="flex-1 min-w-0 mr-3">
+                <p className="font-medium text-sm sm:text-base text-[var(--color-text-primary)] truncate">
+                  {getDisplayName(deal)}
+                </p>
+                <p className="text-xs sm:text-sm text-[var(--color-text-secondary)] flex items-center gap-2">
+                  {hasNewSchema ? (
+                    <>
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {deal.country || 'N/A'}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Users className="w-3 h-3" />
+                        {formatPopulation(deal.population)} hab.
+                      </span>
+                    </>
+                  ) : (
+                    <span className="flex items-center gap-1">
+                      <Building2 className="w-3 h-3" />
+                      {(deal as any).companyDomain || deal.contactEmail}
+                    </span>
+                  )}
+                </p>
+              </div>
+              <span className={`text-xs px-2 py-1 rounded-full border whitespace-nowrap ${statusColors[status] || statusColors.pending_approval}`}>
+                {statusLabels[status] || status}
+              </span>
+            </Link>
+          );
+        })}
       </div>
       {deals.length > 5 && (
         <div className="border-t border-[var(--color-border)] p-3 sm:p-4">

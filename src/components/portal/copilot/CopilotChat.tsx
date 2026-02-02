@@ -11,7 +11,7 @@ import type { Deal, MEDDICScores, CopilotMessage } from '@/types';
 
 interface CopilotChatProps {
   deal: Deal;
-  onScoreUpdate: (scores: Partial<MEDDICScores>) => void;
+  onScoreUpdate?: (scores: Partial<MEDDICScores>) => void;
 }
 
 export function CopilotChat({ deal, onScoreUpdate }: CopilotChatProps) {
@@ -58,7 +58,7 @@ export function CopilotChat({ deal, onScoreUpdate }: CopilotChatProps) {
   };
 
   const handleAcceptScore = (message: CopilotMessage) => {
-    if (message.suggestedScores) {
+    if (message.suggestedScores && onScoreUpdate) {
       onScoreUpdate(message.suggestedScores);
     }
   };
