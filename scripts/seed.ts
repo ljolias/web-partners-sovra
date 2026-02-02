@@ -44,31 +44,31 @@ async function seed() {
   await redis.zadd(`partners:by-tier:gold`, { score: 4.5, member: partnerId });
   console.log('Partner created:', partnerId);
 
-  // Create Admin User
-  const adminUserId = generateId();
+  // Create Demo User (with admin role by default, can be switched via Role Switcher)
+  const demoUserId = generateId();
   const passwordHash = await bcrypt.hash('demo123', 12);
-  const adminUser = {
-    id: adminUserId,
+  const demoUser = {
+    id: demoUserId,
     partnerId,
-    email: 'admin@sovra.io',
-    name: 'John Admin',
+    email: 'demo@sovra.io',
+    name: 'Demo User',
     role: 'admin',
     passwordHash,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
 
-  await redis.hset(`user:${adminUserId}`, adminUser);
-  await redis.set(`user:email:admin@sovra.io`, adminUserId);
-  await redis.sadd(`partner:${partnerId}:users`, adminUserId);
-  console.log('Admin user created:', adminUserId);
+  await redis.hset(`user:${demoUserId}`, demoUser);
+  await redis.set(`user:email:demo@sovra.io`, demoUserId);
+  await redis.sadd(`partner:${partnerId}:users`, demoUserId);
+  console.log('Demo user created:', demoUserId);
 
-  // Create Sales User
+  // Create additional Sales User for team dashboard demo
   const salesUserId = generateId();
   const salesUser = {
     id: salesUserId,
     partnerId,
-    email: 'sales@sovra.io',
+    email: 'sarah@acme.com',
     name: 'Sarah Sales',
     role: 'sales',
     passwordHash,
@@ -77,12 +77,13 @@ async function seed() {
   };
 
   await redis.hset(`user:${salesUserId}`, salesUser);
-  await redis.set(`user:email:sales@sovra.io`, salesUserId);
+  await redis.set(`user:email:sarah@acme.com`, salesUserId);
   await redis.sadd(`partner:${partnerId}:users`, salesUserId);
-  console.log('Sales user created:', salesUserId);
+  console.log('Sales team member created:', salesUserId);
 
-  // Keep backward compatibility with old email
-  const userId = adminUserId;
+  // Aliases for backward compatibility
+  const userId = demoUserId;
+  const adminUserId = demoUserId;
 
   // Create Certification
   const certId = generateId();
@@ -466,15 +467,10 @@ async function seed() {
   console.log('\n=== Seed Complete ===');
   console.log('Login credentials:');
   console.log('');
-  console.log('  Admin User:');
-  console.log('    Email: admin@sovra.io');
-  console.log('    Password: demo123');
+  console.log('  Email: demo@sovra.io');
+  console.log('  Password: demo123');
   console.log('');
-  console.log('  Sales User:');
-  console.log('    Email: sales@sovra.io');
-  console.log('    Password: demo123');
-  console.log('');
-  console.log('Use the Role Switcher button (bottom-right) to test different roles!');
+  console.log('Use the Role Switcher button (bottom-right) to switch between Admin and Sales roles!');
 }
 
 seed()

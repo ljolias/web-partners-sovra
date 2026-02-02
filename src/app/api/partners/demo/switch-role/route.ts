@@ -9,17 +9,6 @@ const switchRoleSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  // Only allow in demo mode or development
-  const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true' ||
-    process.env.NODE_ENV === 'development';
-
-  if (!isDemoMode) {
-    return NextResponse.json(
-      { error: 'Role switching is only available in demo mode' },
-      { status: 403 }
-    );
-  }
-
   try {
     const { user } = await requireSession();
 

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { NextIntlClientProvider, useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Globe, ArrowRight, Sun, Moon } from 'lucide-react';
+import { SovraLogo } from '@/components/ui/SovraLogo';
 
 const languages = [
   { code: 'es', name: 'Espanol', flag: '🇪🇸' },
@@ -151,15 +152,14 @@ function LoginForm({ locale }: { locale: string }) {
       >
         {/* Logo */}
         <div className="text-center mb-8 sm:mb-10">
-          <Link href={`/${locale}`} className="inline-block">
-            <motion.h1
-              className="text-3xl sm:text-4xl font-bold text-[var(--color-text-primary)]"
+          <Link href={`/${locale}`} className="inline-flex justify-center">
+            <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              Sovra
-            </motion.h1>
+              <SovraLogo size="xl" />
+            </motion.div>
           </Link>
           <motion.p
             className="mt-2 sm:mt-3 text-[var(--color-text-secondary)] text-xs sm:text-sm tracking-wide uppercase"
@@ -200,7 +200,7 @@ function LoginForm({ locale }: { locale: string }) {
                 required
                 autoComplete="email"
                 className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 text-[var(--color-text-primary)] placeholder-[var(--color-neutral-dark)] outline-none transition-all focus:border-[var(--color-primary)]/50 focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                placeholder="partner@company.com"
+                placeholder="demo@sovra.io"
               />
             </div>
 

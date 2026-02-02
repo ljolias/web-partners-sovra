@@ -23,14 +23,6 @@ export function RoleSwitcher({ currentRole }: RoleSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Only show in demo mode or development
-  const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true' ||
-    process.env.NODE_ENV === 'development';
-
-  if (!isDemoMode) {
-    return null;
-  }
-
   const handleRoleSwitch = async (newRole: UserRole) => {
     if (newRole === currentRole) {
       setIsOpen(false);
@@ -122,11 +114,6 @@ export function RoleSwitcher({ currentRole }: RoleSwitcherProps) {
                     )}
                   </button>
                 ))}
-              </div>
-              <div className="p-2 border-t border-[var(--color-border)] bg-amber-50 dark:bg-amber-900/20">
-                <p className="text-xs text-amber-700 dark:text-amber-400 px-2">
-                  Demo mode only
-                </p>
               </div>
             </motion.div>
           )}
