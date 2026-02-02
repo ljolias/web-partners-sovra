@@ -31,7 +31,7 @@ function LoginContent() {
       {/* Google Sign In Button */}
       <a
         href="/api/auth/google"
-        className="flex items-center justify-center gap-3 w-full px-6 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-all"
+        className="flex items-center justify-center gap-3 w-full px-6 py-3 bg-[var(--color-surface)] border-2 border-[var(--color-border)] rounded-xl text-[var(--color-text-primary)] font-medium hover:bg-[var(--color-surface-hover)] hover:border-[var(--color-border)] transition-all"
       >
         <Chrome className="w-5 h-5" />
         <span>Continuar con Google</span>
@@ -44,19 +44,19 @@ export default function SovraLoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <div className="max-w-md w-full mx-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+        <div className="bg-[var(--color-surface)] rounded-2xl shadow-2xl p-8">
           {/* Logo */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl mb-4">
               <span className="text-white font-bold text-2xl">S</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Sovra Admin</h1>
-            <p className="text-gray-500 mt-2">Panel de administracion interno</p>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Sovra Admin</h1>
+            <p className="text-[var(--color-text-secondary)] mt-2">Panel de administracion interno</p>
           </div>
 
           <Suspense fallback={
             <div className="animate-pulse">
-              <div className="h-12 bg-gray-200 rounded-xl"></div>
+              <div className="h-12 bg-[var(--color-surface-hover)] rounded-xl"></div>
             </div>
           }>
             <LoginContent />
@@ -73,7 +73,7 @@ export default function SovraLoginPage() {
           <div className="mt-8 text-center">
             <a
               href="/es/partners/login"
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             >
               Eres partner? Ir al Portal de Partners
             </a>

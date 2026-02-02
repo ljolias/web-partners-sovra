@@ -5,7 +5,16 @@ export const keys = {
   partner: (id: string) => `partner:${id}`,
   partnerUsers: (partnerId: string) => `partner:${partnerId}:users`,
   partnersByTier: (tier: string) => `partners:by-tier:${tier}`,
+  partnersByStatus: (status: string) => `partners:by-status:${status}`,
+  partnersByCountry: (country: string) => `partners:by-country:${country}`,
   allPartners: () => `partners:all`,
+
+  // Partner Credentials (SovraID)
+  partnerCredential: (id: string) => `credential:${id}`,
+  partnerCredentials: (partnerId: string) => `partner:${partnerId}:credentials`,
+  allCredentials: () => `credentials:all`,
+  credentialsByStatus: (status: string) => `credentials:by-status:${status}`,
+  credentialByEmail: (email: string) => `credential:email:${email.toLowerCase()}`,
 
   // Users & Sessions
   user: (id: string) => `user:${id}`,
@@ -70,6 +79,20 @@ export const keys = {
   ratingEvents: (partnerId: string) => `partner:${partnerId}:rating:events`,
   ratingCalculation: (partnerId: string) => `partner:${partnerId}:rating:calculation`,
   partnerLastLogin: (partnerId: string) => `partner:${partnerId}:last-login`,
+
+  // Training Courses (Admin-managed)
+  trainingCourse: (id: string) => `training:course:${id}`,
+  allTrainingCourses: () => `training:courses:all`,
+  publishedTrainingCourses: () => `training:courses:published`,
+  trainingCoursesByCategory: (category: string) => `training:courses:by-category:${category}`,
+  userCourseProgress: (userId: string) => `user:${userId}:courses:progress`,
+
+  // Audit Logs
+  auditLog: (id: string) => `audit:log:${id}`,
+  allAuditLogs: () => `audit:logs:all`,
+  auditLogsByEntity: (entityType: string, entityId: string) => `audit:logs:entity:${entityType}:${entityId}`,
+  auditLogsByAction: (action: string) => `audit:logs:by-action:${action}`,
+  auditLogsByActor: (actorId: string) => `audit:logs:by-actor:${actorId}`,
 };
 
 // TTL values in seconds

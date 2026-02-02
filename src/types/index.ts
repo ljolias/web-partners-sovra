@@ -4,20 +4,76 @@ export type UserRole = 'admin' | 'sales' | 'viewer' | 'sovra_admin';
 // Partner Types
 export interface Partner {
   id: string;
-  name: string;
   companyName: string;
-  email: string;
-  phone: string;
+  country: string;
   tier: PartnerTier;
+  status: 'active' | 'suspended';
+
+  // Primary contact
+  contactName: string;
+  contactEmail: string;
+  contactPhone?: string;
+
+  // Metrics
   rating: number;
-  status: 'active' | 'inactive' | 'pending';
-  certifications: string[];
-  legalDocsSignedAt: string | null;
+  totalDeals: number;
+  wonDeals: number;
+  totalRevenue: number;
+
+  // Branding
+  logoUrl?: string;
+
+  // Legacy fields (kept for backward compatibility)
+  name?: string;
+  email?: string;
+  phone?: string;
+  certifications?: string[];
+  legalDocsSignedAt?: string | null;
+
+  // Suspension tracking
+  suspendedAt?: string;
+  suspendedBy?: string;
+  suspendedReason?: string;
+
+  // Audit
   createdAt: string;
   updatedAt: string;
 }
 
 export type PartnerTier = 'bronze' | 'silver' | 'gold' | 'platinum';
+export type PartnerStatus = 'active' | 'suspended';
+
+// Partner Credential (SovraID)
+export interface PartnerCredential {
+  id: string;
+  partnerId: string;
+  userId?: string;
+
+  // Credential holder data
+  holderName: string;
+  holderEmail: string;
+  role: 'admin' | 'sales' | 'legal' | 'admin_secondary';
+
+  // SovraID integration
+  sovraIdCredentialId?: string;
+  qrCode?: string;
+
+  // Status
+  status: 'pending' | 'issued' | 'claimed' | 'active' | 'revoked';
+
+  // Dates
+  issuedAt?: string;
+  claimedAt?: string;
+  revokedAt?: string;
+  revokedBy?: string;
+  revokedReason?: string;
+
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CredentialStatus = 'pending' | 'issued' | 'claimed' | 'active' | 'revoked';
+export type CredentialRole = 'admin' | 'sales' | 'legal' | 'admin_secondary';
 
 // User Types
 export interface User {
@@ -193,7 +249,7 @@ export interface MEDDICScores {
   champion: number;
 }
 
-// Training Types
+// Training Types (Legacy module format)
 export interface TrainingModule {
   id: string;
   title: Record<string, string>; // locale -> title
@@ -212,6 +268,64 @@ export interface QuizQuestion {
   options: Record<string, string[]>;
   correctAnswer: number;
 }
+
+// Training Course (Admin-managed)
+export type LocalizedString = Record<string, string>; // { en: string, es: string, pt: string }
+
+export interface TrainingCourse {
+  id: string;
+
+  // Basic info
+  title: LocalizedString;
+  description: LocalizedString;
+  category: 'sales' | 'technical' | 'legal' | 'product';
+  level: 'basic' | 'intermediate' | 'advanced';
+  duration: number; // minutes
+
+  // Content
+  modules: CourseModule[];
+
+  // Configuration
+  isPublished: boolean;
+  isRequired: boolean;
+  requiredForTiers?: PartnerTier[];
+
+  // Certification
+  passingScore: number; // 0-100
+  certificateEnabled: boolean;
+
+  // Order
+  order: number;
+
+  // Audit
+  createdAt: string;
+  createdBy: string;
+  updatedAt: string;
+}
+
+export interface CourseModule {
+  id: string;
+  title: LocalizedString;
+  type: 'video' | 'document' | 'quiz';
+
+  // Content by type
+  videoUrl?: string;
+  documentUrl?: string;
+  quiz?: CourseQuizQuestion[];
+
+  duration: number; // minutes
+  order: number;
+}
+
+export interface CourseQuizQuestion {
+  id: string;
+  question: LocalizedString;
+  options: LocalizedString[];
+  correctAnswer: number; // index of correct option
+}
+
+export type CourseCategory = 'sales' | 'technical' | 'legal' | 'product';
+export type CourseLevel = 'basic' | 'intermediate' | 'advanced';
 
 export interface TrainingProgress {
   moduleId: string;
@@ -525,4 +639,61 @@ export interface TeamMemberSummary {
   trainingProgress: Record<string, TrainingProgress>;
   deals: Deal[];
   metrics: TeamMemberMetrics;
+}
+
+// ============ Audit Log Types ============
+
+export interface AuditLog {
+  id: string;
+
+  // Who
+  actorId: string;
+  actorName: string;
+  actorType: 'sovra_admin' | 'partner' | 'system';
+
+  // What
+  action: AuditAction;
+  entityType: 'partner' | 'deal' | 'credential' | 'document' | 'course' | 'pricing';
+  entityId: string;
+  entityName?: string;
+
+  // Details
+  changes?: Record<string, { old: unknown; new: unknown }>;
+  metadata?: Record<string, unknown>;
+
+  // When and where
+  timestamp: string;
+  ipAddress?: string;
+  userAgent?: string;
+}
+
+export type AuditAction =
+  | 'partner.created'
+  | 'partner.updated'
+  | 'partner.suspended'
+  | 'partner.reactivated'
+  | 'partner.deleted'
+  | 'partner.tier_changed'
+  | 'credential.issued'
+  | 'credential.revoked'
+  | 'deal.approved'
+  | 'deal.rejected'
+  | 'deal.info_requested'
+  | 'document.shared'
+  | 'document.verified'
+  | 'pricing.updated'
+  | 'course.created'
+  | 'course.updated'
+  | 'course.published';
+
+// ============ Partner Form Types ============
+
+export interface PartnerFormData {
+  companyName: string;
+  country: string;
+  tier: PartnerTier;
+  logoUrl?: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone?: string;
 }

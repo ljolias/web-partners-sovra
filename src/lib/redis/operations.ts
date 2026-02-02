@@ -2,6 +2,9 @@ import { redis } from './client';
 import { keys, TTL } from './keys';
 import type {
   Partner,
+  PartnerTier,
+  PartnerCredential,
+  CredentialStatus,
   User,
   Session,
   Deal,
@@ -11,6 +14,7 @@ import type {
   PricingConfig,
   TrainingModule,
   TrainingProgress,
+  TrainingCourse,
   Certification,
   LegalDocument,
   LegalSignature,
@@ -22,6 +26,8 @@ import type {
   DocumentStatus,
   DocumentAuditEvent,
   LegacyLegalDocument,
+  AuditLog,
+  AuditAction,
 } from '@/types';
 
 // Helper to convert objects to Redis-compatible format
@@ -49,20 +55,48 @@ export function generateId(): string {
 export async function getPartner(id: string): Promise<Partner | null> {
   const partner = await redis.hgetall(keys.partner(id)) as Partner | null;
   if (!partner || !partner.id) return null;
+  // Parse numbers
+  if (typeof partner.rating === 'string') partner.rating = parseFloat(partner.rating);
+  if (typeof partner.totalDeals === 'string') partner.totalDeals = parseInt(partner.totalDeals, 10);
+  if (typeof partner.wonDeals === 'string') partner.wonDeals = parseInt(partner.wonDeals, 10);
+  if (typeof partner.totalRevenue === 'string') partner.totalRevenue = parseFloat(partner.totalRevenue);
+  // Parse certifications if JSON
+  if (typeof partner.certifications === 'string' && partner.certifications) {
+    partner.certifications = JSON.parse(partner.certifications);
+  }
   return partner;
 }
 
 export async function createPartner(partner: Partner): Promise<void> {
   const pipeline = redis.pipeline();
-  pipeline.hset(keys.partner(partner.id), toRedisHash(partner));
+
+  const partnerData = {
+    ...partner,
+    certifications: partner.certifications ? JSON.stringify(partner.certifications) : '',
+  };
+
+  pipeline.hset(keys.partner(partner.id), toRedisHash(partnerData));
+
+  // Add to tier index
   pipeline.zadd(keys.partnersByTier(partner.tier), {
     score: partner.rating,
     member: partner.id,
   });
+
+  // Add to status index
+  pipeline.sadd(keys.partnersByStatus(partner.status), partner.id);
+
+  // Add to country index
+  if (partner.country) {
+    pipeline.sadd(keys.partnersByCountry(partner.country), partner.id);
+  }
+
+  // Add to all partners sorted by creation time
   pipeline.zadd(keys.allPartners(), {
     score: new Date(partner.createdAt).getTime(),
     member: partner.id,
   });
+
   await pipeline.exec();
 }
 
@@ -85,8 +119,182 @@ export async function getAllPartners(limit = 100): Promise<Partner[]> {
   return partners.filter((p): p is Partner => p !== null);
 }
 
+export async function getPartnersByStatus(status: 'active' | 'suspended'): Promise<Partner[]> {
+  const partnerIds = await redis.smembers<string[]>(keys.partnersByStatus(status));
+  if (!partnerIds.length) return [];
+  const partners = await Promise.all(partnerIds.map(id => getPartner(id)));
+  return partners.filter((p): p is Partner => p !== null);
+}
+
+export async function getPartnersByTier(tier: PartnerTier): Promise<Partner[]> {
+  const partnerIds = await redis.zrange<string[]>(keys.partnersByTier(tier), 0, -1);
+  if (!partnerIds.length) return [];
+  const partners = await Promise.all(partnerIds.map(id => getPartner(id)));
+  return partners.filter((p): p is Partner => p !== null);
+}
+
+export async function getPartnersByCountry(country: string): Promise<Partner[]> {
+  const partnerIds = await redis.smembers<string[]>(keys.partnersByCountry(country));
+  if (!partnerIds.length) return [];
+  const partners = await Promise.all(partnerIds.map(id => getPartner(id)));
+  return partners.filter((p): p is Partner => p !== null);
+}
+
 export async function updatePartner(id: string, updates: Partial<Partner>): Promise<void> {
-  await redis.hset(keys.partner(id), toRedisHash({ ...updates, updatedAt: new Date().toISOString() }));
+  const partner = await getPartner(id);
+  if (!partner) throw new Error('Partner not found');
+
+  const pipeline = redis.pipeline();
+
+  const updateData: Record<string, unknown> = { ...updates, updatedAt: new Date().toISOString() };
+  if (updates.certifications) updateData.certifications = JSON.stringify(updates.certifications);
+
+  pipeline.hset(keys.partner(id), toRedisHash(updateData as Record<string, unknown>));
+
+  // Update tier index if changed
+  if (updates.tier && updates.tier !== partner.tier) {
+    pipeline.zrem(keys.partnersByTier(partner.tier), id);
+    pipeline.zadd(keys.partnersByTier(updates.tier), {
+      score: updates.rating ?? partner.rating,
+      member: id,
+    });
+  }
+
+  // Update status index if changed
+  if (updates.status && updates.status !== partner.status) {
+    pipeline.srem(keys.partnersByStatus(partner.status), id);
+    pipeline.sadd(keys.partnersByStatus(updates.status), id);
+  }
+
+  // Update country index if changed
+  if (updates.country && updates.country !== partner.country) {
+    if (partner.country) {
+      pipeline.srem(keys.partnersByCountry(partner.country), id);
+    }
+    pipeline.sadd(keys.partnersByCountry(updates.country), id);
+  }
+
+  await pipeline.exec();
+}
+
+export async function suspendPartner(
+  id: string,
+  suspendedBy: string,
+  reason: string
+): Promise<void> {
+  await updatePartner(id, {
+    status: 'suspended',
+    suspendedAt: new Date().toISOString(),
+    suspendedBy,
+    suspendedReason: reason,
+  });
+}
+
+export async function reactivatePartner(id: string): Promise<void> {
+  const partner = await getPartner(id);
+  if (!partner) throw new Error('Partner not found');
+
+  const pipeline = redis.pipeline();
+
+  // Clear suspension fields and set active
+  pipeline.hset(keys.partner(id), toRedisHash({
+    status: 'active',
+    suspendedAt: '',
+    suspendedBy: '',
+    suspendedReason: '',
+    updatedAt: new Date().toISOString(),
+  }));
+
+  // Update status index
+  pipeline.srem(keys.partnersByStatus('suspended'), id);
+  pipeline.sadd(keys.partnersByStatus('active'), id);
+
+  await pipeline.exec();
+}
+
+export async function deletePartner(id: string): Promise<void> {
+  const partner = await getPartner(id);
+  if (!partner) throw new Error('Partner not found');
+
+  const pipeline = redis.pipeline();
+
+  // Delete partner hash
+  pipeline.del(keys.partner(id));
+
+  // Remove from all indexes
+  pipeline.zrem(keys.allPartners(), id);
+  pipeline.zrem(keys.partnersByTier(partner.tier), id);
+  pipeline.srem(keys.partnersByStatus(partner.status), id);
+  if (partner.country) {
+    pipeline.srem(keys.partnersByCountry(partner.country), id);
+  }
+
+  // Get and delete all partner deals
+  const dealIds = await redis.zrange<string[]>(keys.partnerDeals(id), 0, -1);
+  for (const dealId of dealIds) {
+    pipeline.del(`deal:${dealId}`);
+    pipeline.zrem(keys.allDeals(), dealId);
+  }
+  pipeline.del(keys.partnerDeals(id));
+
+  // Get and delete all partner credentials
+  const credentialIds = await redis.smembers<string[]>(keys.partnerCredentials(id));
+  for (const credId of credentialIds) {
+    pipeline.del(keys.partnerCredential(credId));
+  }
+  pipeline.del(keys.partnerCredentials(id));
+
+  // Delete partner users
+  const userIds = await redis.smembers<string[]>(keys.partnerUsers(id));
+  for (const userId of userIds) {
+    const user = await redis.hgetall(`user:${userId}`) as { email?: string } | null;
+    if (user?.email) {
+      pipeline.del(`user:email:${user.email}`);
+    }
+    pipeline.del(`user:${userId}`);
+  }
+  pipeline.del(keys.partnerUsers(id));
+
+  // Delete partner legal documents
+  pipeline.del(`partner:${id}:legal:documents`);
+  pipeline.del(`partner:${id}:signatures`);
+
+  // Delete partner certifications
+  pipeline.del(`partner:${id}:certifications`);
+
+  // Delete partner commissions
+  pipeline.del(`partner:${id}:commissions`);
+
+  await pipeline.exec();
+}
+
+export async function getPartnerStats(partnerId: string): Promise<{
+  totalDeals: number;
+  wonDeals: number;
+  lostDeals: number;
+  pendingDeals: number;
+  totalRevenue: number;
+  credentialsCount: number;
+  activeCredentials: number;
+}> {
+  const [deals, credentials] = await Promise.all([
+    getPartnerDeals(partnerId),
+    getPartnerCredentials(partnerId),
+  ]);
+
+  const wonDeals = deals.filter(d => d.status === 'closed_won').length;
+  const lostDeals = deals.filter(d => d.status === 'closed_lost').length;
+  const pendingDeals = deals.filter(d => !['closed_won', 'closed_lost', 'rejected'].includes(d.status)).length;
+
+  return {
+    totalDeals: deals.length,
+    wonDeals,
+    lostDeals,
+    pendingDeals,
+    totalRevenue: 0, // Would need quote data to calculate
+    credentialsCount: credentials.length,
+    activeCredentials: credentials.filter(c => c.status === 'active').length,
+  };
 }
 
 // ============ User Operations ============
@@ -811,4 +1019,367 @@ export async function getPartnerDocumentsRequiringAction(partnerId: string): Pro
   });
 
   return { pendingSignature, expiringSOon };
+}
+
+// ============ Partner Credentials (SovraID) Operations ============
+
+export async function getPartnerCredential(id: string): Promise<PartnerCredential | null> {
+  const credential = await redis.hgetall(keys.partnerCredential(id)) as PartnerCredential | null;
+  if (!credential || !credential.id) return null;
+  return credential;
+}
+
+export async function getPartnerCredentials(partnerId: string, limit = 100): Promise<PartnerCredential[]> {
+  const credentialIds = await redis.zrange<string[]>(keys.partnerCredentials(partnerId), 0, limit - 1, {
+    rev: true,
+  });
+  if (!credentialIds.length) return [];
+  const credentials = await Promise.all(credentialIds.map((id) => getPartnerCredential(id)));
+  return credentials.filter((c): c is PartnerCredential => c !== null);
+}
+
+export async function getCredentialsByStatus(status: CredentialStatus): Promise<PartnerCredential[]> {
+  const credentialIds = await redis.smembers<string[]>(keys.credentialsByStatus(status));
+  if (!credentialIds.length) return [];
+  const credentials = await Promise.all(credentialIds.map((id) => getPartnerCredential(id)));
+  return credentials.filter((c): c is PartnerCredential => c !== null);
+}
+
+export async function getCredentialByEmail(email: string): Promise<PartnerCredential | null> {
+  const credentialId = await redis.get<string>(keys.credentialByEmail(email));
+  if (!credentialId) return null;
+  return getPartnerCredential(credentialId);
+}
+
+export async function createPartnerCredential(credential: PartnerCredential): Promise<void> {
+  const pipeline = redis.pipeline();
+
+  pipeline.hset(keys.partnerCredential(credential.id), toRedisHash(credential));
+
+  // Add to partner's credentials sorted by creation time
+  pipeline.zadd(keys.partnerCredentials(credential.partnerId), {
+    score: new Date(credential.createdAt).getTime(),
+    member: credential.id,
+  });
+
+  // Add to all credentials index
+  pipeline.zadd(keys.allCredentials(), {
+    score: new Date(credential.createdAt).getTime(),
+    member: credential.id,
+  });
+
+  // Add to status index
+  pipeline.sadd(keys.credentialsByStatus(credential.status), credential.id);
+
+  // Add email index
+  pipeline.set(keys.credentialByEmail(credential.holderEmail), credential.id);
+
+  await pipeline.exec();
+}
+
+export async function updatePartnerCredential(id: string, updates: Partial<PartnerCredential>): Promise<void> {
+  const credential = await getPartnerCredential(id);
+  if (!credential) throw new Error('Credential not found');
+
+  const pipeline = redis.pipeline();
+
+  const updateData = { ...updates, updatedAt: new Date().toISOString() };
+  pipeline.hset(keys.partnerCredential(id), toRedisHash(updateData as Record<string, unknown>));
+
+  // Update status index if changed
+  if (updates.status && updates.status !== credential.status) {
+    pipeline.srem(keys.credentialsByStatus(credential.status), id);
+    pipeline.sadd(keys.credentialsByStatus(updates.status), id);
+  }
+
+  await pipeline.exec();
+}
+
+export async function revokePartnerCredential(
+  id: string,
+  revokedBy: string,
+  reason: string
+): Promise<void> {
+  await updatePartnerCredential(id, {
+    status: 'revoked',
+    revokedAt: new Date().toISOString(),
+    revokedBy,
+    revokedReason: reason,
+  });
+}
+
+export async function revokeAllPartnerCredentials(
+  partnerId: string,
+  revokedBy: string,
+  reason: string
+): Promise<void> {
+  const credentials = await getPartnerCredentials(partnerId);
+  const activeCredentials = credentials.filter(c => ['active', 'claimed', 'issued'].includes(c.status));
+
+  for (const credential of activeCredentials) {
+    await revokePartnerCredential(credential.id, revokedBy, reason);
+  }
+}
+
+// ============ Training Courses (Admin) Operations ============
+
+export async function getTrainingCourse(id: string): Promise<TrainingCourse | null> {
+  const course = await redis.hgetall(keys.trainingCourse(id)) as TrainingCourse | null;
+  if (!course || !course.id) return null;
+  // Parse JSON fields
+  if (typeof course.title === 'string') course.title = JSON.parse(course.title);
+  if (typeof course.description === 'string') course.description = JSON.parse(course.description);
+  if (typeof course.modules === 'string') course.modules = JSON.parse(course.modules);
+  if (typeof course.requiredForTiers === 'string' && course.requiredForTiers) {
+    course.requiredForTiers = JSON.parse(course.requiredForTiers as unknown as string);
+  }
+  // Parse booleans
+  if (typeof course.isPublished === 'string') course.isPublished = course.isPublished === 'true';
+  if (typeof course.isRequired === 'string') course.isRequired = course.isRequired === 'true';
+  if (typeof course.certificateEnabled === 'string') course.certificateEnabled = course.certificateEnabled === 'true';
+  // Parse numbers
+  if (typeof course.duration === 'string') course.duration = parseInt(course.duration, 10);
+  if (typeof course.passingScore === 'string') course.passingScore = parseInt(course.passingScore, 10);
+  if (typeof course.order === 'string') course.order = parseInt(course.order, 10);
+  return course;
+}
+
+export async function getAllTrainingCourses(): Promise<TrainingCourse[]> {
+  const courseIds = await redis.zrange<string[]>(keys.allTrainingCourses(), 0, -1, { rev: true });
+  if (!courseIds.length) return [];
+  const courses = await Promise.all(courseIds.map((id) => getTrainingCourse(id)));
+  return courses.filter((c): c is TrainingCourse => c !== null).sort((a, b) => a.order - b.order);
+}
+
+export async function getPublishedTrainingCourses(): Promise<TrainingCourse[]> {
+  const courseIds = await redis.smembers<string[]>(keys.publishedTrainingCourses());
+  if (!courseIds.length) return [];
+  const courses = await Promise.all(courseIds.map((id) => getTrainingCourse(id)));
+  return courses.filter((c): c is TrainingCourse => c !== null).sort((a, b) => a.order - b.order);
+}
+
+export async function getTrainingCoursesByCategory(category: string): Promise<TrainingCourse[]> {
+  const courseIds = await redis.smembers<string[]>(keys.trainingCoursesByCategory(category));
+  if (!courseIds.length) return [];
+  const courses = await Promise.all(courseIds.map((id) => getTrainingCourse(id)));
+  return courses.filter((c): c is TrainingCourse => c !== null).sort((a, b) => a.order - b.order);
+}
+
+export async function createTrainingCourse(course: TrainingCourse): Promise<void> {
+  const pipeline = redis.pipeline();
+
+  const courseData = {
+    ...course,
+    title: JSON.stringify(course.title),
+    description: JSON.stringify(course.description),
+    modules: JSON.stringify(course.modules),
+    requiredForTiers: course.requiredForTiers ? JSON.stringify(course.requiredForTiers) : '',
+  };
+
+  pipeline.hset(keys.trainingCourse(course.id), toRedisHash(courseData));
+
+  // Add to all courses sorted by order
+  pipeline.zadd(keys.allTrainingCourses(), {
+    score: course.order,
+    member: course.id,
+  });
+
+  // Add to category index
+  pipeline.sadd(keys.trainingCoursesByCategory(course.category), course.id);
+
+  // Add to published index if published
+  if (course.isPublished) {
+    pipeline.sadd(keys.publishedTrainingCourses(), course.id);
+  }
+
+  await pipeline.exec();
+}
+
+export async function updateTrainingCourse(id: string, updates: Partial<TrainingCourse>): Promise<void> {
+  const course = await getTrainingCourse(id);
+  if (!course) throw new Error('Course not found');
+
+  const pipeline = redis.pipeline();
+
+  const updateData: Record<string, unknown> = { ...updates, updatedAt: new Date().toISOString() };
+  if (updates.title) updateData.title = JSON.stringify(updates.title);
+  if (updates.description) updateData.description = JSON.stringify(updates.description);
+  if (updates.modules) updateData.modules = JSON.stringify(updates.modules);
+  if (updates.requiredForTiers) updateData.requiredForTiers = JSON.stringify(updates.requiredForTiers);
+
+  pipeline.hset(keys.trainingCourse(id), toRedisHash(updateData as Record<string, unknown>));
+
+  // Update category index if changed
+  if (updates.category && updates.category !== course.category) {
+    pipeline.srem(keys.trainingCoursesByCategory(course.category), id);
+    pipeline.sadd(keys.trainingCoursesByCategory(updates.category), id);
+  }
+
+  // Update published index if changed
+  if (updates.isPublished !== undefined && updates.isPublished !== course.isPublished) {
+    if (updates.isPublished) {
+      pipeline.sadd(keys.publishedTrainingCourses(), id);
+    } else {
+      pipeline.srem(keys.publishedTrainingCourses(), id);
+    }
+  }
+
+  // Update order in sorted set if changed
+  if (updates.order !== undefined && updates.order !== course.order) {
+    pipeline.zadd(keys.allTrainingCourses(), {
+      score: updates.order,
+      member: id,
+    });
+  }
+
+  await pipeline.exec();
+}
+
+export async function deleteTrainingCourse(id: string): Promise<void> {
+  const course = await getTrainingCourse(id);
+  if (!course) throw new Error('Course not found');
+
+  const pipeline = redis.pipeline();
+
+  pipeline.del(keys.trainingCourse(id));
+  pipeline.zrem(keys.allTrainingCourses(), id);
+  pipeline.srem(keys.trainingCoursesByCategory(course.category), id);
+  if (course.isPublished) {
+    pipeline.srem(keys.publishedTrainingCourses(), id);
+  }
+
+  await pipeline.exec();
+}
+
+export async function publishTrainingCourse(id: string): Promise<void> {
+  await updateTrainingCourse(id, { isPublished: true });
+}
+
+export async function unpublishTrainingCourse(id: string): Promise<void> {
+  await updateTrainingCourse(id, { isPublished: false });
+}
+
+// ============ Audit Log Operations ============
+
+export async function createAuditLog(log: AuditLog): Promise<void> {
+  const pipeline = redis.pipeline();
+
+  const logData = {
+    ...log,
+    changes: log.changes ? JSON.stringify(log.changes) : '',
+    metadata: log.metadata ? JSON.stringify(log.metadata) : '',
+  };
+
+  pipeline.hset(keys.auditLog(log.id), toRedisHash(logData));
+
+  // Add to all logs sorted by timestamp
+  pipeline.zadd(keys.allAuditLogs(), {
+    score: new Date(log.timestamp).getTime(),
+    member: log.id,
+  });
+
+  // Add to entity index
+  pipeline.zadd(keys.auditLogsByEntity(log.entityType, log.entityId), {
+    score: new Date(log.timestamp).getTime(),
+    member: log.id,
+  });
+
+  // Add to action index
+  pipeline.sadd(keys.auditLogsByAction(log.action), log.id);
+
+  // Add to actor index
+  if (log.actorId) {
+    pipeline.zadd(keys.auditLogsByActor(log.actorId), {
+      score: new Date(log.timestamp).getTime(),
+      member: log.id,
+    });
+  }
+
+  await pipeline.exec();
+}
+
+export async function getAuditLog(id: string): Promise<AuditLog | null> {
+  const log = await redis.hgetall(keys.auditLog(id)) as AuditLog | null;
+  if (!log || !log.id) return null;
+  // Parse JSON fields
+  if (typeof log.changes === 'string' && log.changes) log.changes = JSON.parse(log.changes);
+  if (typeof log.metadata === 'string' && log.metadata) log.metadata = JSON.parse(log.metadata);
+  return log;
+}
+
+export async function getAllAuditLogs(limit = 100, offset = 0): Promise<AuditLog[]> {
+  const logIds = await redis.zrange<string[]>(keys.allAuditLogs(), offset, offset + limit - 1, {
+    rev: true,
+  });
+  if (!logIds.length) return [];
+  const logs = await Promise.all(logIds.map((id) => getAuditLog(id)));
+  return logs.filter((l): l is AuditLog => l !== null);
+}
+
+export async function getAuditLogsByEntity(
+  entityType: string,
+  entityId: string,
+  limit = 50
+): Promise<AuditLog[]> {
+  const logIds = await redis.zrange<string[]>(
+    keys.auditLogsByEntity(entityType, entityId),
+    0,
+    limit - 1,
+    { rev: true }
+  );
+  if (!logIds.length) return [];
+  const logs = await Promise.all(logIds.map((id) => getAuditLog(id)));
+  return logs.filter((l): l is AuditLog => l !== null);
+}
+
+export async function getAuditLogsByAction(action: AuditAction, limit = 50): Promise<AuditLog[]> {
+  const logIds = await redis.smembers<string[]>(keys.auditLogsByAction(action));
+  if (!logIds.length) return [];
+  const logs = await Promise.all(logIds.map((id) => getAuditLog(id)));
+  return logs
+    .filter((l): l is AuditLog => l !== null)
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, limit);
+}
+
+export async function getAuditLogsByActor(actorId: string, limit = 50): Promise<AuditLog[]> {
+  const logIds = await redis.zrange<string[]>(keys.auditLogsByActor(actorId), 0, limit - 1, {
+    rev: true,
+  });
+  if (!logIds.length) return [];
+  const logs = await Promise.all(logIds.map((id) => getAuditLog(id)));
+  return logs.filter((l): l is AuditLog => l !== null);
+}
+
+// Helper to add audit log
+export async function addAuditLog(
+  action: AuditAction,
+  entityType: AuditLog['entityType'],
+  entityId: string,
+  actor: { id: string; name: string; type: AuditLog['actorType'] },
+  options?: {
+    entityName?: string;
+    changes?: AuditLog['changes'];
+    metadata?: AuditLog['metadata'];
+    ipAddress?: string;
+    userAgent?: string;
+  }
+): Promise<void> {
+  const log: AuditLog = {
+    id: generateId(),
+    actorId: actor.id,
+    actorName: actor.name,
+    actorType: actor.type,
+    action,
+    entityType,
+    entityId,
+    entityName: options?.entityName,
+    changes: options?.changes,
+    metadata: options?.metadata,
+    timestamp: new Date().toISOString(),
+    ipAddress: options?.ipAddress,
+    userAgent: options?.userAgent,
+  };
+
+  await createAuditLog(log);
 }

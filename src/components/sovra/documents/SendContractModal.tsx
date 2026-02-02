@@ -31,8 +31,8 @@ export function SendContractModal({ isOpen, onClose, partner, onSuccess }: SendC
   const [expirationDate, setExpirationDate] = useState('');
 
   // Signers
-  const [partnerSignerName, setPartnerSignerName] = useState(partner.name);
-  const [partnerSignerEmail, setPartnerSignerEmail] = useState(partner.email);
+  const [partnerSignerName, setPartnerSignerName] = useState(partner.contactName || partner.name || '');
+  const [partnerSignerEmail, setPartnerSignerEmail] = useState(partner.contactEmail || partner.email || '');
   const [sovraSignerName, setSovraSignerName] = useState('Legal Sovra');
   const [sovraSignerEmail, setSovraSignerEmail] = useState('legal@sovra.io');
 
@@ -48,8 +48,8 @@ export function SendContractModal({ isOpen, onClose, partner, onSuccess }: SendC
     setFile(null);
     setEffectiveDate('');
     setExpirationDate('');
-    setPartnerSignerName(partner.name);
-    setPartnerSignerEmail(partner.email);
+    setPartnerSignerName(partner.contactName || partner.name || '');
+    setPartnerSignerEmail(partner.contactEmail || partner.email || '');
     setSovraSignerName('Legal Sovra');
     setSovraSignerEmail('legal@sovra.io');
     setError('');

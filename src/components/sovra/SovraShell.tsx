@@ -18,6 +18,8 @@ import {
   Moon,
   ChevronDown,
   Globe,
+  GraduationCap,
+  Activity,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SovraLogo } from '@/components/ui/SovraLogo';
@@ -38,10 +40,12 @@ const languages = [
 
 const navigation = [
   { name: 'Dashboard', href: '/sovra/dashboard', icon: LayoutDashboard },
-  { name: 'Aprobar Oportunidades', href: '/sovra/dashboard/approvals', icon: FileCheck },
   { name: 'Partners', href: '/sovra/dashboard/partners', icon: Users },
+  { name: 'Aprobar Oportunidades', href: '/sovra/dashboard/approvals', icon: FileCheck },
   { name: 'Documentos Legales', href: '/sovra/dashboard/documents', icon: FileText },
+  { name: 'Training Center', href: '/sovra/dashboard/training', icon: GraduationCap },
   { name: 'Configurar Precios', href: '/sovra/dashboard/pricing', icon: DollarSign },
+  { name: 'Audit Log', href: '/sovra/dashboard/audit', icon: Activity },
   { name: 'Configuracion', href: '/sovra/dashboard/settings', icon: Settings },
 ];
 
