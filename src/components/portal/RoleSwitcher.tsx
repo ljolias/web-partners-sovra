@@ -2,23 +2,23 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, ChevronDown, Check } from 'lucide-react';
+import { Shield, ChevronDown, Check, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { UserRole } from '@/types';
 
 interface RoleSwitcherProps {
   currentRole: UserRole;
+  locale?: string;
 }
 
-const roles: { value: UserRole; label: string; description: string }[] = [
-  { value: 'admin', label: 'Admin', description: 'Full access to all features' },
-  { value: 'sales', label: 'Sales', description: 'Deals and Training Center' },
+const roles: { value: UserRole; label: string; description: string; portal: 'partner' | 'sovra' }[] = [
+  { value: 'admin', label: 'Partner Admin', description: 'Full partner portal access', portal: 'partner' },
+  { value: 'sales', label: 'Partner Sales', description: 'Deals and Training Center', portal: 'partner' },
+  { value: 'sovra_admin', label: 'Sovra Admin', description: 'Internal admin dashboard', portal: 'sovra' },
 ];
 
-export function RoleSwitcher({ currentRole }: RoleSwitcherProps) {
-  const t = useTranslations('demo');
+export function RoleSwitcher({ currentRole, locale = 'es' }: RoleSwitcherProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,9 +38,13 @@ export function RoleSwitcher({ currentRole }: RoleSwitcherProps) {
       });
 
       if (res.ok) {
-        // Refresh the page to reflect role changes
-        router.refresh();
-        window.location.reload();
+        // Redirect to the appropriate portal based on role
+        const selectedRole = roles.find(r => r.value === newRole);
+        if (selectedRole?.portal === 'sovra') {
+          window.location.href = `/${locale}/sovra/dashboard`;
+        } else {
+          window.location.href = `/${locale}/partners/portal`;
+        }
       }
     } catch (error) {
       console.error('Failed to switch role:', error);
@@ -50,6 +54,9 @@ export function RoleSwitcher({ currentRole }: RoleSwitcherProps) {
     }
   };
 
+  const isSovraAdmin = currentRole === 'sovra_admin';
+  const currentRoleInfo = roles.find(r => r.value === currentRole);
+
   return (
     <div className="fixed bottom-4 right-4 z-50">
       <div className="relative">
@@ -58,16 +65,17 @@ export function RoleSwitcher({ currentRole }: RoleSwitcherProps) {
           disabled={isLoading}
           className={cn(
             'flex items-center gap-2 px-4 py-2 rounded-xl shadow-lg',
-            'bg-gradient-to-r from-purple-600 to-indigo-600',
             'text-white font-medium text-sm',
-            'hover:from-purple-700 hover:to-indigo-700',
             'transition-all duration-200',
             'border border-white/20',
+            isSovraAdmin
+              ? 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700'
+              : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700',
             isLoading && 'opacity-70 cursor-not-allowed'
           )}
         >
-          <Shield className="h-4 w-4" />
-          <span>{t('currentRole', { role: currentRole })}</span>
+          {isSovraAdmin ? <Building2 className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
+          <span>{currentRoleInfo?.label || currentRole}</span>
           <ChevronDown
             className={cn(
               'h-4 w-4 transition-transform duration-200',
@@ -87,7 +95,7 @@ export function RoleSwitcher({ currentRole }: RoleSwitcherProps) {
             >
               <div className="p-2 border-b border-[var(--color-border)]">
                 <p className="text-xs font-medium text-[var(--color-text-secondary)] px-2">
-                  {t('switchRole')}
+                  Cambiar vista (Demo)
                 </p>
               </div>
               <div className="p-1">

@@ -12,6 +12,7 @@ import {
   X,
   DollarSign,
 } from 'lucide-react';
+import { RoleSwitcher } from '@/components/portal/RoleSwitcher';
 import type { User } from '@/types';
 
 interface SovraShellProps {
@@ -140,6 +141,9 @@ export default function SovraShell({ user, children, locale }: SovraShellProps) 
         {/* Page content */}
         <main className="p-4 lg:p-6">{children}</main>
       </div>
+
+      {/* Role Switcher for demo */}
+      <RoleSwitcher currentRole={user.role} locale={locale} />
     </div>
   );
 }

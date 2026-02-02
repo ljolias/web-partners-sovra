@@ -60,7 +60,7 @@ export function PortalShell({ children, partner, user, locale }: PortalShellProp
       </div>
 
       {/* Demo Role Switcher */}
-      <RoleSwitcher currentRole={user.role as UserRole} />
+      <RoleSwitcher currentRole={user.role as UserRole} locale={locale} />
     </div>
   );
 }

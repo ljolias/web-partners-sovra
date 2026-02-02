@@ -5,7 +5,7 @@ import { updateUser } from '@/lib/redis';
 import type { UserRole } from '@/types';
 
 const switchRoleSchema = z.object({
-  role: z.enum(['admin', 'sales', 'viewer']),
+  role: z.enum(['admin', 'sales', 'viewer', 'sovra_admin']),
 });
 
 export async function POST(request: NextRequest) {

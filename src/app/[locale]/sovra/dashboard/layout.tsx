@@ -23,7 +23,13 @@ export default async function SovraDashboardLayout({ children, params }: LayoutP
   }
 
   const user = await getUser(session.userId);
-  if (!user || user.role !== 'sovra_admin') {
+  if (!user) {
+    redirect(`/${locale}/sovra/login`);
+  }
+
+  // In production, check for sovra_admin role
+  // For demo, allow access if role is sovra_admin (via role switcher)
+  if (user.role !== 'sovra_admin') {
     redirect(`/${locale}/sovra/login`);
   }
 
