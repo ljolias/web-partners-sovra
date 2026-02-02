@@ -170,6 +170,13 @@ export default function SovraDocumentsPage() {
               </option>
             ))}
           </select>
+          {selectedPartner && (
+            <div className="mt-2 text-xs text-[var(--color-text-secondary)]">
+              Partner ID: <code className="bg-[var(--color-surface-hover)] px-1 py-0.5 rounded">{selectedPartner.id}</code>
+              {' • '}Tier: <span className="capitalize">{selectedPartner.tier}</span>
+              {' • '}Email: {selectedPartner.email}
+            </div>
+          )}
         </CardContent>
       </Card>
 

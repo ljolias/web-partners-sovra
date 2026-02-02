@@ -156,6 +156,7 @@ export async function POST(request: NextRequest) {
     if (!partner) {
       return NextResponse.json({ error: 'Partner not found' }, { status: 404 });
     }
+    console.log('[SendContract] Creating document for partner:', partnerId, partner.companyName);
 
     // Get template if using template-based approach
     let template = null;

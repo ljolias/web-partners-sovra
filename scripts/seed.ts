@@ -42,6 +42,8 @@ async function seed() {
 
   await redis.hset(`partner:${partnerId}`, partner);
   await redis.zadd(`partners:by-tier:gold`, { score: 4.5, member: partnerId });
+  // Add to partners:all index (important for getAllPartners)
+  await redis.zadd('partners:all', { score: new Date(partner.createdAt).getTime(), member: partnerId });
   console.log('Partner created:', partnerId);
 
   // Create Demo User (with admin role by default, can be switched via Role Switcher)

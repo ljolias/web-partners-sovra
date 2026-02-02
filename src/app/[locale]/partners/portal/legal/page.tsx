@@ -24,6 +24,11 @@ interface AllowedCategory {
   requiresVerification: boolean;
 }
 
+interface PartnerInfo {
+  partnerId: string;
+  partnerName: string;
+}
+
 export default function LegalPage({ params }: LegalPageProps) {
   const { locale } = use(params);
   const t = useTranslations('legal');
@@ -31,6 +36,7 @@ export default function LegalPage({ params }: LegalPageProps) {
 
   const [documents, setDocuments] = useState<LegalDocument[]>([]);
   const [allowedCategories, setAllowedCategories] = useState<AllowedCategory[]>([]);
+  const [partnerInfo, setPartnerInfo] = useState<PartnerInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
@@ -48,6 +54,10 @@ export default function LegalPage({ params }: LegalPageProps) {
         const data = await res.json();
         setDocuments(data.documents || []);
         setAllowedCategories(data.allowedCategories || []);
+        if (data.partnerId && data.partnerName) {
+          setPartnerInfo({ partnerId: data.partnerId, partnerName: data.partnerName });
+        }
+        console.log('[LegalPage] Loaded', data.documents?.length || 0, 'documents for partner:', data.partnerName, data.partnerId);
       }
     } catch (error) {
       console.error('Failed to fetch documents:', error);
@@ -202,6 +212,11 @@ export default function LegalPage({ params }: LegalPageProps) {
     >
       <div>
         <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">{t('title')}</h1>
+        {partnerInfo && (
+          <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+            Partner: {partnerInfo.partnerName} (ID: <code className="bg-[var(--color-surface-hover)] px-1 py-0.5 rounded">{partnerInfo.partnerId}</code>)
+          </p>
+        )}
       </div>
 
       <DocumentList

@@ -136,10 +136,15 @@ export function SendContractModal({ isOpen, onClose, partner, onSuccess }: SendC
         body: formData,
       });
 
+      const responseData = await res.json();
+
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Error al enviar el contrato');
+        throw new Error(responseData.error || 'Error al enviar el contrato');
       }
+
+      // Show success message with document info
+      console.log('[SendContractModal] Document created:', responseData.document?.id, 'for partner:', partner.id);
+      alert(`Documento creado exitosamente!\n\nID: ${responseData.document?.id}\nPartner: ${partner.companyName} (${partner.id})\n\nNota: DocuSign esta en modo demo, los emails no se enviaran.`);
 
       resetForm();
       onSuccess();
@@ -386,6 +391,15 @@ export function SendContractModal({ isOpen, onClose, partner, onSuccess }: SendC
               <p>
                 <strong>Nota:</strong> El contrato sera enviado a ambos firmantes via DocuSign.
                 Recibiran un email con el enlace para firmar.
+              </p>
+            </div>
+
+            {/* Mock Mode Warning */}
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 text-sm text-amber-600 dark:text-amber-400">
+              <p>
+                <strong>Modo Demo:</strong> DocuSign no esta configurado. Los documentos se crearan
+                pero los emails de firma no se enviaran. Para activar DocuSign, configura las
+                variables de entorno necesarias.
               </p>
             </div>
           </form>

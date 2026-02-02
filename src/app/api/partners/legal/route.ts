@@ -43,13 +43,17 @@ export async function GET(request: NextRequest) {
     }
 
     // V2 - Return enhanced documents
+    console.log('[Legal API] Fetching documents for partner:', partner.id, partner.companyName);
     const documents = await getPartnerLegalDocuments(partner.id);
+    console.log('[Legal API] Found', documents.length, 'documents');
 
     // Get allowed upload categories for partners
     const allowedCategories = getCategoriesForActor('partner');
 
     return NextResponse.json({
       documents,
+      partnerId: partner.id,
+      partnerName: partner.companyName,
       allowedCategories: allowedCategories.map((cat) => ({
         id: cat.id,
         name: cat.name,

@@ -617,9 +617,11 @@ export async function getLegalDocumentV2(id: string): Promise<LegalDocument | nu
 }
 
 export async function getPartnerLegalDocuments(partnerId: string, limit = 100): Promise<LegalDocument[]> {
+  console.log('[Redis] Fetching documents for partner:', partnerId, 'key:', keys.partnerLegalDocuments(partnerId));
   const docIds = await redis.zrange<string[]>(keys.partnerLegalDocuments(partnerId), 0, limit - 1, {
     rev: true,
   });
+  console.log('[Redis] Found document IDs:', docIds.length, docIds);
   if (!docIds.length) return [];
   const docs = await Promise.all(docIds.map((id) => getLegalDocumentV2(id)));
   return docs.filter((d): d is LegalDocument => d !== null);
@@ -649,6 +651,8 @@ export async function getLegalDocumentsByStatus(status: DocumentStatus, limit = 
 }
 
 export async function createLegalDocumentV2(doc: LegalDocument): Promise<void> {
+  console.log('[Redis] Creating legal document:', doc.id, 'for partner:', doc.partnerId);
+
   const pipeline = redis.pipeline();
 
   const docData = {
