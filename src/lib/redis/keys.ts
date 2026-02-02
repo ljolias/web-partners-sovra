@@ -35,12 +35,24 @@ export const keys = {
   userCertifications: (userId: string) => `user:${userId}:certifications`,
   partnerCertifications: (partnerId: string) => `partner:${partnerId}:certifications`,
 
-  // Legal
+  // Legal - Legacy
   legalDocument: (id: string) => `legal:document:${id}`,
   legalDocuments: () => `legal:documents`,
   legalSignature: (id: string) => `legal:signature:${id}`,
   userSignatures: (userId: string) => `user:${userId}:signatures`,
   partnerSignatures: (partnerId: string) => `partner:${partnerId}:signatures`,
+
+  // Legal - Enhanced Documents
+  legalDocumentV2: (id: string) => `legal:v2:document:${id}`,
+  partnerLegalDocuments: (partnerId: string) => `partner:${partnerId}:legal:documents`,
+  allLegalDocumentsV2: () => `legal:v2:all`,
+  legalDocumentsByCategory: (category: string) => `legal:v2:by-category:${category}`,
+  legalDocumentsByStatus: (status: string) => `legal:v2:by-status:${status}`,
+  docusignEnvelope: (envelopeId: string) => `legal:docusign:envelope:${envelopeId}`,
+
+  // Legal - Audit Events
+  documentAuditEvents: (documentId: string) => `legal:v2:document:${documentId}:audit`,
+  documentAuditEvent: (eventId: string) => `legal:v2:audit:${eventId}`,
 
   // Copilot
   copilotSession: (id: string) => `copilot:session:${id}`,

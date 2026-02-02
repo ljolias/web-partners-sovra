@@ -77,17 +77,42 @@ export function Sidebar({ partner, user, locale, onLogout, isOpen = true, onClos
   const pathname = usePathname();
   const t = useTranslations('nav');
   const tTier = useTranslations('tier');
+  const [pendingDocsCount, setPendingDocsCount] = useState(0);
 
   const basePath = `/${locale}/partners/portal`;
   const userRole = user.role as UserRole;
 
+  // Fetch pending documents count
+  useEffect(() => {
+    async function fetchPendingDocs() {
+      try {
+        const res = await fetch('/api/partners/legal');
+        if (res.ok) {
+          const data = await res.json();
+          const documents = data.documents || [];
+          const pendingCount = documents.filter(
+            (doc: { status: string }) =>
+              doc.status === 'pending_signature' || doc.status === 'partially_signed'
+          ).length;
+          setPendingDocsCount(pendingCount);
+        }
+      } catch (error) {
+        console.error('Failed to fetch pending docs:', error);
+      }
+    }
+
+    if (hasPermission(userRole, 'legal:view')) {
+      fetchPendingDocs();
+    }
+  }, [userRole]);
+
   const allNavItems = [
-    { href: basePath, icon: LayoutDashboard, label: t('dashboard'), permission: null },
-    { href: `${basePath}/deals`, icon: Briefcase, label: t('deals'), permission: 'deals:view' as Permission },
-    { href: `${basePath}/training-center`, icon: GraduationCap, label: t('trainingCenter'), permission: 'training:view' as Permission },
-    { href: `${basePath}/legal`, icon: FileText, label: t('legal'), permission: 'legal:view' as Permission },
-    { href: `${basePath}/commissions`, icon: DollarSign, label: t('commissions'), permission: 'commissions:view' as Permission },
-    { href: `${basePath}/team`, icon: Users, label: t('team'), permission: 'team:view' as Permission },
+    { href: basePath, icon: LayoutDashboard, label: t('dashboard'), permission: null, badge: 0 },
+    { href: `${basePath}/deals`, icon: Briefcase, label: t('deals'), permission: 'deals:view' as Permission, badge: 0 },
+    { href: `${basePath}/training-center`, icon: GraduationCap, label: t('trainingCenter'), permission: 'training:view' as Permission, badge: 0 },
+    { href: `${basePath}/legal`, icon: FileText, label: t('legal'), permission: 'legal:view' as Permission, badge: pendingDocsCount },
+    { href: `${basePath}/commissions`, icon: DollarSign, label: t('commissions'), permission: 'commissions:view' as Permission, badge: 0 },
+    { href: `${basePath}/team`, icon: Users, label: t('team'), permission: 'team:view' as Permission, badge: 0 },
   ];
 
   // Filter nav items based on user role
@@ -198,6 +223,11 @@ export function Sidebar({ partner, user, locale, onLogout, isOpen = true, onClos
                   )}
                   <item.icon className={cn('h-5 w-5', isActive && 'text-[var(--color-primary)]')} />
                   <span className="flex-1">{item.label}</span>
+                  {item.badge > 0 && (
+                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-semibold text-white">
+                      {item.badge > 9 ? '9+' : item.badge}
+                    </span>
+                  )}
                 </Link>
               </li>
             );

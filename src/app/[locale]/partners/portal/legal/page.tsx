@@ -1,32 +1,58 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, useCallback, use } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { FileText, CheckCircle, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Button, Card, CardContent, Badge } from '@/components/ui';
-import { formatDate } from '@/lib/utils';
 import { hasPermission } from '@/lib/permissions';
-import type { LegalDocument, LegalSignature, User, UserRole } from '@/types';
+import {
+  DocumentList,
+  DocumentUploadModal,
+  DocumentDetail,
+  type UploadData,
+} from '@/components/legal';
+import type { LegalDocument, DocumentAuditEvent, User, UserRole, DocumentCategory } from '@/types';
 
 interface LegalPageProps {
   params: Promise<{ locale: string }>;
 }
 
-interface DocumentWithStatus extends LegalDocument {
-  signed: boolean;
-  signature: LegalSignature | null;
+interface AllowedCategory {
+  id: DocumentCategory;
+  name: Record<string, string>;
+  description: Record<string, string>;
+  requiresVerification: boolean;
 }
 
 export default function LegalPage({ params }: LegalPageProps) {
   const { locale } = use(params);
   const t = useTranslations('legal');
   const router = useRouter();
-  const [documents, setDocuments] = useState<DocumentWithStatus[]>([]);
+
+  const [documents, setDocuments] = useState<LegalDocument[]>([]);
+  const [allowedCategories, setAllowedCategories] = useState<AllowedCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [signingId, setSigningId] = useState<string | null>(null);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+
+  // Modals
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<LegalDocument | null>(null);
+  const [auditEvents, setAuditEvents] = useState<DocumentAuditEvent[]>([]);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
+
+  // Fetch documents
+  const fetchDocuments = useCallback(async () => {
+    try {
+      const res = await fetch('/api/partners/legal');
+      if (res.ok) {
+        const data = await res.json();
+        setDocuments(data.documents || []);
+        setAllowedCategories(data.allowedCategories || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch documents:', error);
+    }
+  }, []);
 
   useEffect(() => {
     async function checkAccessAndFetch() {
@@ -46,48 +72,115 @@ export default function LegalPage({ params }: LegalPageProps) {
         }
 
         setIsAuthorized(true);
-
-        // Fetch documents
-        const res = await fetch('/api/partners/legal');
-        if (res.ok) {
-          const data = await res.json();
-          setDocuments(data.documents || []);
-        }
+        await fetchDocuments();
       } catch (error) {
-        console.error('Failed to fetch documents:', error);
+        console.error('Failed to check access:', error);
       } finally {
         setIsLoading(false);
       }
     }
 
     checkAccessAndFetch();
-  }, [locale, router]);
+  }, [locale, router, fetchDocuments]);
 
-  const handleSign = async (documentId: string) => {
-    setSigningId(documentId);
+  // Handle view document
+  const handleView = async (doc: LegalDocument) => {
+    setSelectedDocument(doc);
+    setIsDetailLoading(true);
+
     try {
-      const res = await fetch('/api/partners/legal/sign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentId }),
-      });
-
+      const res = await fetch(`/api/partners/legal/${doc.id}`);
       if (res.ok) {
         const data = await res.json();
-        setDocuments((prev) =>
-          prev.map((doc) =>
-            doc.id === documentId
-              ? { ...doc, signed: true, signature: data.signature }
-              : doc
-          )
-        );
+        setAuditEvents(data.auditEvents || []);
       }
     } catch (error) {
-      console.error('Failed to sign document:', error);
+      console.error('Failed to fetch document details:', error);
     } finally {
-      setSigningId(null);
+      setIsDetailLoading(false);
     }
   };
+
+  // Handle download
+  const handleDownload = async (doc: LegalDocument) => {
+    try {
+      const res = await fetch(`/api/partners/legal/${doc.id}/download`);
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = doc.uploadMetadata?.fileName || `${doc.title}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error('Failed to download document:', error);
+    }
+  };
+
+  // Handle download certificate
+  const handleDownloadCertificate = async () => {
+    if (!selectedDocument || selectedDocument.type !== 'docusign') return;
+
+    try {
+      const res = await fetch(`/api/partners/legal/${selectedDocument.id}/download?type=certificate`);
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${selectedDocument.title}_certificate.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error('Failed to download certificate:', error);
+    }
+  };
+
+  // Handle sign (redirects to DocuSign for now)
+  const handleSign = async (doc: LegalDocument) => {
+    if (doc.type === 'docusign' && doc.docusignMetadata?.envelopeId) {
+      // For DocuSign documents, the user should have received an email
+      // We could implement embedded signing here
+      alert(t('errors.checkEmailForSigning') || 'Please check your email for the signing link.');
+    }
+  };
+
+  // Handle upload
+  const handleUpload = async (data: UploadData) => {
+    const formData = new FormData();
+    formData.append('file', data.file);
+    formData.append('category', data.category);
+    formData.append('title', data.title);
+    if (data.description) formData.append('description', data.description);
+    if (data.expirationDate) formData.append('expirationDate', data.expirationDate);
+
+    const res = await fetch('/api/partners/legal', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || 'Upload failed');
+    }
+
+    // Refresh documents list
+    await fetchDocuments();
+  };
+
+  // Localized categories for upload modal
+  const localizedCategories = allowedCategories.map((cat) => ({
+    id: cat.id,
+    name: cat.name[locale] || cat.name.en,
+    description: cat.description[locale] || cat.description.en,
+  }));
 
   if (isLoading || isAuthorized === null) {
     return (
@@ -101,105 +194,63 @@ export default function LegalPage({ params }: LegalPageProps) {
     return null;
   }
 
-  const pendingDocs = documents.filter((d) => !d.signed);
-  const signedDocs = documents.filter((d) => d.signed);
-
   return (
-    <div className="space-y-8">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-6"
+    >
       <div>
         <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">{t('title')}</h1>
       </div>
 
-      {/* Pending Documents */}
-      {pendingDocs.length > 0 && (
-        <div>
-          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-[var(--color-text-primary)]">
-            <AlertTriangle className="h-5 w-5 text-amber-500" />
-            {t('pending')}
-          </h2>
-          <div className="space-y-4">
-            {pendingDocs.map((doc, index) => (
-              <motion.div
-                key={doc.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card>
-                  <CardContent className="flex items-center gap-4 py-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/30">
-                      <FileText className="h-6 w-6 text-amber-600 dark:text-amber-400" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-[var(--color-text-primary)]">
-                          {doc.title[locale] || doc.title.en}
-                        </h3>
-                        {doc.requiredForDeals && (
-                          <Badge variant="warning">{t('required')}</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-[var(--color-text-secondary)]">Version {doc.version}</p>
-                    </div>
-                    <Button
-                      onClick={() => handleSign(doc.id)}
-                      isLoading={signingId === doc.id}
-                    >
-                      {t('sign')}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      )}
+      <DocumentList
+        documents={documents}
+        locale={locale}
+        onView={handleView}
+        onDownload={handleDownload}
+        onSign={handleSign}
+        onUpload={() => setIsUploadModalOpen(true)}
+        canUpload={allowedCategories.length > 0}
+        t={t}
+      />
 
-      {/* Signed Documents */}
-      <div>
-        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-[var(--color-text-primary)]">
-          <CheckCircle className="h-5 w-5 text-green-500" />
-          {t('signed')}
-        </h2>
-        {signedDocs.length > 0 ? (
-          <div className="space-y-4">
-            {signedDocs.map((doc, index) => (
-              <motion.div
-                key={doc.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card>
-                  <CardContent className="flex items-center gap-4 py-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
-                      <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-[var(--color-text-primary)]">
-                        {doc.title[locale] || doc.title.en}
-                      </h3>
-                      <p className="text-sm text-[var(--color-text-secondary)]">
-                        {t('signedOn', {
-                          date: formatDate(doc.signature?.signedAt || '', locale),
-                        })}
-                      </p>
-                    </div>
-                    <Badge variant="success">Signed</Badge>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <FileText className="mx-auto h-12 w-12 text-[var(--color-text-secondary)] opacity-50" />
-              <p className="mt-4 text-[var(--color-text-secondary)]">No signed documents yet</p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </div>
+      {/* Upload Modal */}
+      <DocumentUploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onUpload={handleUpload}
+        allowedCategories={localizedCategories}
+        t={t}
+      />
+
+      {/* Document Detail Modal */}
+      {selectedDocument && (
+        <DocumentDetail
+          document={selectedDocument}
+          auditEvents={auditEvents}
+          isOpen={!!selectedDocument}
+          onClose={() => {
+            setSelectedDocument(null);
+            setAuditEvents([]);
+          }}
+          onDownload={() => handleDownload(selectedDocument)}
+          onDownloadCertificate={
+            selectedDocument.type === 'docusign' &&
+            selectedDocument.docusignMetadata?.certificateUrl
+              ? handleDownloadCertificate
+              : undefined
+          }
+          onSign={
+            selectedDocument.status === 'pending_signature' ||
+            selectedDocument.status === 'partially_signed'
+              ? () => handleSign(selectedDocument)
+              : undefined
+          }
+          locale={locale}
+          t={t}
+        />
+      )}
+    </motion.div>
   );
 }

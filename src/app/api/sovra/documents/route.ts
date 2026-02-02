@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireSession } from '@/lib/auth';
+import { cookies } from 'next/headers';
 import {
-  getAllLegalDocuments,
-  getUserSignatures,
+  getSession,
+  getUser,
+  getPartner,
+  getAllLegalDocumentsV2,
   getPartnerLegalDocuments,
   createLegalDocumentV2,
   addDocumentAuditLog,
   generateId,
-} from '@/lib/redis';
+} from '@/lib/redis/operations';
 import {
   uploadFileFromBuffer,
   validateFile,
@@ -16,40 +18,60 @@ import {
 import { getCategoriesForActor } from '@/lib/docusign/templates';
 import type { LegalDocument, DocumentCategory, UploadMetadata } from '@/types';
 
-// GET - Fetch all documents for the partner (combining legacy and v2)
+// Helper to verify Sovra admin
+async function requireSovraAdmin() {
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get('partner_session')?.value;
+
+  if (!sessionId) {
+    throw new Error('Unauthorized');
+  }
+
+  const session = await getSession(sessionId);
+  if (!session) {
+    throw new Error('Unauthorized');
+  }
+
+  const user = await getUser(session.userId);
+  if (!user || user.role !== 'sovra_admin') {
+    throw new Error('Forbidden');
+  }
+
+  return { user, session };
+}
+
+// GET - List documents (optionally filtered by partner)
 export async function GET(request: NextRequest) {
   try {
-    const { user, partner } = await requireSession();
+    const { user } = await requireSovraAdmin();
 
     const searchParams = request.nextUrl.searchParams;
-    const version = searchParams.get('version') || 'v2';
+    const partnerId = searchParams.get('partnerId');
 
-    if (version === 'v1') {
-      // Legacy behavior - return old format documents
-      const [documents, signatures] = await Promise.all([
-        getAllLegalDocuments(),
-        getUserSignatures(user.id),
-      ]);
+    let documents: LegalDocument[];
 
-      const signedDocIds = new Set(signatures.map((s) => s.documentId));
-
-      const documentsWithStatus = documents.map((doc) => ({
-        ...doc,
-        signed: signedDocIds.has(doc.id),
-        signature: signatures.find((s) => s.documentId === doc.id) || null,
-      }));
-
-      return NextResponse.json({ documents: documentsWithStatus });
+    if (partnerId) {
+      documents = await getPartnerLegalDocuments(partnerId);
+    } else {
+      documents = await getAllLegalDocumentsV2();
     }
 
-    // V2 - Return enhanced documents
-    const documents = await getPartnerLegalDocuments(partner.id);
+    // Enrich with partner info
+    const documentsWithPartner = await Promise.all(
+      documents.map(async (doc) => {
+        const partner = await getPartner(doc.partnerId);
+        return {
+          ...doc,
+          partner: partner ? { id: partner.id, name: partner.companyName } : null,
+        };
+      })
+    );
 
-    // Get allowed upload categories for partners
-    const allowedCategories = getCategoriesForActor('partner');
+    // Get categories allowed for Sovra to share
+    const allowedCategories = getCategoriesForActor('sovra');
 
     return NextResponse.json({
-      documents,
+      documents: documentsWithPartner,
       allowedCategories: allowedCategories.map((cat) => ({
         id: cat.id,
         name: cat.name,
@@ -58,41 +80,53 @@ export async function GET(request: NextRequest) {
       })),
     });
   } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (error instanceof Error) {
+      if (error.message === 'Unauthorized') {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      if (error.message === 'Forbidden') {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
     }
-    console.error('Get legal documents error:', error);
+    console.error('Get documents error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-// POST - Upload a new document
+// POST - Share/upload a document to a partner
 export async function POST(request: NextRequest) {
   try {
-    const { user, partner } = await requireSession();
+    const { user } = await requireSovraAdmin();
 
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
+    const partnerId = formData.get('partnerId') as string | null;
     const category = formData.get('category') as DocumentCategory | null;
     const title = formData.get('title') as string | null;
     const description = formData.get('description') as string | null;
     const expirationDate = formData.get('expirationDate') as string | null;
 
     // Validate required fields
-    if (!file || !category || !title) {
+    if (!file || !partnerId || !category || !title) {
       return NextResponse.json(
-        { error: 'File, category, and title are required' },
+        { error: 'File, partnerId, category, and title are required' },
         { status: 400 }
       );
     }
 
-    // Validate category is allowed for partners
-    const allowedCategories = getCategoriesForActor('partner');
+    // Verify partner exists
+    const partner = await getPartner(partnerId);
+    if (!partner) {
+      return NextResponse.json({ error: 'Partner not found' }, { status: 404 });
+    }
+
+    // Validate category is allowed for Sovra
+    const allowedCategories = getCategoriesForActor('sovra');
     const categoryConfig = allowedCategories.find((c) => c.id === category);
 
     if (!categoryConfig) {
       return NextResponse.json(
-        { error: 'Category not allowed for partners' },
+        { error: 'Category not allowed' },
         { status: 400 }
       );
     }
@@ -107,7 +141,7 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const uploadResult = await uploadFileFromBuffer(
       buffer,
-      partner.id,
+      partnerId,
       category,
       file.name,
       file.type
@@ -129,15 +163,14 @@ export async function POST(request: NextRequest) {
       fileName: file.name,
       fileSize: file.size,
       mimeType: file.type,
-      uploadedBy: 'partner',
+      uploadedBy: 'sovra',
       uploadedByUserId: user.id,
       uploadedByName: user.name,
-      verificationStatus: categoryConfig.requiresVerification ? 'pending' : undefined,
     };
 
     const document: LegalDocument = {
       id: documentId,
-      partnerId: partner.id,
+      partnerId,
       title,
       description: description || undefined,
       category,
@@ -157,22 +190,29 @@ export async function POST(request: NextRequest) {
     // Log audit event
     await addDocumentAuditLog(
       documentId,
-      'uploaded',
-      { type: 'partner', id: user.id, name: user.name },
+      'shared',
+      { type: 'sovra', id: user.id, name: user.name },
       {
         fileName: file.name,
         fileSize: formatFileSize(file.size),
         category,
+        partnerId,
+        partnerName: partner.companyName,
       },
       { ipAddress: typeof ipAddress === 'string' ? ipAddress : ipAddress[0], userAgent }
     );
 
     return NextResponse.json({ document }, { status: 201 });
   } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (error instanceof Error) {
+      if (error.message === 'Unauthorized') {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      if (error.message === 'Forbidden') {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
     }
-    console.error('Upload document error:', error);
+    console.error('Share document error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

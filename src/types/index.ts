@@ -235,8 +235,28 @@ export interface Certification {
 
 export type CertificationType = 'sales_fundamentals' | 'technical_specialist' | 'solution_architect';
 
-// Legal Types
-export interface LegalDocument {
+// Legal Types - Document Categories
+export type DocumentCategory =
+  | 'contract'        // Contratos legales vinculantes
+  | 'amendment'       // Modificaciones a contratos existentes
+  | 'compliance'      // Documentos de cumplimiento normativo
+  | 'financial'       // Documentos financieros
+  | 'certification'   // Certificaciones y acreditaciones
+  | 'policy'          // Políticas y procedimientos
+  | 'correspondence'; // Comunicaciones formales
+
+// Legal Types - Document Status
+export type DocumentStatus =
+  | 'draft'              // Borrador (solo DocuSign)
+  | 'pending_signature'  // Esperando firmas (DocuSign)
+  | 'partially_signed'   // Firmado parcialmente (DocuSign)
+  | 'active'             // Vigente/Firmado
+  | 'expired'            // Vencido
+  | 'superseded'         // Reemplazado por nueva versión
+  | 'archived';          // Archivado
+
+// Legacy Legal Document (kept for backward compatibility)
+export interface LegacyLegalDocument {
   id: string;
   type: 'nda' | 'partner_agreement' | 'data_processing';
   version: string;
@@ -246,6 +266,129 @@ export interface LegalDocument {
   createdAt: string;
 }
 
+// Enhanced Legal Document
+export interface LegalDocument {
+  id: string;
+  partnerId: string;
+
+  // Información básica
+  title: string;
+  description?: string;
+  category: DocumentCategory;
+
+  // Tipo de documento
+  type: 'docusign' | 'upload';
+
+  // Metadatos específicos según tipo
+  docusignMetadata?: DocuSignMetadata;
+  uploadMetadata?: UploadMetadata;
+
+  // Estado
+  status: DocumentStatus;
+
+  // Versionado
+  version: number;
+  previousVersionId?: string;
+
+  // Fechas importantes
+  effectiveDate?: string;    // Fecha de vigencia
+  expirationDate?: string;   // Fecha de vencimiento
+
+  // Flags
+  requiredForDeals?: boolean;
+
+  // Auditoría
+  createdBy: string;
+  createdByName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// DocuSign specific metadata
+export interface DocuSignMetadata {
+  envelopeId: string;
+  templateId?: string;
+
+  // Estado de DocuSign
+  envelopeStatus: 'created' | 'sent' | 'delivered' | 'completed' | 'declined' | 'voided';
+
+  // Firmantes
+  signers: DocuSignSigner[];
+
+  // Documento firmado
+  signedDocumentUrl?: string;
+  certificateUrl?: string;
+
+  // Fechas DocuSign
+  sentAt?: string;
+  completedAt?: string;
+}
+
+export interface DocuSignSigner {
+  email: string;
+  name: string;
+  role: 'partner' | 'sovra';
+  status: 'pending' | 'sent' | 'delivered' | 'signed' | 'declined';
+  signedAt?: string;
+  ipAddress?: string;
+}
+
+// Upload specific metadata
+export interface UploadMetadata {
+  // Archivo
+  fileUrl: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+
+  // Quién lo subió
+  uploadedBy: 'partner' | 'sovra';
+  uploadedByUserId: string;
+  uploadedByName: string;
+
+  // Verificación (opcional)
+  verifiedBy?: string;
+  verifiedByName?: string;
+  verifiedAt?: string;
+  verificationNotes?: string;
+  verificationStatus?: 'pending' | 'verified' | 'rejected';
+}
+
+// Document Audit Event
+export interface DocumentAuditEvent {
+  id: string;
+  documentId: string;
+
+  // Acción
+  action:
+    | 'created'
+    | 'uploaded'
+    | 'sent_for_signature'
+    | 'viewed'
+    | 'downloaded'
+    | 'signed'
+    | 'declined'
+    | 'expired'
+    | 'archived'
+    | 'new_version_created'
+    | 'verified'
+    | 'rejected'
+    | 'shared';
+
+  // Quién realizó la acción
+  actorType: 'partner' | 'sovra' | 'system';
+  actorId?: string;
+  actorName?: string;
+
+  // Detalles adicionales
+  details?: Record<string, unknown>;
+  ipAddress?: string;
+  userAgent?: string;
+
+  timestamp: string;
+}
+
+// Legacy signature (kept for backward compatibility)
 export interface LegalSignature {
   id: string;
   documentId: string;
