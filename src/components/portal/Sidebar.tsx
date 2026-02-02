@@ -8,15 +8,18 @@ import {
   LayoutDashboard,
   Briefcase,
   GraduationCap,
-  Award,
   FileText,
   DollarSign,
   LogOut,
   Sun,
   Moon,
   X,
+  Users,
 } from 'lucide-react';
+import { hasPermission, type Permission } from '@/lib/permissions';
+import type { UserRole } from '@/types';
 import { cn } from '@/lib/utils';
+import { SovraLogo } from '@/components/ui/SovraLogo';
 import type { Partner, User } from '@/types';
 import { useState, useEffect } from 'react';
 
@@ -76,15 +79,22 @@ export function Sidebar({ partner, user, locale, onLogout, isOpen = true, onClos
   const tTier = useTranslations('tier');
 
   const basePath = `/${locale}/partners/portal`;
+  const userRole = user.role as UserRole;
 
-  const navItems = [
-    { href: basePath, icon: LayoutDashboard, label: t('dashboard') },
-    { href: `${basePath}/deals`, icon: Briefcase, label: t('deals') },
-    { href: `${basePath}/training`, icon: GraduationCap, label: t('training') },
-    { href: `${basePath}/certifications`, icon: Award, label: t('certifications') },
-    { href: `${basePath}/legal`, icon: FileText, label: t('legal') },
-    { href: `${basePath}/commissions`, icon: DollarSign, label: t('commissions') },
+  const allNavItems = [
+    { href: basePath, icon: LayoutDashboard, label: t('dashboard'), permission: null },
+    { href: `${basePath}/deals`, icon: Briefcase, label: t('deals'), permission: 'deals:view' as Permission },
+    { href: `${basePath}/training-center`, icon: GraduationCap, label: t('trainingCenter'), permission: 'training:view' as Permission },
+    { href: `${basePath}/legal`, icon: FileText, label: t('legal'), permission: 'legal:view' as Permission },
+    { href: `${basePath}/commissions`, icon: DollarSign, label: t('commissions'), permission: 'commissions:view' as Permission },
+    { href: `${basePath}/team`, icon: Users, label: t('team'), permission: 'team:view' as Permission },
   ];
+
+  // Filter nav items based on user role
+  const navItems = allNavItems.filter((item) => {
+    if (!item.permission) return true;
+    return hasPermission(userRole, item.permission);
+  });
 
   const tierBgColors = {
     bronze: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
@@ -100,17 +110,10 @@ export function Sidebar({ partner, user, locale, onLogout, isOpen = true, onClos
       {/* Logo */}
       <div className="flex h-16 items-center justify-between px-4 lg:px-6 border-b border-[var(--color-border)]">
         <Link href={basePath} className="flex items-center gap-2 lg:gap-3" onClick={onClose}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)]">
-            <svg viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="currentColor">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-            </svg>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-lg lg:text-xl font-bold text-[var(--color-text-primary)]">Sovra</span>
-            <span className="hidden sm:inline text-xs font-medium text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2 py-0.5 rounded-full border border-[var(--color-primary)]/20">
-              Partners
-            </span>
-          </div>
+          <SovraLogo size="md" />
+          <span className="hidden sm:inline text-xs font-medium text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2 py-0.5 rounded-full border border-[var(--color-primary)]/20">
+            Partners
+          </span>
         </Link>
         {/* Close button for mobile */}
         {onClose && (

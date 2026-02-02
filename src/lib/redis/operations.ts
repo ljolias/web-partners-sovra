@@ -81,6 +81,17 @@ export async function createUser(user: User): Promise<void> {
   await pipeline.exec();
 }
 
+export async function updateUser(id: string, updates: Partial<User>): Promise<void> {
+  await redis.hset(keys.user(id), toRedisHash({ ...updates, updatedAt: new Date().toISOString() }));
+}
+
+export async function getPartnerUsers(partnerId: string): Promise<User[]> {
+  const userIds = await redis.smembers<string[]>(keys.partnerUsers(partnerId));
+  if (!userIds.length) return [];
+  const users = await Promise.all(userIds.map((id) => getUser(id)));
+  return users.filter((u): u is User => u !== null);
+}
+
 // ============ Session Operations ============
 
 export async function createSession(userId: string, partnerId: string): Promise<Session> {

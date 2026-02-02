@@ -3,8 +3,12 @@
  * Run with: npx tsx scripts/seed.ts
  */
 
+import { config } from 'dotenv';
 import { Redis } from '@upstash/redis';
 import bcrypt from 'bcryptjs';
+
+// Load environment variables from .env.local
+config({ path: '.env.local' });
 
 // Initialize Redis client
 const redis = new Redis({
@@ -40,24 +44,45 @@ async function seed() {
   await redis.zadd(`partners:by-tier:gold`, { score: 4.5, member: partnerId });
   console.log('Partner created:', partnerId);
 
-  // Create User
-  const userId = generateId();
+  // Create Admin User
+  const adminUserId = generateId();
   const passwordHash = await bcrypt.hash('demo123', 12);
-  const user = {
-    id: userId,
+  const adminUser = {
+    id: adminUserId,
     partnerId,
-    email: 'demo@acme.com',
-    name: 'John Demo',
+    email: 'admin@sovra.io',
+    name: 'John Admin',
     role: 'admin',
     passwordHash,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
 
-  await redis.hset(`user:${userId}`, user);
-  await redis.set(`user:email:demo@acme.com`, userId);
-  await redis.sadd(`partner:${partnerId}:users`, userId);
-  console.log('User created:', userId);
+  await redis.hset(`user:${adminUserId}`, adminUser);
+  await redis.set(`user:email:admin@sovra.io`, adminUserId);
+  await redis.sadd(`partner:${partnerId}:users`, adminUserId);
+  console.log('Admin user created:', adminUserId);
+
+  // Create Sales User
+  const salesUserId = generateId();
+  const salesUser = {
+    id: salesUserId,
+    partnerId,
+    email: 'sales@sovra.io',
+    name: 'Sarah Sales',
+    role: 'sales',
+    passwordHash,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  await redis.hset(`user:${salesUserId}`, salesUser);
+  await redis.set(`user:email:sales@sovra.io`, salesUserId);
+  await redis.sadd(`partner:${partnerId}:users`, salesUserId);
+  console.log('Sales user created:', salesUserId);
+
+  // Keep backward compatibility with old email
+  const userId = adminUserId;
 
   // Create Certification
   const certId = generateId();
@@ -74,7 +99,24 @@ async function seed() {
   await redis.hset(`certification:${certId}`, cert);
   await redis.sadd(`user:${userId}:certifications`, certId);
   await redis.sadd(`partner:${partnerId}:certifications`, certId);
-  console.log('Certification created:', certId);
+  console.log('Admin certification created:', certId);
+
+  // Create Certification for Sales User
+  const salesCertId = generateId();
+  const salesCert = {
+    id: salesCertId,
+    userId: salesUserId,
+    partnerId,
+    type: 'sales_fundamentals',
+    status: 'active',
+    issuedAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+  };
+
+  await redis.hset(`certification:${salesCertId}`, salesCert);
+  await redis.sadd(`user:${salesUserId}:certifications`, salesCertId);
+  await redis.sadd(`partner:${partnerId}:certifications`, salesCertId);
+  console.log('Sales certification created:', salesCertId);
 
   // Create Legal Documents
   const legalDocs = [
@@ -102,21 +144,35 @@ async function seed() {
     await redis.hset(`legal:document:${doc.id}`, doc);
     await redis.sadd('legal:documents', doc.id);
 
-    // Sign documents for demo user
-    const sigId = generateId();
-    const signature = {
-      id: sigId,
+    // Sign documents for admin user
+    const adminSigId = generateId();
+    const adminSignature = {
+      id: adminSigId,
       documentId: doc.id,
-      userId,
+      userId: adminUserId,
       partnerId,
       signedAt: new Date().toISOString(),
       ipAddress: '127.0.0.1',
     };
-    await redis.hset(`legal:signature:${sigId}`, signature);
-    await redis.sadd(`user:${userId}:signatures`, sigId);
-    await redis.sadd(`partner:${partnerId}:signatures`, sigId);
+    await redis.hset(`legal:signature:${adminSigId}`, adminSignature);
+    await redis.sadd(`user:${adminUserId}:signatures`, adminSigId);
+    await redis.sadd(`partner:${partnerId}:signatures`, adminSigId);
+
+    // Sign documents for sales user
+    const salesSigId = generateId();
+    const salesSignature = {
+      id: salesSigId,
+      documentId: doc.id,
+      userId: salesUserId,
+      partnerId,
+      signedAt: new Date().toISOString(),
+      ipAddress: '127.0.0.1',
+    };
+    await redis.hset(`legal:signature:${salesSigId}`, salesSignature);
+    await redis.sadd(`user:${salesUserId}:signatures`, salesSigId);
+    await redis.sadd(`partner:${partnerId}:signatures`, salesSigId);
   }
-  console.log('Legal documents created and signed');
+  console.log('Legal documents created and signed for both users');
 
   // Create Training Modules
   const trainingModules = [
@@ -238,19 +294,42 @@ async function seed() {
   }
   console.log('Training modules created');
 
-  // Mark training as completed for demo user
-  const progress = {
+  // Mark training as completed for admin user
+  const adminProgress = {
     moduleId: 'mod-1',
-    userId,
+    userId: adminUserId,
     completed: true,
     quizScore: 100,
     completedAt: new Date().toISOString(),
     startedAt: new Date().toISOString(),
   };
-  await redis.hset(`user:${userId}:training:progress`, {
-    'mod-1': JSON.stringify(progress),
+  const adminProgress2 = {
+    moduleId: 'mod-2',
+    userId: adminUserId,
+    completed: true,
+    quizScore: 90,
+    completedAt: new Date().toISOString(),
+    startedAt: new Date().toISOString(),
+  };
+  await redis.hset(`user:${adminUserId}:training:progress`, {
+    'mod-1': JSON.stringify(adminProgress),
+    'mod-2': JSON.stringify(adminProgress2),
   });
-  console.log('Training progress created');
+  console.log('Admin training progress created');
+
+  // Mark training as partially completed for sales user
+  const salesProgress = {
+    moduleId: 'mod-1',
+    userId: salesUserId,
+    completed: true,
+    quizScore: 85,
+    completedAt: new Date().toISOString(),
+    startedAt: new Date().toISOString(),
+  };
+  await redis.hset(`user:${salesUserId}:training:progress`, {
+    'mod-1': JSON.stringify(salesProgress),
+  });
+  console.log('Sales training progress created');
 
   // Create sample deals
   const deals = [
@@ -275,6 +354,7 @@ async function seed() {
         champion: 3,
       }),
       exclusivityExpiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+      createdBy: adminUserId,
       createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
       updatedAt: new Date().toISOString(),
     },
@@ -299,6 +379,7 @@ async function seed() {
         champion: 4,
       }),
       exclusivityExpiresAt: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString(),
+      createdBy: salesUserId,
       createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
       updatedAt: new Date().toISOString(),
     },
@@ -323,7 +404,33 @@ async function seed() {
         champion: 5,
       }),
       exclusivityExpiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+      createdBy: salesUserId,
       createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: generateId(),
+      partnerId,
+      companyName: 'MegaCorp Ltd',
+      companyDomain: 'megacorp.com',
+      contactName: 'David Lee',
+      contactEmail: 'david@megacorp.com',
+      contactPhone: '+1 555 333 4444',
+      dealValue: 200000,
+      currency: 'USD',
+      stage: 'negotiation',
+      notes: 'Final negotiations in progress.',
+      meddic: JSON.stringify({
+        metrics: 5,
+        economicBuyer: 4,
+        decisionCriteria: 5,
+        decisionProcess: 4,
+        identifyPain: 5,
+        champion: 5,
+      }),
+      exclusivityExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      createdBy: adminUserId,
+      createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
       updatedAt: new Date().toISOString(),
     },
   ];
@@ -358,8 +465,16 @@ async function seed() {
 
   console.log('\n=== Seed Complete ===');
   console.log('Login credentials:');
-  console.log('  Email: demo@acme.com');
-  console.log('  Password: demo123');
+  console.log('');
+  console.log('  Admin User:');
+  console.log('    Email: admin@sovra.io');
+  console.log('    Password: demo123');
+  console.log('');
+  console.log('  Sales User:');
+  console.log('    Email: sales@sovra.io');
+  console.log('    Password: demo123');
+  console.log('');
+  console.log('Use the Role Switcher button (bottom-right) to test different roles!');
 }
 
 seed()

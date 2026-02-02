@@ -33,10 +33,12 @@
     "dashboard": "Panel",
     "deals": "Registro de Oportunidades",
     "training": "Capacitacion",
+    "trainingCenter": "Centro de Entrenamiento",
     "certifications": "Certificaciones",
     "legal": "Documentos Legales",
     "commissions": "Comisiones",
-    "copilot": "Sales Copilot"
+    "copilot": "Sales Copilot",
+    "team": "Mi Equipo"
   },
   "dashboard": {
     "title": "Panel del Partner",
@@ -176,6 +178,33 @@
     "amount": "Monto",
     "status": "Estado",
     "empty": "No hay comisiones aun"
+  },
+  "trainingCenter": {
+    "title": "Centro de Entrenamiento",
+    "tabs": {
+      "modules": "Modulos",
+      "certifications": "Certificaciones"
+    }
+  },
+  "team": {
+    "title": "Dashboard de Equipo",
+    "members": "Miembros del Equipo",
+    "empty": "No hay miembros en el equipo",
+    "totalMembers": "Total Miembros",
+    "certifiedMembers": "Miembros Certificados",
+    "teamDeals": "Deals del Equipo",
+    "teamRevenue": "Revenue del Equipo",
+    "totalDeals": "Total Deals",
+    "activeDeals": "Deals Activos",
+    "wonDeals": "Deals Ganados",
+    "revenue": "Revenue",
+    "training": "Capacitacion",
+    "certifications": "Certificaciones",
+    "noCertifications": "Sin certificaciones activas"
+  },
+  "demo": {
+    "switchRole": "Cambiar Rol",
+    "currentRole": "Actual: {role}"
   },
   "tier": {
     "bronze": "Bronce",

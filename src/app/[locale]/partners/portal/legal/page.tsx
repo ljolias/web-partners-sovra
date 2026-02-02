@@ -2,11 +2,13 @@
 
 import { useState, useEffect, use } from 'react';
 import { useTranslations } from 'next-intl';
-import { FileText, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { FileText, CheckCircle, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button, Card, CardContent, Badge } from '@/components/ui';
 import { formatDate } from '@/lib/utils';
-import type { LegalDocument, LegalSignature } from '@/types';
+import { hasPermission } from '@/lib/permissions';
+import type { LegalDocument, LegalSignature, User, UserRole } from '@/types';
 
 interface LegalPageProps {
   params: Promise<{ locale: string }>;
@@ -20,13 +22,32 @@ interface DocumentWithStatus extends LegalDocument {
 export default function LegalPage({ params }: LegalPageProps) {
   const { locale } = use(params);
   const t = useTranslations('legal');
+  const router = useRouter();
   const [documents, setDocuments] = useState<DocumentWithStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [signingId, setSigningId] = useState<string | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
   useEffect(() => {
-    async function fetchDocuments() {
+    async function checkAccessAndFetch() {
       try {
+        // Check user permissions
+        const userRes = await fetch('/api/partners/auth/me');
+        if (!userRes.ok) {
+          router.replace(`/${locale}/partners/login`);
+          return;
+        }
+        const userData = await userRes.json();
+        const user = userData.user as User;
+
+        if (!hasPermission(user.role as UserRole, 'legal:view')) {
+          router.replace(`/${locale}/partners/portal`);
+          return;
+        }
+
+        setIsAuthorized(true);
+
+        // Fetch documents
         const res = await fetch('/api/partners/legal');
         if (res.ok) {
           const data = await res.json();
@@ -39,8 +60,8 @@ export default function LegalPage({ params }: LegalPageProps) {
       }
     }
 
-    fetchDocuments();
-  }, []);
+    checkAccessAndFetch();
+  }, [locale, router]);
 
   const handleSign = async (documentId: string) => {
     setSigningId(documentId);
@@ -68,12 +89,16 @@ export default function LegalPage({ params }: LegalPageProps) {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isAuthorized === null) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary)] border-t-transparent" />
       </div>
     );
+  }
+
+  if (!isAuthorized) {
+    return null;
   }
 
   const pendingDocs = documents.filter((d) => !d.signed);
@@ -82,13 +107,13 @@ export default function LegalPage({ params }: LegalPageProps) {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">{t('title')}</h1>
       </div>
 
       {/* Pending Documents */}
       {pendingDocs.length > 0 && (
         <div>
-          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-[var(--color-text-primary)]">
             <AlertTriangle className="h-5 w-5 text-amber-500" />
             {t('pending')}
           </h2>
@@ -102,19 +127,19 @@ export default function LegalPage({ params }: LegalPageProps) {
               >
                 <Card>
                   <CardContent className="flex items-center gap-4 py-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-100">
-                      <FileText className="h-6 w-6 text-amber-600" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/30">
+                      <FileText className="h-6 w-6 text-amber-600 dark:text-amber-400" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-gray-900">
+                        <h3 className="font-semibold text-[var(--color-text-primary)]">
                           {doc.title[locale] || doc.title.en}
                         </h3>
                         {doc.requiredForDeals && (
                           <Badge variant="warning">{t('required')}</Badge>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500">Version {doc.version}</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Version {doc.version}</p>
                     </div>
                     <Button
                       onClick={() => handleSign(doc.id)}
@@ -132,7 +157,7 @@ export default function LegalPage({ params }: LegalPageProps) {
 
       {/* Signed Documents */}
       <div>
-        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-[var(--color-text-primary)]">
           <CheckCircle className="h-5 w-5 text-green-500" />
           {t('signed')}
         </h2>
@@ -147,14 +172,14 @@ export default function LegalPage({ params }: LegalPageProps) {
               >
                 <Card>
                   <CardContent className="flex items-center gap-4 py-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100">
-                      <CheckCircle className="h-6 w-6 text-green-600" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
+                      <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">
+                      <h3 className="font-semibold text-[var(--color-text-primary)]">
                         {doc.title[locale] || doc.title.en}
                       </h3>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-[var(--color-text-secondary)]">
                         {t('signedOn', {
                           date: formatDate(doc.signature?.signedAt || '', locale),
                         })}
@@ -169,8 +194,8 @@ export default function LegalPage({ params }: LegalPageProps) {
         ) : (
           <Card>
             <CardContent className="py-12 text-center">
-              <FileText className="mx-auto h-12 w-12 text-gray-300" />
-              <p className="mt-4 text-gray-500">No signed documents yet</p>
+              <FileText className="mx-auto h-12 w-12 text-[var(--color-text-secondary)] opacity-50" />
+              <p className="mt-4 text-[var(--color-text-secondary)]">No signed documents yet</p>
             </CardContent>
           </Card>
         )}

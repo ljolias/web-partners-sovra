@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Menu } from 'lucide-react';
 import { Sidebar } from './Sidebar';
-import type { Partner, User } from '@/types';
+import { RoleSwitcher } from './RoleSwitcher';
+import type { Partner, User, UserRole } from '@/types';
 
 interface PortalShellProps {
   children: React.ReactNode;
@@ -57,6 +58,9 @@ export function PortalShell({ children, partner, user, locale }: PortalShellProp
           <div className="p-4 sm:p-6 lg:p-8">{children}</div>
         </main>
       </div>
+
+      {/* Demo Role Switcher */}
+      <RoleSwitcher currentRole={user.role as UserRole} />
     </div>
   );
 }

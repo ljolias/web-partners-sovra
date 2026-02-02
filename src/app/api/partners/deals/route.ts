@@ -110,6 +110,7 @@ export async function POST(request: NextRequest) {
       notes: data.notes,
       meddic: defaultMEDDIC,
       exclusivityExpiresAt: exclusivityDate.toISOString(),
+      createdBy: user.id,
       createdAt: now.toISOString(),
       updatedAt: now.toISOString(),
     };

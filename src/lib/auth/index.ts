@@ -7,3 +7,5 @@ export {
   verifyPassword,
   type SessionData,
 } from './session';
+
+export { withRoleGuard, checkPermission } from './withRoleGuard';

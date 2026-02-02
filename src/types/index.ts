@@ -1,3 +1,6 @@
+// User Role Types
+export type UserRole = 'admin' | 'sales' | 'viewer';
+
 // Partner Types
 export interface Partner {
   id: string;
@@ -51,6 +54,7 @@ export interface Deal {
   notes: string;
   meddic: MEDDICScores;
   exclusivityExpiresAt: string;
+  createdBy: string; // ID del vendedor que creó el deal
   createdAt: string;
   updatedAt: string;
 }
@@ -233,4 +237,22 @@ export interface DealFormData {
 export interface LoginFormData {
   email: string;
   password: string;
+}
+
+// Team Dashboard Types
+export interface TeamMemberMetrics {
+  totalDeals: number;
+  activeDeals: number;
+  wonDeals: number;
+  totalRevenue: number;
+  trainingCompletionRate: number;
+  activeCertificationsCount: number;
+}
+
+export interface TeamMemberSummary {
+  user: Pick<User, 'id' | 'name' | 'email' | 'role'>;
+  certifications: Certification[];
+  trainingProgress: Record<string, TrainingProgress>;
+  deals: Deal[];
+  metrics: TeamMemberMetrics;
 }

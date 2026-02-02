@@ -1,35 +1,76 @@
-import { getTranslations } from 'next-intl/server';
+'use client';
+
+import { useState, useEffect, use } from 'react';
+import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import { DollarSign, Clock, CheckCircle, CreditCard } from 'lucide-react';
-import { getCurrentSession } from '@/lib/auth';
-import { getPartnerCommissions, getDeal } from '@/lib/redis';
 import { Card, CardContent, Badge } from '@/components/ui';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { hasPermission } from '@/lib/permissions';
+import type { Commission, User, UserRole } from '@/types';
 
 interface CommissionsPageProps {
   params: Promise<{ locale: string }>;
 }
 
-export default async function CommissionsPage({ params }: CommissionsPageProps) {
-  const { locale } = await params;
-  const t = await getTranslations('commissions');
-  const session = await getCurrentSession();
+interface CommissionWithDeal extends Commission {
+  dealName: string;
+}
 
-  if (!session) {
-    return null;
+export default function CommissionsPage({ params }: CommissionsPageProps) {
+  const { locale } = use(params);
+  const t = useTranslations('commissions');
+  const router = useRouter();
+  const [commissions, setCommissions] = useState<CommissionWithDeal[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    async function checkAccessAndFetch() {
+      try {
+        // Check user permissions
+        const userRes = await fetch('/api/partners/auth/me');
+        if (!userRes.ok) {
+          router.replace(`/${locale}/partners/login`);
+          return;
+        }
+        const userData = await userRes.json();
+        const user = userData.user as User;
+
+        if (!hasPermission(user.role as UserRole, 'commissions:view')) {
+          router.replace(`/${locale}/partners/portal`);
+          return;
+        }
+
+        setIsAuthorized(true);
+
+        // Fetch commissions
+        const res = await fetch('/api/partners/commissions');
+        if (res.ok) {
+          const data = await res.json();
+          setCommissions(data.commissions || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch commissions:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    checkAccessAndFetch();
+  }, [locale, router]);
+
+  if (isLoading || isAuthorized === null) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary)] border-t-transparent" />
+      </div>
+    );
   }
 
-  const commissions = await getPartnerCommissions(session.partner.id);
-
-  // Get deal names for commissions
-  const commissionsWithDeals = await Promise.all(
-    commissions.map(async (comm) => {
-      const deal = await getDeal(comm.dealId);
-      return {
-        ...comm,
-        dealName: deal?.companyName || 'Unknown Deal',
-      };
-    })
-  );
+  if (!isAuthorized) {
+    return null;
+  }
 
   const totalAmount = commissions.reduce((sum, c) => sum + c.amount, 0);
   const pendingAmount = commissions
@@ -54,7 +95,7 @@ export default async function CommissionsPage({ params }: CommissionsPageProps) 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">{t('title')}</h1>
       </div>
 
       {/* Summary Cards */}
@@ -62,12 +103,12 @@ export default async function CommissionsPage({ params }: CommissionsPageProps) 
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-100">
-                <DollarSign className="h-6 w-6 text-indigo-600" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
+                <DollarSign className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">{t('total')}</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('total')}</p>
+                <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                   {formatCurrency(totalAmount)}
                 </p>
               </div>
@@ -78,12 +119,12 @@ export default async function CommissionsPage({ params }: CommissionsPageProps) 
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-100">
-                <Clock className="h-6 w-6 text-amber-600" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/30">
+                <Clock className="h-6 w-6 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">{t('pending')}</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('pending')}</p>
+                <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                   {formatCurrency(pendingAmount)}
                 </p>
               </div>
@@ -94,12 +135,12 @@ export default async function CommissionsPage({ params }: CommissionsPageProps) 
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100">
-                <CreditCard className="h-6 w-6 text-green-600" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
+                <CreditCard className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">{t('paid')}</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('paid')}</p>
+                <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                   {formatCurrency(paidAmount)}
                 </p>
               </div>
@@ -109,36 +150,36 @@ export default async function CommissionsPage({ params }: CommissionsPageProps) 
       </div>
 
       {/* Commissions List */}
-      {commissionsWithDeals.length > 0 ? (
+      {commissions.length > 0 ? (
         <Card>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <tr className="border-b border-[var(--color-border)]">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[var(--color-text-secondary)]">
                     {t('deal')}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[var(--color-text-secondary)]">
                     {t('amount')}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[var(--color-text-secondary)]">
                     {t('status')}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[var(--color-text-secondary)]">
                     Date
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
-                {commissionsWithDeals.map((comm) => {
+              <tbody className="divide-y divide-[var(--color-border)]">
+                {commissions.map((comm) => {
                   const StatusIcon = statusIcons[comm.status];
                   return (
-                    <tr key={comm.id} className="hover:bg-gray-50">
+                    <tr key={comm.id} className="hover:bg-[var(--color-surface-hover)]">
                       <td className="whitespace-nowrap px-6 py-4">
-                        <span className="font-medium text-gray-900">{comm.dealName}</span>
+                        <span className="font-medium text-[var(--color-text-primary)]">{comm.dealName}</span>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
-                        <span className="text-gray-900">
+                        <span className="text-[var(--color-text-primary)]">
                           {formatCurrency(comm.amount, comm.currency)}
                         </span>
                       </td>
@@ -148,7 +189,7 @@ export default async function CommissionsPage({ params }: CommissionsPageProps) 
                           {t(comm.status)}
                         </Badge>
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-gray-500">
+                      <td className="whitespace-nowrap px-6 py-4 text-[var(--color-text-secondary)]">
                         {formatDate(comm.paidAt || comm.createdAt, locale)}
                       </td>
                     </tr>
@@ -161,8 +202,8 @@ export default async function CommissionsPage({ params }: CommissionsPageProps) 
       ) : (
         <Card>
           <CardContent className="py-12 text-center">
-            <DollarSign className="mx-auto h-12 w-12 text-gray-300" />
-            <p className="mt-4 text-gray-500">{t('empty')}</p>
+            <DollarSign className="mx-auto h-12 w-12 text-[var(--color-text-secondary)] opacity-50" />
+            <p className="mt-4 text-[var(--color-text-secondary)]">{t('empty')}</p>
           </CardContent>
         </Card>
       )}

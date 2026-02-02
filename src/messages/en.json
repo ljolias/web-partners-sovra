@@ -33,10 +33,12 @@
     "dashboard": "Dashboard",
     "deals": "Deal Registration",
     "training": "Training",
+    "trainingCenter": "Training Center",
     "certifications": "Certifications",
     "legal": "Legal Documents",
     "commissions": "Commissions",
-    "copilot": "Sales Copilot"
+    "copilot": "Sales Copilot",
+    "team": "My Team"
   },
   "dashboard": {
     "title": "Partner Dashboard",
@@ -176,6 +178,33 @@
     "amount": "Amount",
     "status": "Status",
     "empty": "No commissions yet"
+  },
+  "trainingCenter": {
+    "title": "Training Center",
+    "tabs": {
+      "modules": "Modules",
+      "certifications": "Certifications"
+    }
+  },
+  "team": {
+    "title": "Team Dashboard",
+    "members": "Team Members",
+    "empty": "No team members",
+    "totalMembers": "Total Members",
+    "certifiedMembers": "Certified Members",
+    "teamDeals": "Team Deals",
+    "teamRevenue": "Team Revenue",
+    "totalDeals": "Total Deals",
+    "activeDeals": "Active Deals",
+    "wonDeals": "Won Deals",
+    "revenue": "Revenue",
+    "training": "Training",
+    "certifications": "Certifications",
+    "noCertifications": "No active certifications"
+  },
+  "demo": {
+    "switchRole": "Switch Role",
+    "currentRole": "Current: {role}"
   },
   "tier": {
     "bronze": "Bronze",
