@@ -15,13 +15,15 @@ import {
   Moon,
   X,
   Users,
+  Globe,
+  ChevronDown,
 } from 'lucide-react';
 import { hasPermission, type Permission } from '@/lib/permissions';
 import type { UserRole } from '@/types';
 import { cn } from '@/lib/utils';
 import { SovraLogo } from '@/components/ui/SovraLogo';
 import type { Partner, User } from '@/types';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface SidebarProps {
   partner: Partner;
@@ -33,9 +35,9 @@ interface SidebarProps {
 }
 
 const languages = [
-  { code: 'es', flag: '🇪🇸' },
-  { code: 'en', flag: '🇺🇸' },
-  { code: 'pt', flag: '🇧🇷' },
+  { code: 'es', flag: '🇪🇸', name: 'Español' },
+  { code: 'en', flag: '🇺🇸', name: 'English' },
+  { code: 'pt', flag: '🇧🇷', name: 'Português' },
 ];
 
 function ThemeToggle() {
@@ -70,6 +72,67 @@ function ThemeToggle() {
     >
       {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </button>
+  );
+}
+
+function LanguageDropdown({ locale, pathWithoutLocale, onSelect }: { locale: string; pathWithoutLocale: string; onSelect?: () => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const currentLang = languages.find(l => l.code === locale) || languages[0];
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] transition-all"
+      >
+        <Globe className="h-4 w-4" />
+        <span className="text-sm">{currentLang.flag}</span>
+        <ChevronDown className={cn('h-3 w-3 transition-transform', isOpen && 'rotate-180')} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute top-full left-0 mt-1 w-40 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg shadow-lg overflow-hidden z-50"
+          >
+            {languages.map((lang) => (
+              <Link
+                key={lang.code}
+                href={`/${lang.code}${pathWithoutLocale}`}
+                onClick={() => {
+                  setIsOpen(false);
+                  onSelect?.();
+                }}
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2 text-sm transition-colors',
+                  locale === lang.code
+                    ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
+                    : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)]'
+                )}
+              >
+                <span>{lang.flag}</span>
+                <span>{lang.name}</span>
+              </Link>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -153,23 +216,11 @@ export function Sidebar({ partner, user, locale, onLogout, isOpen = true, onClos
 
       {/* Theme & Language */}
       <div className="px-4 lg:px-6 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
-        <div className="flex gap-1">
-          {languages.map((lang) => (
-            <Link
-              key={lang.code}
-              href={`/${lang.code}${pathWithoutLocale}`}
-              onClick={onClose}
-              className={cn(
-                'text-sm px-2 lg:px-3 py-1.5 rounded-lg transition-all',
-                locale === lang.code
-                  ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
-                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)]'
-              )}
-            >
-              {lang.flag}
-            </Link>
-          ))}
-        </div>
+        <LanguageDropdown
+          locale={locale}
+          pathWithoutLocale={pathWithoutLocale}
+          onSelect={onClose}
+        />
         <ThemeToggle />
       </div>
 

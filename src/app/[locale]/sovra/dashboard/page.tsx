@@ -25,44 +25,44 @@ export default async function SovraDashboardPage({ params }: PageProps) {
       label: 'Pendientes de Aprobacion',
       value: pendingDeals.length,
       icon: Clock,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-100',
+      color: 'text-amber-500',
+      bgColor: 'bg-amber-500/10',
       href: `/${locale}/sovra/dashboard/approvals`,
     },
     {
       label: 'Aprobadas',
       value: approvedDeals.length,
       icon: CheckCircle,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100',
+      color: 'text-green-500',
+      bgColor: 'bg-green-500/10',
     },
     {
       label: 'Rechazadas',
       value: rejectedDeals.length,
       icon: XCircle,
-      color: 'text-red-600',
-      bgColor: 'bg-red-100',
+      color: 'text-red-500',
+      bgColor: 'bg-red-500/10',
     },
     {
       label: 'Esperando Info',
       value: moreInfoDeals.length,
       icon: AlertCircle,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-100',
+      color: 'text-orange-500',
+      bgColor: 'bg-orange-500/10',
     },
     {
       label: 'Cerradas Ganadas',
       value: closedWonDeals.length,
       icon: Trophy,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100',
+      color: 'text-[var(--color-primary)]',
+      bgColor: 'bg-[var(--color-primary)]/10',
     },
     {
       label: 'Cerradas Perdidas',
       value: closedLostDeals.length,
       icon: Ban,
-      color: 'text-gray-600',
-      bgColor: 'bg-gray-100',
+      color: 'text-[var(--color-text-secondary)]',
+      bgColor: 'bg-[var(--color-surface-hover)]',
     },
   ];
 
@@ -72,8 +72,10 @@ export default async function SovraDashboardPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500">Vista general del sistema de oportunidades</p>
+        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+          <span className="text-[var(--color-primary)]">Dashboard</span>
+        </h1>
+        <p className="text-[var(--color-text-secondary)]">Vista general del sistema de oportunidades</p>
       </div>
 
       {/* Stats Grid */}
@@ -81,12 +83,12 @@ export default async function SovraDashboardPage({ params }: PageProps) {
         {stats.map((stat) => {
           const Icon = stat.icon;
           const content = (
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4">
               <div className={`w-10 h-10 ${stat.bgColor} rounded-lg flex items-center justify-center mb-3`}>
                 <Icon className={`w-5 h-5 ${stat.color}`} />
               </div>
-              <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-              <p className="text-sm text-gray-500">{stat.label}</p>
+              <p className="text-2xl font-bold text-[var(--color-text-primary)]">{stat.value}</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">{stat.label}</p>
             </div>
           );
 
@@ -104,17 +106,17 @@ export default async function SovraDashboardPage({ params }: PageProps) {
 
       {/* Quick Actions */}
       {pendingDeals.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5 text-yellow-600" />
-              <p className="text-yellow-800">
+              <Clock className="w-5 h-5 text-amber-500" />
+              <p className="text-amber-500">
                 Tienes <strong>{pendingDeals.length}</strong> oportunidades pendientes de aprobacion
               </p>
             </div>
             <Link
               href={`/${locale}/sovra/dashboard/approvals`}
-              className="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-700"
+              className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm hover:bg-amber-600"
             >
               Revisar ahora
             </Link>
@@ -123,26 +125,26 @@ export default async function SovraDashboardPage({ params }: PageProps) {
       )}
 
       {/* Recent Deals */}
-      <div className="bg-white rounded-xl border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Oportunidades Recientes</h2>
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]">
+        <div className="px-6 py-4 border-b border-[var(--color-border)]">
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Oportunidades Recientes</h2>
         </div>
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-[var(--color-border)]">
           {recentDeals.length === 0 ? (
-            <div className="p-6 text-center text-gray-500">
+            <div className="p-6 text-center text-[var(--color-text-secondary)]">
               No hay oportunidades registradas
             </div>
           ) : (
             recentDeals.map((deal) => (
               <div key={deal.id} className="px-6 py-4 flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-gray-900">{deal.clientName}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="font-medium text-[var(--color-text-primary)]">{deal.clientName}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">
                     {deal.country} - {deal.governmentLevel}
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-[var(--color-text-secondary)]">
                     {new Date(deal.createdAt).toLocaleDateString('es')}
                   </span>
                   <StatusBadge status={deal.status} />
@@ -158,15 +160,15 @@ export default async function SovraDashboardPage({ params }: PageProps) {
 
 function StatusBadge({ status }: { status: string }) {
   const statusConfig: Record<string, { label: string; className: string }> = {
-    pending_approval: { label: 'Pendiente', className: 'bg-yellow-100 text-yellow-800' },
-    approved: { label: 'Aprobada', className: 'bg-green-100 text-green-800' },
-    rejected: { label: 'Rechazada', className: 'bg-red-100 text-red-800' },
-    more_info: { label: 'Mas Info', className: 'bg-orange-100 text-orange-800' },
-    closed_won: { label: 'Ganada', className: 'bg-blue-100 text-blue-800' },
-    closed_lost: { label: 'Perdida', className: 'bg-gray-100 text-gray-800' },
+    pending_approval: { label: 'Pendiente', className: 'bg-amber-500/10 text-amber-500' },
+    approved: { label: 'Aprobada', className: 'bg-green-500/10 text-green-500' },
+    rejected: { label: 'Rechazada', className: 'bg-red-500/10 text-red-500' },
+    more_info: { label: 'Mas Info', className: 'bg-orange-500/10 text-orange-500' },
+    closed_won: { label: 'Ganada', className: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' },
+    closed_lost: { label: 'Perdida', className: 'bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]' },
   };
 
-  const config = statusConfig[status] || { label: status, className: 'bg-gray-100 text-gray-800' };
+  const config = statusConfig[status] || { label: status, className: 'bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]' };
 
   return (
     <span className={`px-2 py-1 text-xs font-medium rounded-full ${config.className}`}>

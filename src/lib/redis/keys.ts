@@ -5,6 +5,7 @@ export const keys = {
   partner: (id: string) => `partner:${id}`,
   partnerUsers: (partnerId: string) => `partner:${partnerId}:users`,
   partnersByTier: (tier: string) => `partners:by-tier:${tier}`,
+  allPartners: () => `partners:all`,
 
   // Users & Sessions
   user: (id: string) => `user:${id}`,

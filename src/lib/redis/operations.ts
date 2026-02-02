@@ -59,7 +59,30 @@ export async function createPartner(partner: Partner): Promise<void> {
     score: partner.rating,
     member: partner.id,
   });
+  pipeline.zadd(keys.allPartners(), {
+    score: new Date(partner.createdAt).getTime(),
+    member: partner.id,
+  });
   await pipeline.exec();
+}
+
+export async function getAllPartners(limit = 100): Promise<Partner[]> {
+  // First try the allPartners index
+  let partnerIds = await redis.zrange<string[]>(keys.allPartners(), 0, limit - 1, { rev: true });
+
+  // If empty, scan for partner keys (for existing data)
+  if (!partnerIds.length) {
+    const partnerKeys = await redis.keys('partner:*');
+    partnerIds = partnerKeys
+      .filter(k => !k.includes(':') || k.split(':').length === 2) // Only partner:{id} keys
+      .filter(k => !k.includes('users') && !k.includes('deals') && !k.includes('legal'))
+      .map(k => k.replace('partner:', ''));
+  }
+
+  if (!partnerIds.length) return [];
+
+  const partners = await Promise.all(partnerIds.map(id => getPartner(id)));
+  return partners.filter((p): p is Partner => p !== null);
 }
 
 export async function updatePartner(id: string, updates: Partial<Partner>): Promise<void> {
@@ -577,9 +600,17 @@ export { DEFAULT_PRICING_CONFIG };
 export async function getLegalDocumentV2(id: string): Promise<LegalDocument | null> {
   const doc = await redis.hgetall(keys.legalDocumentV2(id)) as LegalDocument | null;
   if (!doc || !doc.id) return null;
-  // Parse JSON fields
-  if (typeof doc.docusignMetadata === 'string') doc.docusignMetadata = JSON.parse(doc.docusignMetadata);
-  if (typeof doc.uploadMetadata === 'string') doc.uploadMetadata = JSON.parse(doc.uploadMetadata);
+  // Parse JSON fields (handle empty strings)
+  if (typeof doc.docusignMetadata === 'string' && doc.docusignMetadata) {
+    doc.docusignMetadata = JSON.parse(doc.docusignMetadata);
+  } else {
+    doc.docusignMetadata = undefined;
+  }
+  if (typeof doc.uploadMetadata === 'string' && doc.uploadMetadata) {
+    doc.uploadMetadata = JSON.parse(doc.uploadMetadata);
+  } else {
+    doc.uploadMetadata = undefined;
+  }
   // Parse numbers
   if (typeof doc.version === 'string') doc.version = parseInt(doc.version, 10);
   return doc;

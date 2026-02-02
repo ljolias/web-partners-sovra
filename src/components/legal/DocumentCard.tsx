@@ -29,13 +29,13 @@ const statusConfig: Record<
   DocumentStatus,
   { color: string; bgColor: string; icon: React.ComponentType<{ className?: string }> }
 > = {
-  draft: { color: 'text-gray-500', bgColor: 'bg-gray-100 dark:bg-gray-800', icon: FileText },
-  pending_signature: { color: 'text-amber-500', bgColor: 'bg-amber-100 dark:bg-amber-900/30', icon: Clock },
-  partially_signed: { color: 'text-blue-500', bgColor: 'bg-blue-100 dark:bg-blue-900/30', icon: Pen },
-  active: { color: 'text-green-500', bgColor: 'bg-green-100 dark:bg-green-900/30', icon: CheckCircle },
-  expired: { color: 'text-red-500', bgColor: 'bg-red-100 dark:bg-red-900/30', icon: AlertTriangle },
-  superseded: { color: 'text-gray-400', bgColor: 'bg-gray-100 dark:bg-gray-800', icon: FileText },
-  archived: { color: 'text-gray-400', bgColor: 'bg-gray-100 dark:bg-gray-800', icon: FileText },
+  draft: { color: 'text-[var(--color-text-secondary)]', bgColor: 'bg-[var(--color-surface-hover)]', icon: FileText },
+  pending_signature: { color: 'text-amber-500', bgColor: 'bg-amber-500/10', icon: Clock },
+  partially_signed: { color: 'text-[var(--color-primary)]', bgColor: 'bg-[var(--color-primary)]/10', icon: Pen },
+  active: { color: 'text-green-500', bgColor: 'bg-green-500/10', icon: CheckCircle },
+  expired: { color: 'text-red-500', bgColor: 'bg-red-500/10', icon: AlertTriangle },
+  superseded: { color: 'text-[var(--color-text-muted)]', bgColor: 'bg-[var(--color-surface-hover)]', icon: FileText },
+  archived: { color: 'text-[var(--color-text-muted)]', bgColor: 'bg-[var(--color-surface-hover)]', icon: FileText },
 };
 
 export function DocumentCard({ document, locale, onView, onDownload, onSign, t }: DocumentCardProps) {

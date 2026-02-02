@@ -185,7 +185,7 @@ export function DocumentUploadModal({
           <form onSubmit={handleSubmit} className="p-4 space-y-4">
             {/* Error Message */}
             {error && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-sm">
+              <div className="flex items-center gap-2 p-3 bg-red-500/10 text-red-500 rounded-lg text-sm">
                 <AlertCircle className="h-4 w-4 flex-shrink-0" />
                 <span>{error}</span>
               </div>

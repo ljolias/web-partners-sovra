@@ -16,11 +16,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';
 
     const variants = {
-      primary: 'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500',
-      secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500',
-      outline: 'border border-gray-300 bg-transparent hover:bg-gray-50 focus:ring-indigo-500',
-      ghost: 'bg-transparent hover:bg-gray-100 focus:ring-gray-500',
-      danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+      primary: 'bg-[var(--color-primary)] !text-white hover:opacity-90 focus:ring-[var(--color-primary)]',
+      secondary: 'bg-[var(--color-surface-hover)] text-[var(--color-text-primary)] hover:bg-[var(--color-border-hover)] focus:ring-[var(--color-primary)]',
+      outline: 'border border-[var(--color-border)] bg-transparent text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)] hover:border-[var(--color-border-hover)] focus:ring-[var(--color-primary)]',
+      ghost: 'bg-transparent text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)] focus:ring-[var(--color-primary)]',
+      danger: 'bg-red-600 !text-white hover:bg-red-700 focus:ring-red-500',
     };
 
     const sizes = {
