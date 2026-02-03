@@ -6,3 +6,4 @@ export { Textarea, type TextareaProps } from './textarea';
 export { Badge, type BadgeProps } from './badge';
 export { Progress, type ProgressProps } from './progress';
 export { Alert, type AlertProps } from './alert';
+export { SovraLoader } from './SovraLoader';
