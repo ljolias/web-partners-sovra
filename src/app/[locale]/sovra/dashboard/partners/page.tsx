@@ -26,8 +26,12 @@ import {
   Link as LinkIcon,
   Trash2,
   AlertTriangle,
+  Check,
+  Mail,
 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { cn } from '@/lib/utils';
+import { SovraLoader } from '@/components/ui';
 import type { Partner, PartnerTier } from '@/types';
 
 const tierConfig: Record<PartnerTier, { label: string; color: string; icon: string }> = {
@@ -69,6 +73,17 @@ function CreatePartnerModal({ isOpen, onClose, onSuccess }: CreatePartnerModalPr
   const [error, setError] = useState<string | null>(null);
   const [logoInputMode, setLogoInputMode] = useState<'url' | 'upload'>('url');
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [step, setStep] = useState<'form' | 'preview'>('form');
+  const [issuedCredential, setIssuedCredential] = useState<{
+    credential: {
+      id: string;
+      holderName: string;
+      holderEmail: string;
+      role: string;
+      qrCode?: string;
+    };
+    didcommInvitationUrl?: string;
+  } | null>(null);
   const [formData, setFormData] = useState({
     companyName: '',
     country: '',
@@ -109,6 +124,7 @@ function CreatePartnerModal({ isOpen, onClose, onSuccess }: CreatePartnerModalPr
     setError(null);
 
     try {
+      // Step 1: Create the partner
       const response = await fetch('/api/sovra/partners', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -120,19 +136,37 @@ function CreatePartnerModal({ isOpen, onClose, onSuccess }: CreatePartnerModalPr
         throw new Error(data.error || 'Error al crear partner');
       }
 
-      onSuccess();
-      onClose();
-      setFormData({
-        companyName: '',
-        country: '',
-        tier: 'bronze',
-        logoUrl: '',
-        contactName: '',
-        contactEmail: '',
-        contactPhone: '',
+      const partnerData = await response.json();
+      const partnerId = partnerData.partner.id;
+
+      // Step 2: Issue admin credential for the contact person
+      const credentialResponse = await fetch(`/api/sovra/partners/${partnerId}/credentials`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          holderName: formData.contactName,
+          holderEmail: formData.contactEmail,
+          role: 'admin',
+        }),
       });
-      setLogoPreview(null);
-      setLogoInputMode('url');
+
+      if (!credentialResponse.ok) {
+        // Partner created but credential failed - still show success but log warning
+        console.warn('Partner created but credential issuance failed');
+        onSuccess();
+        handleClose();
+        return;
+      }
+
+      const credentialData = await credentialResponse.json();
+
+      // Store credential data and show QR preview
+      setIssuedCredential({
+        credential: credentialData.credential,
+        didcommInvitationUrl: credentialData.didcommInvitationUrl,
+      });
+      setStep('preview');
+      onSuccess(); // Refresh the partners list
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
@@ -140,7 +174,49 @@ function CreatePartnerModal({ isOpen, onClose, onSuccess }: CreatePartnerModalPr
     }
   };
 
+  const handleClose = () => {
+    // Reset all state when closing
+    setStep('form');
+    setIssuedCredential(null);
+    setFormData({
+      companyName: '',
+      country: '',
+      tier: 'bronze',
+      logoUrl: '',
+      contactName: '',
+      contactEmail: '',
+      contactPhone: '',
+    });
+    setLogoPreview(null);
+    setLogoInputMode('url');
+    setError(null);
+    onClose();
+  };
+
+  const handleDownloadQR = () => {
+    const svg = document.getElementById('partner-admin-qr-code');
+    if (svg) {
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx?.drawImage(img, 0, 0);
+        const pngFile = canvas.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        downloadLink.download = `credencial-${formData.contactName.replace(/\s+/g, '-')}.png`;
+        downloadLink.href = pngFile;
+        downloadLink.click();
+      };
+      img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+    }
+  };
+
   if (!isOpen) return null;
+
+  const qrValue = issuedCredential?.didcommInvitationUrl || issuedCredential?.credential.qrCode || '';
 
   return (
     <AnimatePresence>
@@ -149,7 +225,7 @@ function CreatePartnerModal({ isOpen, onClose, onSuccess }: CreatePartnerModalPr
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-        onClick={onClose}
+        onClick={handleClose}
       >
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
@@ -158,225 +234,306 @@ function CreatePartnerModal({ isOpen, onClose, onSuccess }: CreatePartnerModalPr
           onClick={(e) => e.stopPropagation()}
           className="bg-[var(--color-surface)] rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-[var(--color-border)]"
         >
-          <div className="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
-            <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Nuevo Partner</h2>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-lg hover:bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            {error && (
-              <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                {error}
+          {step === 'form' ? (
+            <>
+              <div className="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
+                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Nuevo Partner</h2>
+                <button
+                  onClick={handleClose}
+                  className="p-2 rounded-lg hover:bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-            )}
 
-            <div>
-              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Informacion de la Empresa</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
-                    Nombre de empresa *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.companyName}
-                    onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                    className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-[var(--color-text-primary)]"
-                    placeholder="Acme Corp"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
-                    Pais *
-                  </label>
-                  <select
-                    required
-                    value={formData.country}
-                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                    className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-[var(--color-text-primary)]"
-                  >
-                    <option value="">Seleccionar pais...</option>
-                    {countries.map((c) => (
-                      <option key={c.code} value={c.name}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
-                    Nivel inicial *
-                  </label>
-                  <select
-                    required
-                    value={formData.tier}
-                    onChange={(e) => setFormData({ ...formData, tier: e.target.value as PartnerTier })}
-                    className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-[var(--color-text-primary)]"
-                  >
-                    <option value="bronze">Bronze</option>
-                    <option value="silver">Silver</option>
-                    <option value="gold">Gold</option>
-                    <option value="platinum">Platinum</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
-                    Logo (opcional)
-                  </label>
-
-                  {/* Logo input mode tabs */}
-                  <div className="flex gap-2 mb-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLogoInputMode('upload');
-                        setFormData({ ...formData, logoUrl: '' });
-                        setLogoPreview(null);
-                      }}
-                      className={cn(
-                        'flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border transition-colors',
-                        logoInputMode === 'upload'
-                          ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)] text-[var(--color-primary)]'
-                          : 'border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'
-                      )}
-                    >
-                      <Upload className="w-4 h-4" />
-                      Subir archivo
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLogoInputMode('url');
-                        setFormData({ ...formData, logoUrl: '' });
-                        setLogoPreview(null);
-                      }}
-                      className={cn(
-                        'flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border transition-colors',
-                        logoInputMode === 'url'
-                          ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)] text-[var(--color-primary)]'
-                          : 'border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'
-                      )}
-                    >
-                      <LinkIcon className="w-4 h-4" />
-                      URL
-                    </button>
+              <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                {error && (
+                  <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    {error}
                   </div>
-
-                  {logoInputMode === 'upload' ? (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-center w-full">
-                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-[var(--color-border)] border-dashed rounded-lg cursor-pointer bg-[var(--color-bg)] hover:bg-[var(--color-surface-hover)] transition-colors">
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            {logoPreview ? (
-                              <img src={logoPreview} alt="Preview" className="w-16 h-16 object-contain mb-2" />
-                            ) : (
-                              <Upload className="w-8 h-8 mb-2 text-[var(--color-text-secondary)]" />
-                            )}
-                            <p className="text-sm text-[var(--color-text-secondary)]">
-                              {logoPreview ? 'Click para cambiar' : 'Click para subir'}
-                            </p>
-                            <p className="text-xs text-[var(--color-text-secondary)]">PNG, JPG (max 2MB)</p>
-                          </div>
-                          <input
-                            type="file"
-                            className="hidden"
-                            accept="image/*"
-                            onChange={handleLogoFileChange}
-                          />
-                        </label>
-                      </div>
-                    </div>
-                  ) : (
-                    <input
-                      type="url"
-                      value={formData.logoUrl}
-                      onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
-                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-[var(--color-text-primary)]"
-                      placeholder="https://example.com/logo.png"
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Administrador del Partner</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
-                    Nombre completo *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.contactName}
-                    onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
-                    className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-[var(--color-text-primary)]"
-                    placeholder="Juan Perez"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={formData.contactEmail}
-                    onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
-                    className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-[var(--color-text-primary)]"
-                    placeholder="juan@acme.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
-                    Telefono (opcional)
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.contactPhone}
-                    onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
-                    className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-[var(--color-text-primary)]"
-                    placeholder="+54 11 1234-5678"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4 border-t border-[var(--color-border)]">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] bg-[var(--color-surface-hover)] rounded-lg hover:bg-[var(--color-border)] transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-4 py-2 text-sm font-medium !text-white bg-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Creando...
-                  </>
-                ) : (
-                  'Crear Partner'
                 )}
-              </button>
-            </div>
-          </form>
+
+                <div>
+                  <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Informacion de la Empresa</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+                        Nombre de empresa *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.companyName}
+                        onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-[var(--color-text-primary)]"
+                        placeholder="Acme Corp"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+                        Pais *
+                      </label>
+                      <select
+                        required
+                        value={formData.country}
+                        onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-[var(--color-text-primary)]"
+                      >
+                        <option value="">Seleccionar pais...</option>
+                        {countries.map((c) => (
+                          <option key={c.code} value={c.name}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+                        Nivel inicial *
+                      </label>
+                      <select
+                        required
+                        value={formData.tier}
+                        onChange={(e) => setFormData({ ...formData, tier: e.target.value as PartnerTier })}
+                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-[var(--color-text-primary)]"
+                      >
+                        <option value="bronze">Bronze</option>
+                        <option value="silver">Silver</option>
+                        <option value="gold">Gold</option>
+                        <option value="platinum">Platinum</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
+                        Logo (opcional)
+                      </label>
+
+                      {/* Logo input mode tabs */}
+                      <div className="flex gap-2 mb-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLogoInputMode('upload');
+                            setFormData({ ...formData, logoUrl: '' });
+                            setLogoPreview(null);
+                          }}
+                          className={cn(
+                            'flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border transition-colors',
+                            logoInputMode === 'upload'
+                              ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)] text-[var(--color-primary)]'
+                              : 'border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'
+                          )}
+                        >
+                          <Upload className="w-4 h-4" />
+                          Subir archivo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLogoInputMode('url');
+                            setFormData({ ...formData, logoUrl: '' });
+                            setLogoPreview(null);
+                          }}
+                          className={cn(
+                            'flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border transition-colors',
+                            logoInputMode === 'url'
+                              ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)] text-[var(--color-primary)]'
+                              : 'border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'
+                          )}
+                        >
+                          <LinkIcon className="w-4 h-4" />
+                          URL
+                        </button>
+                      </div>
+
+                      {logoInputMode === 'upload' ? (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-center w-full">
+                            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-[var(--color-border)] border-dashed rounded-lg cursor-pointer bg-[var(--color-bg)] hover:bg-[var(--color-surface-hover)] transition-colors">
+                              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                {logoPreview ? (
+                                  <img src={logoPreview} alt="Preview" className="w-16 h-16 object-contain mb-2" />
+                                ) : (
+                                  <Upload className="w-8 h-8 mb-2 text-[var(--color-text-secondary)]" />
+                                )}
+                                <p className="text-sm text-[var(--color-text-secondary)]">
+                                  {logoPreview ? 'Click para cambiar' : 'Click para subir'}
+                                </p>
+                                <p className="text-xs text-[var(--color-text-secondary)]">PNG, JPG (max 2MB)</p>
+                              </div>
+                              <input
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={handleLogoFileChange}
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      ) : (
+                        <input
+                          type="url"
+                          value={formData.logoUrl}
+                          onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-[var(--color-text-primary)]"
+                          placeholder="https://example.com/logo.png"
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Administrador del Partner</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+                        Nombre completo *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.contactName}
+                        onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
+                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-[var(--color-text-primary)]"
+                        placeholder="Juan Perez"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+                        Email *
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={formData.contactEmail}
+                        onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
+                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-[var(--color-text-primary)]"
+                        placeholder="juan@acme.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+                        Telefono (opcional)
+                      </label>
+                      <input
+                        type="tel"
+                        value={formData.contactPhone}
+                        onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
+                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-[var(--color-text-primary)]"
+                        placeholder="+54 11 1234-5678"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+                  <p>Al crear el partner, se emitira automaticamente una credencial verificable para el administrador.</p>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-[var(--color-border)]">
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] bg-[var(--color-surface-hover)] rounded-lg hover:bg-[var(--color-border)] transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-4 py-2 text-sm font-medium !text-white bg-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {loading ? (
+                      <>
+                        <SovraLoader size="sm" className="!w-4 !h-4 text-white" />
+                        Creando...
+                      </>
+                    ) : (
+                      'Crear Partner'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </>
+          ) : (
+            <>
+              {/* QR Preview Step */}
+              <div className="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                    <Check className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Partner Creado</h2>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{formData.companyName}</p>
+                  </div>
+                </div>
+                <button onClick={handleClose} className="p-2 rounded-lg hover:bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Credential Info */}
+                <div className="text-center">
+                  <p className="text-[var(--color-text-secondary)] text-sm">Credencial de Admin para</p>
+                  <p className="text-lg font-semibold text-[var(--color-text-primary)]">{formData.contactName}</p>
+                  <p className="text-sm text-[var(--color-text-muted)]">{formData.contactEmail}</p>
+                  <span className="inline-block mt-2 px-3 py-1 text-xs font-medium rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                    Admin
+                  </span>
+                </div>
+
+                {/* QR Code */}
+                <div className="flex flex-col items-center">
+                  <div className="bg-white p-4 rounded-xl shadow-sm border border-[var(--color-border)]">
+                    <QRCodeSVG
+                      id="partner-admin-qr-code"
+                      value={qrValue}
+                      size={200}
+                      level="M"
+                      includeMargin={true}
+                    />
+                  </div>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-3 text-center max-w-[280px]">
+                    Con esta credencial verificable, el administrador del partner podra acceder al portal, gestionar su equipo, registrar oportunidades y disfrutar de beneficios exclusivos del programa.
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleDownloadQR}
+                    className="flex-1 px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-surface-hover)] rounded-lg hover:bg-[var(--color-border)] flex items-center justify-center gap-2"
+                  >
+                    Descargar QR
+                  </button>
+                  <button
+                    onClick={handleClose}
+                    className="flex-1 px-4 py-2 text-sm font-medium !text-white bg-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center justify-center gap-2"
+                  >
+                    <Mail className="w-4 h-4" />
+                    Enviar por mail
+                  </button>
+                </div>
+
+                {/* Info */}
+                <div className="bg-[var(--color-surface-hover)] rounded-lg p-3 text-sm text-[var(--color-text-secondary)]">
+                  <p className="font-medium text-[var(--color-text-primary)] mb-1">Para activar su acceso:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-xs">
+                    <li>Descargar Sovra Wallet desde App Store o Google Play</li>
+                    <li>Escanear el codigo QR para obtener su credencial</li>
+                    <li>Ingresar al portal y comenzar a trabajar</li>
+                  </ol>
+                </div>
+              </div>
+            </>
+          )}
         </motion.div>
       </motion.div>
     </AnimatePresence>
@@ -637,7 +794,7 @@ function SuspendModal({ isOpen, partner, onClose, onConfirm, loading }: SuspendM
               >
                 {loading ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <SovraLoader size="sm" className="!w-4 !h-4 text-white" />
                     Suspendiendo...
                   </>
                 ) : (
@@ -742,7 +899,7 @@ function DeleteModal({ isOpen, partner, onClose, onConfirm, loading }: DeleteMod
               >
                 {loading ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <SovraLoader size="sm" className="!w-4 !h-4 text-white" />
                     Eliminando...
                   </>
                 ) : (
@@ -984,7 +1141,7 @@ export default function PartnersPage() {
       {/* Partners List */}
       {loading ? (
         <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-12 text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-[var(--color-primary)] border-t-transparent rounded-full mx-auto" />
+          <SovraLoader size="md" className="text-[var(--color-primary)] mx-auto" />
           <p className="text-[var(--color-text-secondary)] mt-4">Cargando partners...</p>
         </div>
       ) : filteredPartners.length === 0 ? (

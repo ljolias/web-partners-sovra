@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireSession } from '@/lib/auth';
+import { getCurrentSession } from '@/lib/auth';
 import {
   getPartner,
-  getPartnerCredentials,
   createPartnerCredential,
   getCredentialByEmail,
   generateId,
@@ -11,52 +10,40 @@ import {
 import { getSovraIdClient, isSovraIdConfigured, SovraIdApiError } from '@/lib/sovraid';
 import type { PartnerCredential, CredentialRole } from '@/types';
 
-interface RouteParams {
-  params: Promise<{ partnerId: string }>;
-}
-
-// GET - List partner credentials
-export async function GET(request: NextRequest, { params }: RouteParams) {
+/**
+ * POST /api/partners/team/credentials
+ *
+ * Allows Partner Admin to issue credentials to their team members.
+ * Restricted roles: only 'sales' and 'legal' can be issued by partner admins.
+ * 'admin' and 'admin_secondary' can only be issued by Sovra Admin.
+ */
+export async function POST(request: NextRequest) {
   try {
-    const { user } = await requireSession();
-    const { partnerId } = await params;
+    const session = await getCurrentSession();
 
-    // Only Sovra Admin can access this
-    if (user.role !== 'sovra_admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const credentials = await getPartnerCredentials(partnerId);
-
-    return NextResponse.json({ credentials });
-  } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.error('Get credentials error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
 
-// POST - Issue new credential
-export async function POST(request: NextRequest, { params }: RouteParams) {
-  try {
-    const { user } = await requireSession();
-    const { partnerId } = await params;
+    const { user, partner } = session;
 
-    // Only Sovra Admin can issue credentials
-    if (user.role !== 'sovra_admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    // Only Partner Admin can issue credentials to their team
+    if (user.role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Solo el Admin del partner puede agregar miembros al equipo' },
+        { status: 403 }
+      );
     }
 
-    const partner = await getPartner(partnerId);
-    if (!partner) {
+    // Get partner details
+    const partnerData = await getPartner(partner.id);
+    if (!partnerData) {
       return NextResponse.json({ error: 'Partner no encontrado' }, { status: 404 });
     }
 
-    if (partner.status === 'suspended') {
+    if (partnerData.status === 'suspended') {
       return NextResponse.json(
-        { error: 'No se pueden emitir credenciales para partners suspendidos' },
+        { error: 'No se pueden emitir credenciales mientras el partner esta suspendido' },
         { status: 400 }
       );
     }
@@ -72,10 +59,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Validate role
-    const validRoles: CredentialRole[] = ['admin', 'sales', 'legal', 'admin_secondary'];
-    if (!validRoles.includes(role)) {
-      return NextResponse.json({ error: 'Rol invalido' }, { status: 400 });
+    // Partner Admins can only issue 'sales' and 'legal' roles
+    // 'admin' and 'admin_secondary' require Sovra Admin
+    const allowedRoles: CredentialRole[] = ['sales', 'legal'];
+    if (!allowedRoles.includes(role)) {
+      return NextResponse.json(
+        { error: 'Solo puedes asignar roles de Sales o Legal. Para Admin, contacta a Sovra.' },
+        { status: 400 }
+      );
     }
 
     // Check if credential already exists for this email
@@ -97,7 +88,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Issue credential via SovraID API if configured
     if (isSovraIdConfigured()) {
       try {
-        console.log('[Credentials API] Issuing credential via SovraID API...');
+        console.log('[Partner Team API] Issuing credential via SovraID API...');
         const sovraIdClient = getSovraIdClient();
 
         // Calculate expiration date (1 year from now)
@@ -105,12 +96,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         expirationDate.setFullYear(expirationDate.getFullYear() + 1);
 
         const sovraIdResponse = await sovraIdClient.issueCredential({
-          partnerName: partner.companyName,
-          partnerLogo: partner.logoUrl,
+          partnerName: partnerData.companyName,
+          partnerLogo: partnerData.logoUrl,
           holderName,
           holderEmail: holderEmail.toLowerCase(),
           role,
-          expirationDate: expirationDate.toISOString().split('T')[0], // YYYY-MM-DD format
+          expirationDate: expirationDate.toISOString().split('T')[0],
         });
 
         sovraIdCredentialId = sovraIdResponse.id;
@@ -118,15 +109,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         didcommInvitationUrl = sovraIdResponse.invitation_wallet.invitationContent;
         qrCode = didcommInvitationUrl;
 
-        console.log('[Credentials API] SovraID credential issued:', sovraIdCredentialId);
-        console.log('[Credentials API] DIDComm URL:', didcommInvitationUrl);
+        console.log('[Partner Team API] SovraID credential issued:', sovraIdCredentialId);
+        console.log('[Partner Team API] DIDComm URL:', didcommInvitationUrl);
       } catch (sovraError) {
-        console.error('[Credentials API] SovraID API error:', sovraError);
+        console.error('[Partner Team API] SovraID API error:', sovraError);
 
-        // If SovraID fails, we can still create the local record with mock data
-        // This allows the system to function during API outages
         if (sovraError instanceof SovraIdApiError) {
-          console.warn('[Credentials API] Falling back to mock credential due to SovraID error');
+          console.warn('[Partner Team API] Falling back to mock credential');
           sovraIdCredentialId = `mock-${credentialId}`;
           qrCode = `https://sovraid.io/claim/${credentialId}`;
         } else {
@@ -134,8 +123,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         }
       }
     } else {
-      // SovraID not configured - use mock values
-      console.warn('[Credentials API] SovraID not configured, using mock credential');
+      console.warn('[Partner Team API] SovraID not configured, using mock credential');
       sovraIdCredentialId = `mock-${credentialId}`;
       qrCode = `https://sovraid.io/claim/${credentialId}`;
     }
@@ -143,7 +131,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Create credential record
     const credential: PartnerCredential = {
       id: credentialId,
-      partnerId,
+      partnerId: partner.id,
+      userId: undefined, // Will be linked when user claims credential
       holderName,
       holderEmail: holderEmail.toLowerCase(),
       role,
@@ -157,43 +146,32 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     await createPartnerCredential(credential);
 
-    // Add audit log
+    // Add audit log - visible to Sovra Admin
     await addAuditLog(
       'credential.issued',
       'credential',
       credential.id,
-      { id: user.id, name: user.name, type: 'sovra_admin' },
+      { id: user.id, name: user.name, type: 'partner' as never },
       {
-        entityName: `${holderName} (${partner.companyName})`,
+        entityName: `${holderName} (${partnerData.companyName})`,
         metadata: {
-          partnerId,
-          partnerName: partner.companyName,
+          partnerId: partner.id,
+          partnerName: partnerData.companyName,
           holderEmail,
           role,
           sovraIdCredentialId,
-          usedRealApi: isSovraIdConfigured(),
+          issuedByPartnerAdmin: true,
+          issuedBy: user.name,
         },
       }
     );
-
-    // TODO: Send email with QR code and instructions
-    // await sendCredentialEmail({
-    //   to: holderEmail,
-    //   holderName,
-    //   partnerName: partner.companyName,
-    //   qrCode: credential.qrCode,
-    //   didcommUrl: didcommInvitationUrl,
-    // });
 
     return NextResponse.json({
       credential,
       didcommInvitationUrl,
     }, { status: 201 });
   } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    console.error('Issue credential error:', error);
+    console.error('[Partner Team API] Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

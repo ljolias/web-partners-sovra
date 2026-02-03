@@ -31,7 +31,9 @@ import {
   ShieldX,
 } from 'lucide-react';
 import Link from 'next/link';
+import { QRCodeSVG } from 'qrcode.react';
 import { cn } from '@/lib/utils';
+import { SovraLoader } from '@/components/ui';
 import type { Partner, PartnerTier, PartnerCredential, Deal, LegalDocument } from '@/types';
 
 const tierConfig: Record<PartnerTier, { label: string; color: string; bgColor: string }> = {
@@ -79,7 +81,7 @@ interface PartnerDetailData {
   };
 }
 
-// Issue Credential Modal
+// Issue Credential Modal with QR Preview
 function IssueCredentialModal({
   isOpen,
   onClose,
@@ -95,6 +97,11 @@ function IssueCredentialModal({
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<'form' | 'preview'>('form');
+  const [issuedCredential, setIssuedCredential] = useState<{
+    credential: PartnerCredential;
+    didcommInvitationUrl?: string;
+  } | null>(null);
   const [formData, setFormData] = useState({
     holderName: '',
     holderEmail: '',
@@ -113,14 +120,19 @@ function IssueCredentialModal({
         body: JSON.stringify(formData),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.error || 'Error al emitir credencial');
       }
 
-      onSuccess();
-      onClose();
-      setFormData({ holderName: '', holderEmail: '', role: 'sales' });
+      // Store the issued credential and show QR preview
+      setIssuedCredential({
+        credential: data.credential,
+        didcommInvitationUrl: data.didcommInvitationUrl,
+      });
+      setStep('preview');
+      onSuccess(); // Refresh the credentials list
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
@@ -128,7 +140,39 @@ function IssueCredentialModal({
     }
   };
 
+  const handleClose = () => {
+    // Reset state when closing
+    setStep('form');
+    setIssuedCredential(null);
+    setFormData({ holderName: '', holderEmail: '', role: 'sales' });
+    setError(null);
+    onClose();
+  };
+
+  const handleDownloadQR = () => {
+    const svg = document.getElementById('credential-qr-code');
+    if (svg) {
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx?.drawImage(img, 0, 0);
+        const pngFile = canvas.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        downloadLink.download = `credencial-${issuedCredential?.credential.holderName.replace(/\s+/g, '-')}.png`;
+        downloadLink.href = pngFile;
+        downloadLink.click();
+      };
+      img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+    }
+  };
+
   if (!isOpen) return null;
+
+  const qrValue = issuedCredential?.didcommInvitationUrl || issuedCredential?.credential.qrCode || '';
 
   return (
     <AnimatePresence>
@@ -137,7 +181,7 @@ function IssueCredentialModal({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-        onClick={onClose}
+        onClick={handleClose}
       >
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
@@ -146,94 +190,163 @@ function IssueCredentialModal({
           onClick={(e) => e.stopPropagation()}
           className="bg-[var(--color-surface)] rounded-2xl shadow-xl w-full max-w-md"
         >
-          <div className="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
-            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Emitir Credencial</h2>
-            <button onClick={onClose} className="p-2 rounded-lg hover:bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
-            {error && (
-              <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
-                <AlertCircle className="w-4 h-4" />
-                {error}
+          {step === 'form' ? (
+            <>
+              <div className="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Emitir Credencial</h2>
+                <button onClick={handleClose} className="p-2 rounded-lg hover:bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]">
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-            )}
 
-            <div className="text-sm text-[var(--color-text-secondary)] bg-[var(--color-surface-hover)] rounded-lg p-3">
-              Partner: <span className="font-medium">{partnerName}</span>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Nombre completo *</label>
-              <input
-                type="text"
-                required
-                value={formData.holderName}
-                onChange={(e) => setFormData({ ...formData, holderName: e.target.value })}
-                className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
-                placeholder="Maria Garcia"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Email *</label>
-              <input
-                type="email"
-                required
-                value={formData.holderEmail}
-                onChange={(e) => setFormData({ ...formData, holderEmail: e.target.value })}
-                className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
-                placeholder="maria@acme.com"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Rol *</label>
-              <select
-                required
-                value={formData.role}
-                onChange={(e) =>
-                  setFormData({ ...formData, role: e.target.value as typeof formData.role })
-                }
-                className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
-              >
-                <option value="admin">Admin - Acceso completo al portal</option>
-                <option value="sales">Sales - Gestion de oportunidades</option>
-                <option value="legal">Legal - Documentos y contratos</option>
-                <option value="admin_secondary">Admin Secundario - Backup del admin</option>
-              </select>
-            </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
-              Se enviara un email con link para descargar Sovra Wallet y codigo QR para reclamar la credencial.
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4 border-t border-[var(--color-border)]">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] bg-[var(--color-surface-hover)] rounded-lg hover:bg-[var(--color-border)]"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-4 py-2 text-sm font-medium !text-white bg-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary-dark)] disabled:opacity-50 flex items-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Emitiendo...
-                  </>
-                ) : (
-                  'Emitir Credencial'
+              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                {error && (
+                  <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    {error}
+                  </div>
                 )}
-              </button>
-            </div>
-          </form>
+
+                <div className="text-sm text-[var(--color-text-secondary)] bg-[var(--color-surface-hover)] rounded-lg p-3">
+                  Partner: <span className="font-medium">{partnerName}</span>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Nombre completo *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.holderName}
+                    onChange={(e) => setFormData({ ...formData, holderName: e.target.value })}
+                    className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-[var(--color-bg)] text-[var(--color-text-primary)]"
+                    placeholder="Maria Garcia"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Email *</label>
+                  <input
+                    type="email"
+                    required
+                    value={formData.holderEmail}
+                    onChange={(e) => setFormData({ ...formData, holderEmail: e.target.value })}
+                    className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-[var(--color-bg)] text-[var(--color-text-primary)]"
+                    placeholder="maria@acme.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Rol *</label>
+                  <select
+                    required
+                    value={formData.role}
+                    onChange={(e) =>
+                      setFormData({ ...formData, role: e.target.value as typeof formData.role })
+                    }
+                    className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-[var(--color-bg)] text-[var(--color-text-primary)]"
+                  >
+                    <option value="admin">Admin - Acceso completo al portal</option>
+                    <option value="sales">Sales - Gestion de oportunidades</option>
+                    <option value="legal">Legal - Documentos y contratos</option>
+                    <option value="admin_secondary">Admin Secundario - Backup del admin</option>
+                  </select>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-[var(--color-border)]">
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] bg-[var(--color-surface-hover)] rounded-lg hover:bg-[var(--color-border)]"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-4 py-2 text-sm font-medium !text-white bg-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary-dark)] disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {loading ? (
+                      <>
+                        <SovraLoader size="sm" className="!w-4 !h-4 text-white" />
+                        Emitiendo...
+                      </>
+                    ) : (
+                      'Emitir Credencial'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                    <Check className="w-5 h-5 text-green-600" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Credencial Emitida</h2>
+                </div>
+                <button onClick={handleClose} className="p-2 rounded-lg hover:bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Credential Info */}
+                <div className="text-center">
+                  <p className="text-[var(--color-text-secondary)] text-sm">Credencial para</p>
+                  <p className="text-lg font-semibold text-[var(--color-text-primary)]">{issuedCredential?.credential.holderName}</p>
+                  <p className="text-sm text-[var(--color-text-muted)]">{issuedCredential?.credential.holderEmail}</p>
+                  <span className="inline-block mt-2 px-3 py-1 text-xs font-medium rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                    {issuedCredential?.credential.role}
+                  </span>
+                </div>
+
+                {/* QR Code */}
+                <div className="flex flex-col items-center">
+                  <div className="bg-white p-4 rounded-xl shadow-sm border border-[var(--color-border)]">
+                    <QRCodeSVG
+                      id="credential-qr-code"
+                      value={qrValue}
+                      size={200}
+                      level="M"
+                      includeMargin={true}
+                    />
+                  </div>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-3 text-center max-w-[280px]">
+                    Con esta credencial verificable, el miembro del equipo podra acceder al portal de partners, registrar oportunidades y disfrutar de beneficios exclusivos del programa.
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleDownloadQR}
+                    className="flex-1 px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-surface-hover)] rounded-lg hover:bg-[var(--color-border)] flex items-center justify-center gap-2"
+                  >
+                    Descargar QR
+                  </button>
+                  <button
+                    onClick={handleClose}
+                    className="flex-1 px-4 py-2 text-sm font-medium !text-white bg-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center justify-center gap-2"
+                  >
+                    <Mail className="w-4 h-4" />
+                    Enviar por mail
+                  </button>
+                </div>
+
+                {/* Info */}
+                <div className="bg-[var(--color-surface-hover)] rounded-lg p-3 text-sm text-[var(--color-text-secondary)]">
+                  <p className="font-medium text-[var(--color-text-primary)] mb-1">Para activar su acceso:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-xs">
+                    <li>Descargar Sovra Wallet desde App Store o Google Play</li>
+                    <li>Escanear el codigo QR para obtener su credencial</li>
+                    <li>Ingresar al portal y comenzar a trabajar</li>
+                  </ol>
+                </div>
+              </div>
+            </>
+          )}
         </motion.div>
       </motion.div>
     </AnimatePresence>
@@ -449,7 +562,7 @@ function EditPartnerModal({
               >
                 {loading ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <SovraLoader size="sm" className="!w-4 !h-4 text-white" />
                     Guardando...
                   </>
                 ) : (
@@ -586,11 +699,152 @@ function GeneralTab({ data, onEdit }: { data: PartnerDetailData; onEdit: () => v
   );
 }
 
+// View Credential QR Modal (for resending)
+function ViewCredentialQRModal({
+  isOpen,
+  onClose,
+  credential,
+  partnerName,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  credential: PartnerCredential | null;
+  partnerName: string;
+}) {
+  if (!isOpen || !credential) return null;
+
+  const qrValue = credential.qrCode || '';
+
+  const handleDownloadQR = () => {
+    const svg = document.getElementById('view-credential-qr-code');
+    if (svg) {
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx?.drawImage(img, 0, 0);
+        const pngFile = canvas.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        downloadLink.download = `credencial-${credential.holderName.replace(/\s+/g, '-')}.png`;
+        downloadLink.href = pngFile;
+        downloadLink.click();
+      };
+      img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+    }
+  };
+
+  const roleLabels: Record<string, string> = {
+    admin: 'Admin',
+    sales: 'Sales',
+    legal: 'Legal',
+    admin_secondary: 'Admin Secundario',
+  };
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.95, opacity: 0 }}
+          onClick={(e) => e.stopPropagation()}
+          className="bg-[var(--color-surface)] rounded-2xl shadow-xl w-full max-w-md"
+        >
+          <div className="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Credencial Pendiente</h2>
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="p-6 space-y-6">
+            {/* Credential Info */}
+            <div className="text-center">
+              <p className="text-[var(--color-text-secondary)] text-sm">Credencial para</p>
+              <p className="text-lg font-semibold text-[var(--color-text-primary)]">{credential.holderName}</p>
+              <p className="text-sm text-[var(--color-text-muted)]">{credential.holderEmail}</p>
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <span className="px-3 py-1 text-xs font-medium rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                  {roleLabels[credential.role] || credential.role}
+                </span>
+                <span className="px-3 py-1 text-xs font-medium rounded-full bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]">
+                  {partnerName}
+                </span>
+              </div>
+            </div>
+
+            {/* QR Code */}
+            {qrValue ? (
+              <div className="flex flex-col items-center">
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-[var(--color-border)]">
+                  <QRCodeSVG
+                    id="view-credential-qr-code"
+                    value={qrValue}
+                    size={200}
+                    level="M"
+                    includeMargin={true}
+                  />
+                </div>
+                <p className="text-xs text-[var(--color-text-muted)] mt-3 text-center max-w-[280px]">
+                  Con esta credencial verificable, el miembro del equipo podra acceder al portal de partners, registrar oportunidades y disfrutar de beneficios exclusivos del programa.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800 text-center">
+                No se encontro el codigo QR para esta credencial. Puede ser necesario emitir una nueva credencial.
+              </div>
+            )}
+
+            {/* Actions */}
+            {qrValue && (
+              <div className="flex gap-3">
+                <button
+                  onClick={handleDownloadQR}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-surface-hover)] rounded-lg hover:bg-[var(--color-border)] flex items-center justify-center gap-2"
+                >
+                  Descargar QR
+                </button>
+                <button
+                  onClick={onClose}
+                  className="flex-1 px-4 py-2 text-sm font-medium !text-white bg-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center justify-center gap-2"
+                >
+                  <Mail className="w-4 h-4" />
+                  Enviar por mail
+                </button>
+              </div>
+            )}
+
+            {/* Info */}
+            <div className="bg-[var(--color-surface-hover)] rounded-lg p-3 text-sm text-[var(--color-text-secondary)]">
+              <p className="font-medium text-[var(--color-text-primary)] mb-1">Para activar su acceso:</p>
+              <ol className="list-decimal list-inside space-y-1 text-xs">
+                <li>Descargar Sovra Wallet desde App Store o Google Play</li>
+                <li>Escanear el codigo QR para obtener su credencial</li>
+                <li>Ingresar al portal y comenzar a trabajar</li>
+              </ol>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 // Tab: Team (Credentials)
 function TeamTab({ data, onRefresh }: { data: PartnerDetailData; onRefresh: () => void }) {
   const { partner, credentials } = data;
   const params = useParams();
   const [issueModalOpen, setIssueModalOpen] = useState(false);
+  const [viewQRCredential, setViewQRCredential] = useState<PartnerCredential | null>(null);
   const [revoking, setRevoking] = useState<string | null>(null);
 
   const handleRevoke = async (credentialId: string) => {
@@ -613,21 +867,13 @@ function TeamTab({ data, onRefresh }: { data: PartnerDetailData; onRefresh: () =
     }
   };
 
-  const handleResend = async (credentialId: string) => {
-    try {
-      const response = await fetch(`/api/sovra/credentials/${credentialId}/resend`, {
-        method: 'POST',
-      });
-
-      if (!response.ok) throw new Error('Failed to resend');
-      alert('QR reenviado exitosamente');
-    } catch (error) {
-      console.error('Error resending QR:', error);
-    }
-  };
+  // Separate active members from pending credentials
+  const activeMembers = credentials.filter(c => c.status === 'active');
+  const pendingCredentials = credentials.filter(c => c.status === 'issued' || c.status === 'claimed');
+  const revokedCredentials = credentials.filter(c => c.status === 'revoked');
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium text-[var(--color-text-primary)]">Equipo de {partner.companyName}</h3>
         <button
@@ -660,66 +906,172 @@ function TeamTab({ data, onRefresh }: { data: PartnerDetailData; onRefresh: () =
           )}
         </div>
       ) : (
-        <div className="space-y-3">
-          {credentials.map((credential) => {
-            const statusCfg = credentialStatusConfig[credential.status];
-            return (
-              <div
-                key={credential.id}
-                className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4 flex items-center justify-between"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-medium">
-                    {credential.holderName.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <p className="font-medium text-[var(--color-text-primary)]">{credential.holderName}</p>
-                    <p className="text-sm text-[var(--color-text-secondary)]">
-                      {credential.role.charAt(0).toUpperCase() + credential.role.slice(1)} • {credential.holderEmail}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className={cn('px-2 py-0.5 text-xs font-medium rounded-full', statusCfg.bgColor, statusCfg.color)}>
-                        {credential.status === 'active' && <ShieldCheck className="w-3 h-3 inline mr-1" />}
-                        {credential.status === 'revoked' && <ShieldX className="w-3 h-3 inline mr-1" />}
-                        {statusCfg.label}
-                      </span>
-                      {credential.claimedAt && (
-                        <span className="text-xs text-[var(--color-text-muted)]">
-                          Reclamada {new Date(credential.claimedAt).toLocaleDateString('es-ES')}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
+        <div className="space-y-6">
+          {/* Active Team Members */}
+          {activeMembers.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium text-[var(--color-text-secondary)] mb-3 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-green-500" />
+                Miembros Activos ({activeMembers.length})
+              </h4>
+              <div className="space-y-3">
+                {activeMembers.map((credential) => {
+                  const statusCfg = credentialStatusConfig[credential.status];
+                  return (
+                    <div
+                      key={credential.id}
+                      className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4 flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-medium">
+                          {credential.holderName.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-medium text-[var(--color-text-primary)]">{credential.holderName}</p>
+                          <p className="text-sm text-[var(--color-text-secondary)]">
+                            {credential.role.charAt(0).toUpperCase() + credential.role.slice(1)} • {credential.holderEmail}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={cn('px-2 py-0.5 text-xs font-medium rounded-full', statusCfg.bgColor, statusCfg.color)}>
+                              <ShieldCheck className="w-3 h-3 inline mr-1" />
+                              {statusCfg.label}
+                            </span>
+                            {credential.claimedAt && (
+                              <span className="text-xs text-[var(--color-text-muted)]">
+                                Activo desde {new Date(credential.claimedAt).toLocaleDateString('es-ES')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
 
-                <div className="flex items-center gap-2">
-                  {credential.status === 'issued' && (
-                    <button
-                      onClick={() => handleResend(credential.id)}
-                      className="px-3 py-1.5 text-sm text-[var(--color-primary)] hover:bg-blue-50 rounded-lg flex items-center gap-1"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                      Reenviar QR
-                    </button>
-                  )}
-                  {['active', 'claimed', 'issued'].includes(credential.status) && (
-                    <button
-                      onClick={() => handleRevoke(credential.id)}
-                      disabled={revoking === credential.id}
-                      className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-1 disabled:opacity-50"
-                    >
-                      {revoking === credential.id ? (
-                        <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <Ban className="w-4 h-4" />
-                      )}
-                      Revocar
-                    </button>
-                  )}
-                </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleRevoke(credential.id)}
+                          disabled={revoking === credential.id}
+                          className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-1 disabled:opacity-50"
+                        >
+                          {revoking === credential.id ? (
+                            <SovraLoader size="sm" className="!w-4 !h-4 text-red-600" />
+                          ) : (
+                            <Ban className="w-4 h-4" />
+                          )}
+                          Revocar
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            </div>
+          )}
+
+          {/* Pending Credentials */}
+          {pendingCredentials.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium text-[var(--color-text-secondary)] mb-3 flex items-center gap-2">
+                <Award className="w-4 h-4 text-yellow-500" />
+                Credenciales Pendientes ({pendingCredentials.length})
+              </h4>
+              <div className="space-y-3">
+                {pendingCredentials.map((credential) => {
+                  const statusCfg = credentialStatusConfig[credential.status];
+                  return (
+                    <div
+                      key={credential.id}
+                      className="bg-[var(--color-surface)] rounded-xl border border-yellow-200 border-dashed p-4 flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white font-medium">
+                          {credential.holderName.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-medium text-[var(--color-text-primary)]">{credential.holderName}</p>
+                          <p className="text-sm text-[var(--color-text-secondary)]">
+                            {credential.role.charAt(0).toUpperCase() + credential.role.slice(1)} • {credential.holderEmail}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={cn('px-2 py-0.5 text-xs font-medium rounded-full', statusCfg.bgColor, statusCfg.color)}>
+                              {statusCfg.label}
+                            </span>
+                            <span className="text-xs text-[var(--color-text-muted)]">
+                              Emitida {new Date(credential.issuedAt || credential.createdAt).toLocaleDateString('es-ES')}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setViewQRCredential(credential)}
+                          className="px-3 py-1.5 text-sm text-[var(--color-primary)] hover:bg-blue-50 rounded-lg flex items-center gap-1"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                          Ver/Reenviar QR
+                        </button>
+                        <button
+                          onClick={() => handleRevoke(credential.id)}
+                          disabled={revoking === credential.id}
+                          className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-1 disabled:opacity-50"
+                        >
+                          {revoking === credential.id ? (
+                            <SovraLoader size="sm" className="!w-4 !h-4 text-red-600" />
+                          ) : (
+                            <Ban className="w-4 h-4" />
+                          )}
+                          Revocar
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Revoked Credentials */}
+          {revokedCredentials.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium text-[var(--color-text-secondary)] mb-3 flex items-center gap-2">
+                <ShieldX className="w-4 h-4 text-red-500" />
+                Credenciales Revocadas ({revokedCredentials.length})
+              </h4>
+              <div className="space-y-3">
+                {revokedCredentials.map((credential) => {
+                  const statusCfg = credentialStatusConfig[credential.status];
+                  return (
+                    <div
+                      key={credential.id}
+                      className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4 flex items-center justify-between opacity-60"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white font-medium">
+                          {credential.holderName.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-medium text-[var(--color-text-primary)]">{credential.holderName}</p>
+                          <p className="text-sm text-[var(--color-text-secondary)]">
+                            {credential.role.charAt(0).toUpperCase() + credential.role.slice(1)} • {credential.holderEmail}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={cn('px-2 py-0.5 text-xs font-medium rounded-full', statusCfg.bgColor, statusCfg.color)}>
+                              <ShieldX className="w-3 h-3 inline mr-1" />
+                              {statusCfg.label}
+                            </span>
+                            {credential.revokedAt && (
+                              <span className="text-xs text-[var(--color-text-muted)]">
+                                Revocada {new Date(credential.revokedAt).toLocaleDateString('es-ES')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -729,6 +1081,13 @@ function TeamTab({ data, onRefresh }: { data: PartnerDetailData; onRefresh: () =
         partnerId={partner.id}
         partnerName={partner.companyName}
         onSuccess={onRefresh}
+      />
+
+      <ViewCredentialQRModal
+        isOpen={viewQRCredential !== null}
+        onClose={() => setViewQRCredential(null)}
+        credential={viewQRCredential}
+        partnerName={partner.companyName}
       />
     </div>
   );
@@ -966,7 +1325,7 @@ export default function PartnerDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full" />
+        <SovraLoader size="md" className="text-[var(--color-primary)]" />
       </div>
     );
   }
