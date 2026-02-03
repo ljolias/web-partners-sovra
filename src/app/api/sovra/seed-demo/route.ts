@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { redis } from '@/lib/redis/client';
 import { generateId } from '@/lib/redis';
+import bcrypt from 'bcryptjs';
 
 /**
  * POST /api/sovra/seed-demo
@@ -11,6 +12,9 @@ import { generateId } from '@/lib/redis';
 export async function POST() {
   try {
     const now = new Date().toISOString();
+
+    // Generate proper password hash
+    const passwordHash = await bcrypt.hash('demo123', 10);
 
     // Create Demo Partner (Acme Corp)
     const partnerId = generateId();
@@ -41,7 +45,7 @@ export async function POST() {
       email: 'demo@sovra.io',
       name: 'Demo User',
       role: 'admin',
-      passwordHash: '$2a$10$rQEY7xXMqnT5oVCqrS7qxuHhPTkZQAJBwXqZjLMJKPHFXX3F7XQXK', // "demo123"
+      passwordHash: passwordHash,
       createdAt: now,
       updatedAt: now,
     };
@@ -58,7 +62,7 @@ export async function POST() {
       email: 'sarah@acme.com',
       name: 'Sarah Sales',
       role: 'sales',
-      passwordHash: '$2a$10$rQEY7xXMqnT5oVCqrS7qxuHhPTkZQAJBwXqZjLMJKPHFXX3F7XQXK', // "demo123"
+      passwordHash: passwordHash,
       createdAt: now,
       updatedAt: now,
     };
