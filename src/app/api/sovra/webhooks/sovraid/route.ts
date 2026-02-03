@@ -76,11 +76,11 @@ export async function POST(request: NextRequest) {
     // Handle events based on eventType
     switch (payload.eventType) {
       case 'credential-issued':
-        await handleCredentialIssued(payload.eventData as CredentialIssuedData);
+        await handleCredentialIssued(payload.eventData as unknown as CredentialIssuedData);
         break;
 
       case 'verifiable-presentation-finished':
-        await handleVerificationFinished(payload.eventData as VerificationFinishedData);
+        await handleVerificationFinished(payload.eventData as unknown as VerificationFinishedData);
         break;
 
       default:
