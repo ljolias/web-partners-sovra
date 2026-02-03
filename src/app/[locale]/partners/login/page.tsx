@@ -7,6 +7,7 @@ import { NextIntlClientProvider, useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Globe, ArrowRight, Sun, Moon } from 'lucide-react';
 import { SovraLogo } from '@/components/ui/SovraLogo';
+import { SovraLoader } from '@/components/ui';
 
 const languages = [
   { code: 'es', name: 'Espanol', flag: '🇪🇸' },
@@ -226,7 +227,7 @@ function LoginForm({ locale }: { locale: string }) {
             >
               <span className="relative z-10 flex items-center justify-center gap-2">
                 {isLoading ? (
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  <SovraLoader size="sm" className="!w-5 !h-5 text-white" />
                 ) : (
                   <>
                     {t('login')}
@@ -272,7 +273,7 @@ function LoginPageWithMessages({ locale }: { locale: string }) {
   if (!messages) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)]">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary)] border-t-transparent" />
+        <SovraLoader size="md" className="text-[var(--color-primary)]" />
       </div>
     );
   }

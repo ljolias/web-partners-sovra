@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, FileText, Download } from 'lucide-react';
+import { SovraLoader } from '@/components/ui';
 import { calculateQuote, formatCurrency, formatPopulation, type CalculatePriceParams, type CalculatedQuote } from '@/lib/pricing/calculator';
 import type { Deal, Partner, PricingConfig, SovraIdPlan } from '@/types';
 
@@ -324,7 +325,7 @@ export function QuoteBuilder({ deal, partner, pricingConfig, locale }: QuoteBuil
                   >
                     {isCreating ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <SovraLoader size="sm" className="!w-4 !h-4 text-white" />
                         Generando...
                       </>
                     ) : (

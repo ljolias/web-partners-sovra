@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, Building2 } from 'lucide-react';
 import Link from 'next/link';
-import { Button, Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
+import { Button, Card, CardHeader, CardTitle, CardContent, SovraLoader } from '@/components/ui';
 import { CopilotChat } from '@/components/portal/copilot/CopilotChat';
 import type { Deal } from '@/types';
 
@@ -43,7 +43,7 @@ export default function CopilotPage({ params }: CopilotPageProps) {
   if (isLoading) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+        <SovraLoader size="md" className="text-[var(--color-primary)]" />
       </div>
     );
   }

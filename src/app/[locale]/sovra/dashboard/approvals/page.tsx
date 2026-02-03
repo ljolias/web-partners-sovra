@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import ApprovalQueue from '@/components/sovra/ApprovalQueue';
 import type { Deal, Partner } from '@/types';
 import { Filter } from 'lucide-react';
+import { SovraLoader } from '@/components/ui';
 
 export default function ApprovalsPage() {
   const router = useRouter();
@@ -83,7 +84,7 @@ export default function ApprovalsPage() {
 
       {loading ? (
         <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-12 text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-[var(--color-primary)] border-t-transparent rounded-full mx-auto" />
+          <SovraLoader size="md" className="text-[var(--color-primary)] mx-auto" />
           <p className="text-[var(--color-text-secondary)] mt-4">Cargando oportunidades...</p>
         </div>
       ) : (

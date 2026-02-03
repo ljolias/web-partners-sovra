@@ -16,7 +16,7 @@ import {
   User,
   Calendar,
 } from 'lucide-react';
-import { Button, Badge, Card, CardContent } from '@/components/ui';
+import { Button, Badge, Card, CardContent, SovraLoader } from '@/components/ui';
 import { hasPermission } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
 import type { LegalDocument, DocumentAuditEvent, User as UserType, UserRole, DocumentStatus } from '@/types';
@@ -175,7 +175,7 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
   if (isLoading || isAuthorized === null) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary)] border-t-transparent" />
+        <SovraLoader size="md" className="text-[var(--color-primary)]" />
       </div>
     );
   }

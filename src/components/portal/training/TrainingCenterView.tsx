@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { GraduationCap, Award, Calendar, CheckCircle } from 'lucide-react';
 import { TrainingModules } from './TrainingModules';
 import { QuizModal } from './QuizModal';
-import { Card, CardContent, Badge } from '@/components/ui';
+import { Card, CardContent, Badge, SovraLoader } from '@/components/ui';
 import { cn, formatDate } from '@/lib/utils';
 import type { TrainingModule, TrainingProgress, Certification, CertificationType } from '@/types';
 
@@ -117,7 +117,7 @@ export function TrainingCenterView({ locale }: TrainingCenterViewProps) {
   if (isLoading) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary)] border-t-transparent" />
+        <SovraLoader size="md" className="text-[var(--color-primary)]" />
       </div>
     );
   }

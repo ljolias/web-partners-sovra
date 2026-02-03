@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Search, Filter, Plus, Send, Upload, Eye, Download, CheckCircle, Clock, AlertTriangle, FileText, Users } from 'lucide-react';
-import { Button, Badge, Card, CardContent } from '@/components/ui';
+import { Button, Badge, Card, CardContent, SovraLoader } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import type { Partner, LegalDocument, DocumentCategory, DocumentStatus } from '@/types';
 
@@ -133,7 +133,7 @@ export default function SovraDocumentsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]" />
+        <SovraLoader size="md" className="text-[var(--color-primary)]" />
       </div>
     );
   }

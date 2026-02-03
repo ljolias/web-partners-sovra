@@ -11,6 +11,7 @@ import {
   DocumentDetail,
   type UploadData,
 } from '@/components/legal';
+import { SovraLoader } from '@/components/ui';
 import type { LegalDocument, DocumentAuditEvent, User, UserRole, DocumentCategory } from '@/types';
 
 interface LegalPageProps {
@@ -195,7 +196,7 @@ export default function LegalPage({ params }: LegalPageProps) {
   if (isLoading || isAuthorized === null) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary)] border-t-transparent" />
+        <SovraLoader size="md" className="text-[var(--color-primary)]" />
       </div>
     );
   }

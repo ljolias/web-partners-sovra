@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { X, Upload, FileText, AlertCircle, Loader2 } from 'lucide-react';
+import { X, Upload, FileText, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui';
+import { Button, SovraLoader } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import type { DocumentCategory } from '@/types';
 
@@ -321,7 +321,7 @@ export function DocumentUploadModal({
               <Button type="submit" disabled={!file || !category || !title || isUploading}>
                 {isUploading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    <SovraLoader size="sm" className="!h-4 !w-4 mr-2" />
                     {t('uploading')}
                   </>
                 ) : (

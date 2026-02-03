@@ -21,6 +21,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SovraLoader } from '@/components/ui';
 import type { TrainingCourse, CourseCategory, CourseLevel, PartnerTier } from '@/types';
 
 const categoryConfig: Record<CourseCategory, { label: string; color: string }> = {
@@ -329,7 +330,7 @@ function CreateCourseModal({ isOpen, onClose, onSuccess }: CreateCourseModalProp
               >
                 {loading ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <SovraLoader size="sm" className="!w-4 !h-4 text-white" />
                     Creando...
                   </>
                 ) : (
@@ -622,7 +623,7 @@ export default function TrainingAdminPage() {
       {/* Course List */}
       {loading ? (
         <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-12 text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-[var(--color-primary)] border-t-transparent rounded-full mx-auto" />
+          <SovraLoader size="md" className="text-[var(--color-primary)] mx-auto" />
           <p className="text-[var(--color-text-secondary)] mt-4">Cargando cursos...</p>
         </div>
       ) : filteredCourses.length === 0 ? (

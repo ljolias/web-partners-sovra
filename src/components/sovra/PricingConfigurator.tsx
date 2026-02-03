@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Save, Plus, Trash2, DollarSign, Users, Settings, Percent } from 'lucide-react';
+import { Save, Plus, Trash2, DollarSign, Users, Settings, Percent, Check } from 'lucide-react';
+import { SovraLoader } from '@/components/ui';
 import type { PricingConfig } from '@/types';
 
 interface PricingConfiguratorProps {
@@ -301,7 +302,7 @@ export function PricingConfigurator({ initialConfig }: PricingConfiguratorProps)
         >
           {saving ? (
             <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <SovraLoader size="sm" className="!w-5 !h-5 text-white" />
               Guardando...
             </>
           ) : saved ? (

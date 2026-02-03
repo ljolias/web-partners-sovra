@@ -4,7 +4,7 @@ import { useState, useEffect, use } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { DollarSign, Clock, CheckCircle, CreditCard } from 'lucide-react';
-import { Card, CardContent, Badge } from '@/components/ui';
+import { Card, CardContent, Badge, SovraLoader } from '@/components/ui';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { hasPermission } from '@/lib/permissions';
 import type { Commission, User, UserRole } from '@/types';
@@ -63,7 +63,7 @@ export default function CommissionsPage({ params }: CommissionsPageProps) {
   if (isLoading || isAuthorized === null) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary)] border-t-transparent" />
+        <SovraLoader size="md" className="text-[var(--color-primary)]" />
       </div>
     );
   }

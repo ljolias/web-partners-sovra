@@ -6,6 +6,7 @@ import {
   getUserTrainingProgress,
   getPartnerDeals,
   getAllTrainingModules,
+  getPartnerCredentials,
 } from '@/lib/redis';
 import type { TeamMemberSummary } from '@/types';
 
@@ -83,7 +84,13 @@ export async function GET() {
       })
     );
 
-    return NextResponse.json({ teamMembers });
+    // Get pending credentials (issued but not yet claimed)
+    const allCredentials = await getPartnerCredentials(sessionData.partner.id);
+    const pendingCredentials = allCredentials.filter(
+      (c) => c.status === 'issued' || c.status === 'pending'
+    );
+
+    return NextResponse.json({ teamMembers, pendingCredentials });
   } catch (error) {
     console.error('Get team error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

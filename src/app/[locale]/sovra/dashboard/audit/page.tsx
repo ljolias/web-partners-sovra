@@ -20,6 +20,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SovraLoader } from '@/components/ui';
 import type { AuditLog, AuditAction } from '@/types';
 
 const entityIcons: Record<string, typeof Building2> = {
@@ -289,7 +290,7 @@ export default function AuditPage() {
       {/* Logs List */}
       {loading ? (
         <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-12 text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-[var(--color-primary)] border-t-transparent rounded-full mx-auto" />
+          <SovraLoader size="md" className="text-[var(--color-primary)] mx-auto" />
           <p className="text-[var(--color-text-secondary)] mt-4">Cargando logs...</p>
         </div>
       ) : logs.length === 0 ? (

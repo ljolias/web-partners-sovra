@@ -17,10 +17,10 @@ export function TeamMemberCard({ member, index }: TeamMemberCardProps) {
   const tCert = useTranslations('certifications');
 
   const roleColors: Record<UserRole, string> = {
-    admin: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-    sales: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-    viewer: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300',
-    sovra_admin: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+    admin: 'bg-purple-500/10 text-purple-700 dark:text-purple-300',
+    sales: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]',
+    viewer: 'bg-[var(--color-text-secondary)]/10 text-[var(--color-text-secondary)]',
+    sovra_admin: 'bg-red-500/10 text-red-700 dark:text-red-300',
   };
 
   return (
@@ -54,8 +54,8 @@ export function TeamMemberCard({ member, index }: TeamMemberCardProps) {
           {/* Metrics Grid */}
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                <Briefcase className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--color-primary)]/10">
+                <Briefcase className="h-5 w-5 text-[var(--color-primary)]" />
               </div>
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">{t('totalDeals')}</p>
@@ -64,8 +64,8 @@ export function TeamMemberCard({ member, index }: TeamMemberCardProps) {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
-                <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10">
+                <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">{t('wonDeals')}</p>
@@ -74,7 +74,7 @@ export function TeamMemberCard({ member, index }: TeamMemberCardProps) {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/30">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10">
                 <TrendingUp className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
@@ -84,8 +84,8 @@ export function TeamMemberCard({ member, index }: TeamMemberCardProps) {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
-                <DollarSign className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--color-accent-purple)]/10">
+                <DollarSign className="h-5 w-5 text-[var(--color-accent-purple)]" />
               </div>
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">{t('revenue')}</p>
