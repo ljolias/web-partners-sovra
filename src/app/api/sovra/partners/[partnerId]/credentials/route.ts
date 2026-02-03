@@ -238,6 +238,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         holderName,
         partnerName: partner.companyName,
         role,
+        qrCodeData: didcommInvitationUrl,
       });
     } catch (emailErr) {
       console.error('[Credentials API] Failed to send email:', emailErr);

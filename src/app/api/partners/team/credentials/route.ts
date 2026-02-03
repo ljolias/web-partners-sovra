@@ -198,6 +198,7 @@ export async function POST(request: NextRequest) {
         holderName,
         partnerName: partnerData.companyName,
         role,
+        qrCodeData: didcommInvitationUrl,
       });
     } catch (emailErr) {
       console.error('[Partner Team API] Failed to send email:', emailErr);

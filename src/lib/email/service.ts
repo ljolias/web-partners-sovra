@@ -17,6 +17,7 @@ export async function sendCredentialEmail(params: {
   holderName: string;
   partnerName: string;
   role: string;
+  qrCodeData?: string;
 }): Promise<{ success: boolean; error?: string }> {
   if (!isEmailConfigured()) {
     console.warn('[Email Service] SMTP not configured, skipping credential email');
@@ -27,6 +28,7 @@ export async function sendCredentialEmail(params: {
     holderName: params.holderName,
     partnerName: params.partnerName,
     role: formatRole(params.role),
+    qrCodeData: params.qrCodeData,
     portalUrl: `${PORTAL_URL}/es/partners/login`,
   });
 
