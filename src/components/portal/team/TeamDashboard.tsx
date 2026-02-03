@@ -21,7 +21,6 @@ export function TeamDashboard({ locale }: TeamDashboardProps) {
   const router = useRouter();
   const [teamMembers, setTeamMembers] = useState<TeamMemberSummary[]>([]);
   const [pendingCredentials, setPendingCredentials] = useState<PartnerCredential[]>([]);
-  const [activeCredentials, setActiveCredentials] = useState<PartnerCredential[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -36,7 +35,6 @@ export function TeamDashboard({ locale }: TeamDashboardProps) {
         const data = await res.json();
         setTeamMembers(data.teamMembers || []);
         setPendingCredentials(data.pendingCredentials || []);
-        setActiveCredentials(data.activeCredentials || []);
       }
     } catch (error) {
       console.error('Failed to fetch team data:', error);
@@ -210,41 +208,6 @@ export function TeamDashboard({ locale }: TeamDashboardProps) {
                       <Eye className="w-3 h-3" />
                       {t('viewQR')}
                     </button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Active Credentials (claimed but without user account) */}
-      {activeCredentials.length > 0 && (
-        <div>
-          <h2 className="mb-4 text-lg font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-emerald-500" />
-            {t('activeCredentials')}
-          </h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {activeCredentials.map((credential) => (
-              <Card key={credential.id}>
-                <CardContent className="pt-6">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-medium text-[var(--color-text-primary)]">{credential.holderName}</p>
-                      <p className="text-sm text-[var(--color-text-muted)]">{credential.holderEmail}</p>
-                      <span className="inline-block mt-2 px-2 py-0.5 text-xs font-medium rounded-full bg-emerald-500/10 text-emerald-600">
-                        {credential.role} - {t('credentialActive')}
-                      </span>
-                    </div>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10">
-                      <ShieldCheck className="h-5 w-5 text-emerald-500" />
-                    </div>
-                  </div>
-                  <div className="mt-3">
-                    <p className="text-xs text-[var(--color-text-muted)]">
-                      {t('credentialClaimedInfo')}
-                    </p>
                   </div>
                 </CardContent>
               </Card>

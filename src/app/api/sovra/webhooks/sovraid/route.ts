@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updatePartnerCredential, addAuditLog } from '@/lib/redis';
+import { updatePartnerCredential, addAuditLog, createUser, getUserByEmail, generateId } from '@/lib/redis';
+import type { User, UserRole } from '@/types';
 
 /**
  * SovraID Webhook Handler
@@ -122,14 +123,60 @@ async function handleCredentialIssued(eventData: CredentialIssuedData) {
     return;
   }
 
-  // Update local credential status to active
+  const now = new Date().toISOString();
+
+  // Check if user already exists for this email
+  let existingUser = await getUserByEmail(credential.holderEmail);
+  let userId = existingUser?.id;
+
+  // Create user account if it doesn't exist
+  if (!existingUser) {
+    console.log('[SovraID Webhook] Creating user account for:', credential.holderEmail);
+
+    userId = generateId();
+    const newUser: User = {
+      id: userId,
+      partnerId: credential.partnerId,
+      email: credential.holderEmail,
+      name: credential.holderName,
+      role: credential.role as UserRole,
+      passwordHash: '', // User will authenticate via wallet credential, can set password later
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await createUser(newUser);
+    console.log('[SovraID Webhook] User account created:', userId);
+
+    // Add audit log for user creation
+    await addAuditLog(
+      'user.created' as never,
+      'user' as never,
+      userId,
+      { id: 'system', name: 'SovraID Webhook', type: 'system' as never },
+      {
+        entityName: credential.holderName,
+        metadata: {
+          partnerId: credential.partnerId,
+          email: credential.holderEmail,
+          role: credential.role,
+          createdViaCredentialClaim: true,
+        },
+      }
+    );
+  } else {
+    console.log('[SovraID Webhook] User already exists:', existingUser.id);
+  }
+
+  // Update local credential status to active and link to user
   await updatePartnerCredential(credential.id, {
     status: 'active',
-    claimedAt: new Date().toISOString(),
+    claimedAt: now,
     holderDid: holderDID,
+    userId: userId,
   });
 
-  // Add audit log
+  // Add audit log for credential claim
   await addAuditLog(
     'credential.claimed' as never,
     'credential',
@@ -141,11 +188,14 @@ async function handleCredentialIssued(eventData: CredentialIssuedData) {
         invitationId,
         holderDID,
         vcId: vc?.id,
+        userId,
+        userCreated: !existingUser,
       },
     }
   );
 
   console.log('[SovraID Webhook] Credential activated successfully:', credential.id);
+  console.log('[SovraID Webhook] Linked to user:', userId);
 }
 
 /**
