@@ -231,15 +231,18 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     );
 
-    // Send email with instructions (non-blocking)
-    sendCredentialEmail({
-      to: holderEmail,
-      holderName,
-      partnerName: partner.companyName,
-      role,
-    }).catch((err) => {
-      console.error('[Credentials API] Failed to send email:', err);
-    });
+    // Send email with instructions
+    try {
+      await sendCredentialEmail({
+        to: holderEmail,
+        holderName,
+        partnerName: partner.companyName,
+        role,
+      });
+    } catch (emailErr) {
+      console.error('[Credentials API] Failed to send email:', emailErr);
+      // Don't fail the request if email fails
+    }
 
     return NextResponse.json({
       credential,

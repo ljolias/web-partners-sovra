@@ -195,16 +195,18 @@ async function handleCredentialIssued(eventData: CredentialIssuedData) {
     }
   );
 
-  // Send welcome email (non-blocking)
+  // Send welcome email
   const partner = await getPartner(credential.partnerId);
   if (partner) {
-    sendWelcomeEmail({
-      to: credential.holderEmail,
-      holderName: credential.holderName,
-      partnerName: partner.companyName,
-    }).catch((err) => {
-      console.error('[SovraID Webhook] Failed to send welcome email:', err);
-    });
+    try {
+      await sendWelcomeEmail({
+        to: credential.holderEmail,
+        holderName: credential.holderName,
+        partnerName: partner.companyName,
+      });
+    } catch (emailErr) {
+      console.error('[SovraID Webhook] Failed to send welcome email:', emailErr);
+    }
   }
 
   console.log('[SovraID Webhook] Credential activated successfully:', credential.id);

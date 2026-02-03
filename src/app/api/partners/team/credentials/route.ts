@@ -191,15 +191,18 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    // Send email with instructions (non-blocking)
-    sendCredentialEmail({
-      to: holderEmail,
-      holderName,
-      partnerName: partnerData.companyName,
-      role,
-    }).catch((err) => {
-      console.error('[Partner Team API] Failed to send email:', err);
-    });
+    // Send email with instructions
+    try {
+      await sendCredentialEmail({
+        to: holderEmail,
+        holderName,
+        partnerName: partnerData.companyName,
+        role,
+      });
+    } catch (emailErr) {
+      console.error('[Partner Team API] Failed to send email:', emailErr);
+      // Don't fail the request if email fails
+    }
 
     return NextResponse.json({
       credential,
