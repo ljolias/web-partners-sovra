@@ -9,6 +9,7 @@ import {
   addAuditLog,
 } from '@/lib/redis';
 import { getSovraIdClient, isSovraIdConfigured, SovraIdApiError } from '@/lib/sovraid';
+import { sendCredentialEmail } from '@/lib/email';
 import type { PartnerCredential, CredentialRole } from '@/types';
 
 interface RouteParams {
@@ -230,14 +231,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     );
 
-    // TODO: Send email with QR code and instructions
-    // await sendCredentialEmail({
-    //   to: holderEmail,
-    //   holderName,
-    //   partnerName: partner.companyName,
-    //   qrCode: credential.qrCode,
-    //   didcommUrl: didcommInvitationUrl,
-    // });
+    // Send email with instructions (non-blocking)
+    sendCredentialEmail({
+      to: holderEmail,
+      holderName,
+      partnerName: partner.companyName,
+      role,
+    }).catch((err) => {
+      console.error('[Credentials API] Failed to send email:', err);
+    });
 
     return NextResponse.json({
       credential,

@@ -8,6 +8,7 @@ import {
   addAuditLog,
 } from '@/lib/redis';
 import { getSovraIdClient, isSovraIdConfigured, SovraIdApiError } from '@/lib/sovraid';
+import { sendCredentialEmail } from '@/lib/email';
 import type { PartnerCredential, CredentialRole } from '@/types';
 
 /**
@@ -189,6 +190,16 @@ export async function POST(request: NextRequest) {
         },
       }
     );
+
+    // Send email with instructions (non-blocking)
+    sendCredentialEmail({
+      to: holderEmail,
+      holderName,
+      partnerName: partnerData.companyName,
+      role,
+    }).catch((err) => {
+      console.error('[Partner Team API] Failed to send email:', err);
+    });
 
     return NextResponse.json({
       credential,

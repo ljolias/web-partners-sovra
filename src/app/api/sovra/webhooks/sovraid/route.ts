@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updatePartnerCredential, addAuditLog, createUser, getUserByEmail, generateId } from '@/lib/redis';
+import { updatePartnerCredential, addAuditLog, createUser, getUserByEmail, generateId, getPartner } from '@/lib/redis';
+import { sendWelcomeEmail } from '@/lib/email';
 import type { User, UserRole } from '@/types';
 
 /**
@@ -193,6 +194,18 @@ async function handleCredentialIssued(eventData: CredentialIssuedData) {
       },
     }
   );
+
+  // Send welcome email (non-blocking)
+  const partner = await getPartner(credential.partnerId);
+  if (partner) {
+    sendWelcomeEmail({
+      to: credential.holderEmail,
+      holderName: credential.holderName,
+      partnerName: partner.companyName,
+    }).catch((err) => {
+      console.error('[SovraID Webhook] Failed to send welcome email:', err);
+    });
+  }
 
   console.log('[SovraID Webhook] Credential activated successfully:', credential.id);
   console.log('[SovraID Webhook] Linked to user:', userId);
