@@ -82,6 +82,7 @@ export async function POST(request: NextRequest) {
     const credentialId = generateId();
 
     let sovraIdCredentialId: string | undefined;
+    let sovraIdInvitationId: string | undefined;
     let qrCode: string | undefined;
     let didcommInvitationUrl: string | undefined;
 
@@ -105,12 +106,34 @@ export async function POST(request: NextRequest) {
         });
 
         sovraIdCredentialId = sovraIdResponse.id;
-        // The invitationContent contains the DIDComm URL for wallet scanning
-        didcommInvitationUrl = sovraIdResponse.invitation_wallet.invitationContent;
-        qrCode = didcommInvitationUrl;
 
+        // Log the full response for debugging
         console.log('[Partner Team API] SovraID credential issued:', sovraIdCredentialId);
-        console.log('[Partner Team API] DIDComm URL:', didcommInvitationUrl);
+        console.log('[Partner Team API] FULL API Response:', JSON.stringify(sovraIdResponse, null, 2));
+
+        // Store the invitation ID for webhook matching (CRITICAL!)
+        const invitationWallet = sovraIdResponse.invitation_wallet;
+        sovraIdInvitationId = invitationWallet?.invitationId;
+        console.log('[Partner Team API] Invitation ID:', sovraIdInvitationId);
+
+        // Process the invitationContent to get the DIDComm URL
+        let rawInvitationContent = invitationWallet?.invitationContent;
+
+        if (rawInvitationContent && typeof rawInvitationContent === 'string') {
+          if (rawInvitationContent.startsWith('didcomm://')) {
+            didcommInvitationUrl = rawInvitationContent;
+          } else if (rawInvitationContent.match(/^[A-Za-z0-9+/=_-]+$/)) {
+            didcommInvitationUrl = `didcomm://?_oob=${rawInvitationContent}`;
+          } else if (rawInvitationContent.startsWith('{')) {
+            const base64Invitation = Buffer.from(rawInvitationContent).toString('base64url');
+            didcommInvitationUrl = `didcomm://?_oob=${base64Invitation}`;
+          } else {
+            didcommInvitationUrl = rawInvitationContent;
+          }
+        }
+
+        qrCode = didcommInvitationUrl;
+        console.log('[Partner Team API] Final QR Code value:', qrCode?.substring(0, 100));
       } catch (sovraError) {
         console.error('[Partner Team API] SovraID API error:', sovraError);
 
@@ -141,6 +164,7 @@ export async function POST(request: NextRequest) {
       createdAt: now,
       updatedAt: now,
       sovraIdCredentialId,
+      sovraIdInvitationId, // Required for webhook matching when credential is claimed
       qrCode,
     };
 
