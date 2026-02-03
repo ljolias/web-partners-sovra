@@ -20,7 +20,15 @@ interface SovraIdWebhookPayload {
 
 // credential-issued event data
 interface CredentialIssuedData {
-  vc: Record<string, unknown>; // The verifiable credential
+  vc: {
+    id?: string;
+    credentialSubject?: {
+      email?: string;
+      holderName?: string;
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  };
   holderDID: string;
   invitationId: string;
 }
@@ -106,8 +114,8 @@ async function handleCredentialIssued(eventData: CredentialIssuedData) {
   console.log('[SovraID Webhook] Holder DID:', holderDID);
   console.log('[SovraID Webhook] Invitation ID:', invitationId);
 
-  // Find the local credential by invitation ID or credential ID
-  const credential = await findCredentialByInvitationId(invitationId);
+  // Find the local credential by invitation ID, credential ID, or email
+  const credential = await findCredentialByInvitationId(invitationId, eventData);
 
   if (!credential) {
     console.warn('[SovraID Webhook] Credential not found for invitation ID:', invitationId);
@@ -188,24 +196,54 @@ interface CredentialRecord {
 }
 
 /**
- * Find a credential by SovraID invitation ID or credential ID
+ * Find a credential by SovraID invitation ID, credential ID, or extract from VC
  */
-async function findCredentialByInvitationId(invitationId: string): Promise<CredentialRecord | null> {
+async function findCredentialByInvitationId(
+  invitationId: string,
+  eventData?: CredentialIssuedData
+): Promise<CredentialRecord | null> {
   const { redis } = await import('@/lib/redis/client');
 
   // Get all credentials
   const allCredentialIds = await redis.zrange('credentials:all', 0, -1);
   console.log('[SovraID Webhook] Searching through', allCredentialIds.length, 'credentials');
 
+  // Extract email from VC if available (for fallback matching)
+  const vcEmail = eventData?.vc?.credentialSubject?.email as string | undefined;
+  const vcCredentialId = eventData?.vc?.id as string | undefined;
+  // Extract just the UUID from the full credential URL if present
+  const vcCredentialUuid = vcCredentialId?.split('/').pop();
+
+  console.log('[SovraID Webhook] Looking for invitationId:', invitationId);
+  console.log('[SovraID Webhook] VC email:', vcEmail);
+  console.log('[SovraID Webhook] VC credential ID:', vcCredentialUuid);
+
   for (const credentialId of allCredentialIds) {
     const credential = await redis.hgetall(`credential:${credentialId}`) as CredentialRecord | null;
     if (credential && credential.id) {
-      // Try to match by invitation ID first, then by credential ID
-      if (
-        credential.sovraIdInvitationId === invitationId ||
-        credential.sovraIdCredentialId === invitationId
-      ) {
-        console.log('[SovraID Webhook] Found matching credential:', credentialId);
+      console.log('[SovraID Webhook] Checking credential:', {
+        id: credential.id,
+        email: credential.holderEmail,
+        sovraIdCredentialId: credential.sovraIdCredentialId,
+        sovraIdInvitationId: credential.sovraIdInvitationId,
+      });
+
+      // Try to match by invitation ID
+      if (credential.sovraIdInvitationId === invitationId) {
+        console.log('[SovraID Webhook] Found by invitationId match');
+        return credential;
+      }
+
+      // Try to match by credential ID
+      if (credential.sovraIdCredentialId === invitationId ||
+          credential.sovraIdCredentialId === vcCredentialUuid) {
+        console.log('[SovraID Webhook] Found by credentialId match');
+        return credential;
+      }
+
+      // Fallback: match by email from VC
+      if (vcEmail && credential.holderEmail?.toLowerCase() === vcEmail.toLowerCase()) {
+        console.log('[SovraID Webhook] Found by email match (fallback)');
         return credential;
       }
     }
