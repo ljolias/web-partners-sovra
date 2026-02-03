@@ -114,18 +114,60 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         });
 
         sovraIdCredentialId = sovraIdResponse.id;
-        // The invitationContent contains the DIDComm URL for wallet scanning
-        didcommInvitationUrl = sovraIdResponse.invitation_wallet?.invitationContent;
-        qrCode = didcommInvitationUrl;
 
+        // Log the FULL API response to understand its structure
         console.log('[Credentials API] SovraID credential issued:', sovraIdCredentialId);
-        console.log('[Credentials API] Full invitation_wallet response:', JSON.stringify(sovraIdResponse.invitation_wallet));
-        console.log('[Credentials API] DIDComm URL:', didcommInvitationUrl);
+        console.log('[Credentials API] FULL API Response:', JSON.stringify(sovraIdResponse, null, 2));
 
-        // Debug: Check if the URL starts with didcomm://
-        if (didcommInvitationUrl && !didcommInvitationUrl.startsWith('didcomm://')) {
-          console.warn('[Credentials API] WARNING: invitationContent is not a DIDComm URL:', didcommInvitationUrl);
+        // The invitation_wallet contains the data for wallet scanning
+        const invitationWallet = sovraIdResponse.invitation_wallet;
+        console.log('[Credentials API] invitation_wallet:', JSON.stringify(invitationWallet, null, 2));
+
+        // Check various possible fields for the DIDComm URL
+        // The API might return it in different formats
+        let rawInvitationContent = invitationWallet?.invitationContent;
+
+        // If invitationContent is a string that looks like JSON, try to parse it
+        if (rawInvitationContent && typeof rawInvitationContent === 'string') {
+          // Check if it's already a DIDComm URL
+          if (rawInvitationContent.startsWith('didcomm://')) {
+            didcommInvitationUrl = rawInvitationContent;
+            console.log('[Credentials API] invitationContent is already a DIDComm URL');
+          }
+          // Check if it's a base64-encoded OOB invitation
+          else if (rawInvitationContent.match(/^[A-Za-z0-9+/=_-]+$/)) {
+            // Looks like base64, construct DIDComm URL
+            didcommInvitationUrl = `didcomm://?_oob=${rawInvitationContent}`;
+            console.log('[Credentials API] Constructed DIDComm URL from base64 invitation');
+          }
+          // Check if it's a JSON string that needs to be base64 encoded
+          else if (rawInvitationContent.startsWith('{')) {
+            try {
+              // It's JSON, base64 encode it for the DIDComm URL
+              const base64Invitation = Buffer.from(rawInvitationContent).toString('base64url');
+              didcommInvitationUrl = `didcomm://?_oob=${base64Invitation}`;
+              console.log('[Credentials API] Constructed DIDComm URL from JSON invitation');
+            } catch (e) {
+              console.error('[Credentials API] Failed to encode JSON invitation:', e);
+              didcommInvitationUrl = rawInvitationContent;
+            }
+          }
+          // Otherwise use as-is (might be a claim URL)
+          else {
+            didcommInvitationUrl = rawInvitationContent;
+            console.warn('[Credentials API] invitationContent format not recognized:', rawInvitationContent.substring(0, 100));
+          }
         }
+
+        // Also check if there's a direct didcommUrl field
+        const anyResponse = sovraIdResponse as Record<string, unknown>;
+        if (anyResponse.didcommUrl) {
+          didcommInvitationUrl = anyResponse.didcommUrl as string;
+          console.log('[Credentials API] Found didcommUrl field:', didcommInvitationUrl);
+        }
+
+        qrCode = didcommInvitationUrl;
+        console.log('[Credentials API] Final QR Code value:', qrCode?.substring(0, 100));
       } catch (sovraError) {
         console.error('[Credentials API] SovraID API error:', sovraError);
 
