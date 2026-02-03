@@ -204,10 +204,21 @@ async function handleVerificationCompleted(payload: WebhookPayload) {
   );
 }
 
+interface CredentialRecord {
+  id: string;
+  partnerId: string;
+  holderName: string;
+  holderEmail: string;
+  role: string;
+  status: string;
+  sovraIdCredentialId?: string;
+  [key: string]: unknown;
+}
+
 /**
  * Helper function to find a credential by SovraID credential ID
  */
-async function findCredentialBySovraId(sovraIdCredentialId: string) {
+async function findCredentialBySovraId(sovraIdCredentialId: string): Promise<CredentialRecord | null> {
   // This is a simple implementation - in production, you might want to
   // add an index for faster lookups or use a dedicated query
 
@@ -220,8 +231,8 @@ async function findCredentialBySovraId(sovraIdCredentialId: string) {
 
   for (const credentialId of allCredentialIds) {
     // Credentials are stored as hashes, so use hgetall
-    const credential = await redis.hgetall(`credential:${credentialId}`);
-    if (credential && Object.keys(credential).length > 0) {
+    const credential = await redis.hgetall(`credential:${credentialId}`) as CredentialRecord | null;
+    if (credential && credential.id) {
       console.log('[SovraID Webhook] Checking credential:', credentialId, 'sovraIdCredentialId:', credential.sovraIdCredentialId);
       if (credential.sovraIdCredentialId === sovraIdCredentialId) {
         return credential;
