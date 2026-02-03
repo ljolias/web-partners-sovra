@@ -318,7 +318,10 @@
     "issueError": "Error al emitir credencial",
     "viewQR": "Ver QR",
     "pendingCredentialTitle": "Credencial Pendiente",
-    "qrNotFound": "No se encontro el codigo QR para esta credencial. Puede ser necesario emitir una nueva credencial."
+    "qrNotFound": "No se encontro el codigo QR para esta credencial. Puede ser necesario emitir una nueva credencial.",
+    "activeCredentials": "Credenciales Activas",
+    "credentialActive": "Credencial Activa",
+    "credentialClaimedInfo": "Credencial reclamada en la wallet. El usuario puede iniciar sesion en el portal."
   },
   "demo": {
     "switchRole": "Cambiar Rol",

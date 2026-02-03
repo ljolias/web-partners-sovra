@@ -318,7 +318,10 @@
     "issueError": "Failed to issue credential",
     "viewQR": "View QR",
     "pendingCredentialTitle": "Pending Credential",
-    "qrNotFound": "QR code not found for this credential. You may need to issue a new credential."
+    "qrNotFound": "QR code not found for this credential. You may need to issue a new credential.",
+    "activeCredentials": "Active Credentials",
+    "credentialActive": "Active Credential",
+    "credentialClaimedInfo": "Credential claimed in wallet. User can now log into the portal."
   },
   "demo": {
     "switchRole": "Switch Role",

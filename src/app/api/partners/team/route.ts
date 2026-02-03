@@ -84,13 +84,20 @@ export async function GET() {
       })
     );
 
-    // Get pending credentials (issued but not yet claimed)
+    // Get all credentials and separate by status
     const allCredentials = await getPartnerCredentials(sessionData.partner.id);
+
+    // Pending: issued but not yet claimed
     const pendingCredentials = allCredentials.filter(
       (c) => c.status === 'issued' || c.status === 'pending'
     );
 
-    return NextResponse.json({ teamMembers, pendingCredentials });
+    // Active: claimed in wallet but may not have user account yet
+    const activeCredentials = allCredentials.filter(
+      (c) => c.status === 'active' || c.status === 'claimed'
+    );
+
+    return NextResponse.json({ teamMembers, pendingCredentials, activeCredentials });
   } catch (error) {
     console.error('Get team error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
