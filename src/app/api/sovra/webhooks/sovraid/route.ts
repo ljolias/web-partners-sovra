@@ -211,17 +211,20 @@ async function findCredentialBySovraId(sovraIdCredentialId: string) {
   // This is a simple implementation - in production, you might want to
   // add an index for faster lookups or use a dedicated query
 
-  // Check all partners (this is inefficient but works for now)
-  // In a real implementation, you'd want a reverse index: sovraIdCredentialId -> credentialId
   const { redis } = await import('@/lib/redis/client');
-  const allCredentialIds = await redis.smembers('credentials:all');
+
+  // credentials:all is a Sorted Set, so use zrange instead of smembers
+  const allCredentialIds = await redis.zrange('credentials:all', 0, -1);
+
+  console.log('[SovraID Webhook] Searching through', allCredentialIds.length, 'credentials');
 
   for (const credentialId of allCredentialIds) {
-    const credential = await redis.get(`credential:${credentialId}`);
-    if (credential) {
-      const parsed = typeof credential === 'string' ? JSON.parse(credential) : credential;
-      if (parsed.sovraIdCredentialId === sovraIdCredentialId) {
-        return parsed;
+    // Credentials are stored as hashes, so use hgetall
+    const credential = await redis.hgetall(`credential:${credentialId}`);
+    if (credential && Object.keys(credential).length > 0) {
+      console.log('[SovraID Webhook] Checking credential:', credentialId, 'sovraIdCredentialId:', credential.sovraIdCredentialId);
+      if (credential.sovraIdCredentialId === sovraIdCredentialId) {
+        return credential;
       }
     }
   }
