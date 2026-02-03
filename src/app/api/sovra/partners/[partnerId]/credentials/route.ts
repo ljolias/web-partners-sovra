@@ -115,11 +115,17 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         sovraIdCredentialId = sovraIdResponse.id;
         // The invitationContent contains the DIDComm URL for wallet scanning
-        didcommInvitationUrl = sovraIdResponse.invitation_wallet.invitationContent;
+        didcommInvitationUrl = sovraIdResponse.invitation_wallet?.invitationContent;
         qrCode = didcommInvitationUrl;
 
         console.log('[Credentials API] SovraID credential issued:', sovraIdCredentialId);
+        console.log('[Credentials API] Full invitation_wallet response:', JSON.stringify(sovraIdResponse.invitation_wallet));
         console.log('[Credentials API] DIDComm URL:', didcommInvitationUrl);
+
+        // Debug: Check if the URL starts with didcomm://
+        if (didcommInvitationUrl && !didcommInvitationUrl.startsWith('didcomm://')) {
+          console.warn('[Credentials API] WARNING: invitationContent is not a DIDComm URL:', didcommInvitationUrl);
+        }
       } catch (sovraError) {
         console.error('[Credentials API] SovraID API error:', sovraError);
 
