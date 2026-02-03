@@ -91,6 +91,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const credentialId = generateId();
 
     let sovraIdCredentialId: string | undefined;
+    let sovraIdInvitationId: string | undefined;
     let qrCode: string | undefined;
     let didcommInvitationUrl: string | undefined;
 
@@ -122,6 +123,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         // The invitation_wallet contains the data for wallet scanning
         const invitationWallet = sovraIdResponse.invitation_wallet;
         console.log('[Credentials API] invitation_wallet:', JSON.stringify(invitationWallet, null, 2));
+
+        // Store the invitation ID for webhook matching
+        sovraIdInvitationId = invitationWallet?.invitationId;
+        console.log('[Credentials API] Invitation ID:', sovraIdInvitationId);
 
         // Check various possible fields for the DIDComm URL
         // The API might return it in different formats
@@ -200,6 +205,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       createdAt: now,
       updatedAt: now,
       sovraIdCredentialId,
+      sovraIdInvitationId,
       qrCode,
     };
 

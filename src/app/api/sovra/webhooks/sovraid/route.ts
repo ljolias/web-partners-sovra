@@ -1,30 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  getPartnerCredentials,
-  updatePartnerCredential,
-  addAuditLog,
-} from '@/lib/redis';
-import type { WebhookPayload, WebhookEventType } from '@/lib/sovraid';
+import { updatePartnerCredential, addAuditLog } from '@/lib/redis';
 
 /**
  * SovraID Webhook Handler
  *
- * Receives events from SovraID when credential states change:
- * - credential.claimed - User has claimed the credential in their wallet
- * - credential.revoked - Credential was revoked externally
- * - verification.completed - A verification was successfully completed
+ * Based on: https://github.com/sovrahq/id-docs/blob/main/docs/guides/webhooks.md
+ *
+ * Receives events from SovraID:
+ * - credential-issued: Credential accepted by holder's wallet
+ * - verifiable-presentation-finished: Verification completed
  */
+
+// Payload structure from SovraID
+interface SovraIdWebhookPayload {
+  eventType: string;
+  eventData: Record<string, unknown>;
+  eventWebhookResponse?: unknown;
+}
+
+// credential-issued event data
+interface CredentialIssuedData {
+  vc: Record<string, unknown>; // The verifiable credential
+  holderDID: string;
+  invitationId: string;
+}
+
+// verifiable-presentation-finished event data
+interface VerificationFinishedData {
+  verified: boolean;
+  holderDID: string;
+  verifierDID: string;
+  invitationId: string;
+  verifiableCredentials: Array<Record<string, unknown>>;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    // Log all incoming webhook requests for debugging
+    // Log incoming request for debugging
     console.log('[SovraID Webhook] Received request');
-    console.log('[SovraID Webhook] Headers:', JSON.stringify(Object.fromEntries(request.headers.entries())));
 
     const rawBody = await request.text();
     console.log('[SovraID Webhook] Raw body:', rawBody);
 
     // Parse the body
-    let payload: WebhookPayload;
+    let payload: SovraIdWebhookPayload;
     try {
       payload = JSON.parse(rawBody);
     } catch (e) {
@@ -32,43 +51,43 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
     }
 
+    console.log('[SovraID Webhook] Event type:', payload.eventType);
+    console.log('[SovraID Webhook] Event data:', JSON.stringify(payload.eventData, null, 2));
+
     // Verify webhook secret if configured
     const webhookSecret = process.env.SOVRAID_WEBHOOK_SECRET;
     if (webhookSecret) {
-      // Check multiple possible header names for the signature
+      // Check possible header names for the secret
+      const authHeader = request.headers.get('authorization');
       const signature =
         request.headers.get('x-sovraid-signature') ||
-        request.headers.get('x-webhook-signature') ||
-        request.headers.get('authorization');
+        request.headers.get('x-webhook-secret') ||
+        (authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : authHeader);
 
-      console.log('[SovraID Webhook] Expected secret:', webhookSecret);
-      console.log('[SovraID Webhook] Received signature:', signature);
+      console.log('[SovraID Webhook] Checking authentication...');
 
-      if (!signature || (signature !== webhookSecret && signature !== `Bearer ${webhookSecret}`)) {
-        console.error('[SovraID Webhook] Invalid signature - but processing anyway for debugging');
-        // For now, continue processing to debug - remove this in production
-        // return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+      if (signature !== webhookSecret) {
+        console.warn('[SovraID Webhook] Signature mismatch - continuing for debugging');
+        // In production, uncomment this:
+        // return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
     }
-    console.log('[SovraID Webhook] Received event:', payload.event, payload.data.id);
 
-    switch (payload.event) {
-      case 'credential.claimed':
-        await handleCredentialClaimed(payload);
+    // Handle events based on eventType
+    switch (payload.eventType) {
+      case 'credential-issued':
+        await handleCredentialIssued(payload.eventData as CredentialIssuedData);
         break;
 
-      case 'credential.revoked':
-        await handleCredentialRevoked(payload);
-        break;
-
-      case 'verification.completed':
-        await handleVerificationCompleted(payload);
+      case 'verifiable-presentation-finished':
+        await handleVerificationFinished(payload.eventData as VerificationFinishedData);
         break;
 
       default:
-        console.log('[SovraID Webhook] Unhandled event type:', payload.event);
+        console.log('[SovraID Webhook] Unhandled event type:', payload.eventType);
     }
 
+    // Respond within 5 seconds as recommended
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error('[SovraID Webhook] Error processing webhook:', error);
@@ -77,132 +96,84 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Handle credential.claimed event
- * Updates the local credential status to 'claimed' or 'active'
+ * Handle credential-issued event
+ * Triggered when credential is accepted by holder's wallet
  */
-async function handleCredentialClaimed(payload: WebhookPayload) {
-  const { id: sovraIdCredentialId, holderDid, claimedAt } = payload.data as {
-    id: string;
-    holderDid?: string;
-    claimedAt?: string;
-  };
+async function handleCredentialIssued(eventData: CredentialIssuedData) {
+  const { holderDID, invitationId, vc } = eventData;
 
-  console.log('[SovraID Webhook] Processing credential.claimed:', sovraIdCredentialId);
+  console.log('[SovraID Webhook] Processing credential-issued');
+  console.log('[SovraID Webhook] Holder DID:', holderDID);
+  console.log('[SovraID Webhook] Invitation ID:', invitationId);
 
-  // Find the local credential by SovraID credential ID
-  const credential = await findCredentialBySovraId(sovraIdCredentialId);
+  // Find the local credential by invitation ID or credential ID
+  const credential = await findCredentialByInvitationId(invitationId);
 
   if (!credential) {
-    console.warn('[SovraID Webhook] Credential not found for SovraID ID:', sovraIdCredentialId);
+    console.warn('[SovraID Webhook] Credential not found for invitation ID:', invitationId);
     return;
   }
 
-  // Update local credential status
+  // Update local credential status to active
   await updatePartnerCredential(credential.id, {
     status: 'active',
-    claimedAt: claimedAt || new Date().toISOString(),
+    claimedAt: new Date().toISOString(),
+    holderDid: holderDID,
   });
 
   // Add audit log
   await addAuditLog(
-    'credential.claimed' as never, // Custom event type
+    'credential.claimed' as never,
     'credential',
     credential.id,
     { id: 'system', name: 'SovraID Webhook', type: 'system' as never },
     {
       entityName: credential.holderName,
       metadata: {
-        sovraIdCredentialId,
-        holderDid,
-        claimedAt,
+        invitationId,
+        holderDID,
+        vcId: vc?.id,
       },
     }
   );
 
-  console.log('[SovraID Webhook] Credential claimed successfully:', credential.id);
+  console.log('[SovraID Webhook] Credential activated successfully:', credential.id);
 }
 
 /**
- * Handle credential.revoked event (external revocation)
+ * Handle verifiable-presentation-finished event
+ * Triggered when verification is completed
  */
-async function handleCredentialRevoked(payload: WebhookPayload) {
-  const { id: sovraIdCredentialId, reason, revokedAt } = payload.data as {
-    id: string;
-    reason?: string;
-    revokedAt?: string;
-  };
+async function handleVerificationFinished(eventData: VerificationFinishedData) {
+  const { verified, holderDID, invitationId, verifiableCredentials } = eventData;
 
-  console.log('[SovraID Webhook] Processing credential.revoked:', sovraIdCredentialId);
+  console.log('[SovraID Webhook] Processing verifiable-presentation-finished');
+  console.log('[SovraID Webhook] Verified:', verified);
+  console.log('[SovraID Webhook] Holder DID:', holderDID);
+  console.log('[SovraID Webhook] Invitation ID (presentationId):', invitationId);
 
-  // Find the local credential
-  const credential = await findCredentialBySovraId(sovraIdCredentialId);
-
-  if (!credential) {
-    console.warn('[SovraID Webhook] Credential not found for SovraID ID:', sovraIdCredentialId);
-    return;
-  }
-
-  // Update local credential status if not already revoked
-  if (credential.status !== 'revoked') {
-    await updatePartnerCredential(credential.id, {
-      status: 'revoked',
-      revokedAt: revokedAt || new Date().toISOString(),
-      revokedBy: 'system',
-      revokedReason: reason || 'Revoked externally via SovraID',
-    });
-
-    // Add audit log
-    await addAuditLog(
-      'credential.revoked',
-      'credential',
-      credential.id,
-      { id: 'system', name: 'SovraID Webhook', type: 'system' as never },
-      {
-        entityName: credential.holderName,
-        metadata: {
-          sovraIdCredentialId,
-          reason,
-          revokedAt,
-          source: 'external',
-        },
-      }
-    );
-
-    console.log('[SovraID Webhook] Credential revoked:', credential.id);
-  }
-}
-
-/**
- * Handle verification.completed event
- */
-async function handleVerificationCompleted(payload: WebhookPayload) {
-  const { id: verificationId, holderDid, presentedCredentials } = payload.data as {
-    id: string;
-    holderDid?: string;
-    presentedCredentials?: Array<{ credentialId: string; claims: Record<string, unknown> }>;
-  };
-
-  console.log('[SovraID Webhook] Verification completed:', verificationId);
-
-  // This can be used for wallet-based login or credential verification
-  // For now, just log the event
-  // In the future, this could trigger session creation or access grants
-
-  // Add audit log
+  // Add audit log for the verification
   await addAuditLog(
     'verification.completed' as never,
     'verification' as never,
-    verificationId,
+    invitationId,
     { id: 'system', name: 'SovraID Webhook', type: 'system' as never },
     {
-      entityName: `Verification ${verificationId}`,
+      entityName: `Verification ${invitationId}`,
       metadata: {
-        holderDid,
-        presentedCredentials: presentedCredentials?.map((c) => c.credentialId),
+        verified,
+        holderDID,
+        credentialsCount: verifiableCredentials?.length || 0,
       },
     }
   );
+
+  console.log('[SovraID Webhook] Verification logged:', invitationId, 'verified:', verified);
 }
+
+// ============================================
+// Helper Functions
+// ============================================
 
 interface CredentialRecord {
   id: string;
@@ -212,29 +183,29 @@ interface CredentialRecord {
   role: string;
   status: string;
   sovraIdCredentialId?: string;
+  sovraIdInvitationId?: string;
   [key: string]: unknown;
 }
 
 /**
- * Helper function to find a credential by SovraID credential ID
+ * Find a credential by SovraID invitation ID or credential ID
  */
-async function findCredentialBySovraId(sovraIdCredentialId: string): Promise<CredentialRecord | null> {
-  // This is a simple implementation - in production, you might want to
-  // add an index for faster lookups or use a dedicated query
-
+async function findCredentialByInvitationId(invitationId: string): Promise<CredentialRecord | null> {
   const { redis } = await import('@/lib/redis/client');
 
-  // credentials:all is a Sorted Set, so use zrange instead of smembers
+  // Get all credentials
   const allCredentialIds = await redis.zrange('credentials:all', 0, -1);
-
   console.log('[SovraID Webhook] Searching through', allCredentialIds.length, 'credentials');
 
   for (const credentialId of allCredentialIds) {
-    // Credentials are stored as hashes, so use hgetall
     const credential = await redis.hgetall(`credential:${credentialId}`) as CredentialRecord | null;
     if (credential && credential.id) {
-      console.log('[SovraID Webhook] Checking credential:', credentialId, 'sovraIdCredentialId:', credential.sovraIdCredentialId);
-      if (credential.sovraIdCredentialId === sovraIdCredentialId) {
+      // Try to match by invitation ID first, then by credential ID
+      if (
+        credential.sovraIdInvitationId === invitationId ||
+        credential.sovraIdCredentialId === invitationId
+      ) {
+        console.log('[SovraID Webhook] Found matching credential:', credentialId);
         return credential;
       }
     }

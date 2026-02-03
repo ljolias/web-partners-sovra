@@ -56,7 +56,9 @@ export interface PartnerCredential {
 
   // SovraID integration
   sovraIdCredentialId?: string;
+  sovraIdInvitationId?: string;
   qrCode?: string;
+  holderDid?: string;
 
   // Status
   status: 'pending' | 'issued' | 'claimed' | 'active' | 'revoked';
