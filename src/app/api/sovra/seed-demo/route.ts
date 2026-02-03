@@ -13,8 +13,30 @@ export async function POST() {
   try {
     const now = new Date().toISOString();
 
+    // First, clean up any existing demo data
+    const existingDemoUserId = await redis.get('user:email:demo@sovra.io');
+    if (existingDemoUserId) {
+      const existingUser = await redis.hgetall(`user:${existingDemoUserId}`) as Record<string, string> | null;
+      if (existingUser?.partnerId) {
+        await redis.srem(`partner:${existingUser.partnerId}:users`, existingDemoUserId);
+      }
+      await redis.del(`user:${existingDemoUserId}`);
+      await redis.del('user:email:demo@sovra.io');
+    }
+
+    const existingSarahUserId = await redis.get('user:email:sarah@acme.com');
+    if (existingSarahUserId) {
+      const existingUser = await redis.hgetall(`user:${existingSarahUserId}`) as Record<string, string> | null;
+      if (existingUser?.partnerId) {
+        await redis.srem(`partner:${existingUser.partnerId}:users`, existingSarahUserId);
+      }
+      await redis.del(`user:${existingSarahUserId}`);
+      await redis.del('user:email:sarah@acme.com');
+    }
+
     // Generate proper password hash
     const passwordHash = await bcrypt.hash('demo123', 10);
+    console.log('[Seed Demo] Generated password hash for demo123');
 
     // Create Demo Partner (Acme Corp)
     const partnerId = generateId();
@@ -71,6 +93,10 @@ export async function POST() {
     await redis.set(`user:email:sarah@acme.com`, sarahUserId);
     await redis.sadd(`partner:${partnerId}:users`, sarahUserId);
 
+    // Verify the user was created correctly
+    const verifyUser = await redis.hgetall(`user:${demoUserId}`) as Record<string, string> | null;
+    const verifyEmailIndex = await redis.get('user:email:demo@sovra.io');
+
     return NextResponse.json({
       success: true,
       message: 'Demo data created',
@@ -82,6 +108,13 @@ export async function POST() {
         { email: 'demo@sovra.io', password: 'demo123', role: 'admin' },
         { email: 'sarah@acme.com', password: 'demo123', role: 'sales' },
       ],
+      debug: {
+        demoUserId,
+        verifyEmailIndex,
+        userExists: !!verifyUser,
+        userPartnerId: verifyUser?.partnerId,
+        hashLength: passwordHash.length,
+      }
     });
   } catch (error) {
     console.error('Seed demo error:', error);
