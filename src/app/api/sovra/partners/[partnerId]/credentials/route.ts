@@ -160,7 +160,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         }
 
         // Also check if there's a direct didcommUrl field
-        const anyResponse = sovraIdResponse as Record<string, unknown>;
+        const anyResponse = sovraIdResponse as unknown as Record<string, unknown>;
         if (anyResponse.didcommUrl) {
           didcommInvitationUrl = anyResponse.didcommUrl as string;
           console.log('[Credentials API] Found didcommUrl field:', didcommInvitationUrl);
