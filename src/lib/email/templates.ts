@@ -17,9 +17,11 @@ const QR_API_SMALL = 'https://api.qrserver.com/v1/create-qr-code/?size=100x100&d
 const APP_STORE_URL = 'https://apps.apple.com/co/app/sovra/id6754286986';
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.pulsar.sovra&hl=es_AR';
 
-// Logo URLs
-const SOVRA_LOGO = 'https://sovra-iota.vercel.app/branding/logos/sovra.svg';
-const SOVRA_LOGO_PNG = 'https://storage.googleapis.com/sovra-public/logo-icon.png';
+// Base URL for assets
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://partners.sovra.io';
+
+// Logo URL (using deployed asset)
+const SOVRA_LOGO_PNG = `${BASE_URL}/sovra.png`;
 
 interface CredentialEmailParams {
   holderName: string;
