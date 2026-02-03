@@ -6,6 +6,7 @@ import {
   revokePartnerCredential,
   addAuditLog,
 } from '@/lib/redis';
+import { getSovraIdClient, isSovraIdConfigured, SovraIdApiError } from '@/lib/sovraid';
 
 interface RouteParams {
   params: Promise<{ credentialId: string }>;
@@ -38,7 +39,26 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Razon de revocacion requerida' }, { status: 400 });
     }
 
-    // Revoke credential
+    // Revoke in SovraID if configured and has real credential ID
+    if (isSovraIdConfigured() && credential.sovraIdCredentialId && !credential.sovraIdCredentialId.startsWith('mock-')) {
+      try {
+        console.log('[Credentials API] Revoking credential in SovraID:', credential.sovraIdCredentialId);
+        const sovraIdClient = getSovraIdClient();
+        await sovraIdClient.revokeCredential(credential.sovraIdCredentialId, reason.trim());
+        console.log('[Credentials API] SovraID credential revoked successfully');
+      } catch (sovraError) {
+        console.error('[Credentials API] SovraID revoke error:', sovraError);
+
+        // Log the error but continue with local revocation
+        // This ensures the local state is updated even if SovraID is unavailable
+        if (!(sovraError instanceof SovraIdApiError)) {
+          throw sovraError;
+        }
+        console.warn('[Credentials API] Continuing with local revocation despite SovraID error');
+      }
+    }
+
+    // Revoke credential locally
     await revokePartnerCredential(credentialId, user.id, reason.trim());
 
     // Get partner for audit log
@@ -56,12 +76,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           partnerId: credential.partnerId,
           holderEmail: credential.holderEmail,
           reason: reason.trim(),
+          sovraIdCredentialId: credential.sovraIdCredentialId,
+          usedRealApi: isSovraIdConfigured() && !credential.sovraIdCredentialId?.startsWith('mock-'),
         },
       }
     );
-
-    // TODO: In production, call SovraID API to revoke the credential
-    // await sovraIdClient.revokeCredential(credential.sovraIdCredentialId, reason);
 
     const updatedCredential = await getPartnerCredential(credentialId);
 
