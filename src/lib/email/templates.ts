@@ -17,11 +17,8 @@ const QR_API_SMALL = 'https://api.qrserver.com/v1/create-qr-code/?size=100x100&d
 const APP_STORE_URL = 'https://apps.apple.com/co/app/sovra/id6754286986';
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.pulsar.sovra&hl=es_AR';
 
-// Base URL for assets
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://partners.sovra.io';
-
-// Logo URL (using deployed asset)
-const SOVRA_LOGO_PNG = `${BASE_URL}/sovra.png`;
+// Logo URL - using direct Vercel URL for reliability in emails
+const SOVRA_LOGO_PNG = 'https://web-partners-sovra.vercel.app/sovra.png';
 
 interface CredentialEmailParams {
   holderName: string;
@@ -136,6 +133,12 @@ Sovra - Trust once, use everywhere.
                     <p style="color: #666666; font-size: 13px; margin: 16px 0 0 0;">
                       Escanea este código con SovraWallet
                     </p>
+                    <!-- Security Warning -->
+                    <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; margin-top: 16px;">
+                      <p style="color: #92400e; font-size: 12px; font-weight: 500; margin: 0;">
+                        ⚠️ <strong>No compartas ni reenvíes este email.</strong> Este código QR es personal e intransferible. Cualquier persona con acceso a él podrá reclamar tu credencial.
+                      </p>
+                    </div>
                   </td>
                 </tr>
               </table>
