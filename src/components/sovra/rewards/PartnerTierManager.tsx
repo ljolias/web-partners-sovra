@@ -114,7 +114,7 @@ export function PartnerTierManager() {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="flex flex-col items-center gap-3">
-          <SovraLoader className="h-8 w-8" />
+          <SovraLoader className="h-8 w-8 text-blue-500" />
           <p className="text-[var(--color-text-secondary)]">Cargando partners...</p>
         </div>
       </div>

@@ -219,7 +219,7 @@ export function TierChangeModal({
             >
               {loading ? (
                 <>
-                  <SovraLoader className="h-4 w-4" />
+                  <SovraLoader className="h-4 w-4 text-blue-500" />
                   Cambiando...
                 </>
               ) : (

@@ -196,7 +196,7 @@ export function AchievementAwardModal() {
                   <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg shadow-lg z-10 max-h-64 overflow-y-auto">
                     {loadingPartners ? (
                       <div className="p-4 flex items-center justify-center">
-                        <SovraLoader className="h-5 w-5" />
+                        <SovraLoader className="h-5 w-5 text-blue-500" />
                       </div>
                     ) : filteredPartners.length > 0 ? (
                       filteredPartners.map((partner) => (
@@ -338,7 +338,7 @@ export function AchievementAwardModal() {
         >
           {loading ? (
             <>
-              <SovraLoader className="h-4 w-4" />
+              <SovraLoader className="h-4 w-4 text-blue-500" />
               Procesando...
             </>
           ) : action === 'award' ? (
