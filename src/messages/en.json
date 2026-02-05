@@ -15,7 +15,11 @@
     "all": "All",
     "none": "None",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "complete": "Complete",
+    "achievement": "achievement",
+    "achievements": "achievements",
+    "days": "days"
   },
   "auth": {
     "login": "Log In",
@@ -36,6 +40,7 @@
     "trainingCenter": "Training Center",
     "certifications": "Certifications",
     "legal": "Legal Documents",
+    "partnerLevel": "Partner Level",
     "commissions": "Commissions",
     "copilot": "Sales Copilot",
     "team": "My Team"
@@ -419,5 +424,108 @@
         "description": "Successfully closed deals and average deal value."
       }
     }
+  },
+  "tiers": {
+    "bronze": "Bronze",
+    "silver": "Silver",
+    "gold": "Gold",
+    "platinum": "Platinum"
+  },
+  "achievements": {
+    "title": "Achievements",
+    "categories": {
+      "certification": "Certifications",
+      "deals": "Deals",
+      "training": "Training",
+      "compliance": "Compliance",
+      "engagement": "Engagement"
+    },
+    "first_certification": {
+      "name": "First Certification",
+      "description": "Certify your first employee"
+    },
+    "second_certification": {
+      "name": "Second Certification",
+      "description": "Certify your second employee"
+    },
+    "third_certification": {
+      "name": "Third Certification",
+      "description": "Certify your third employee"
+    },
+    "first_opportunity": {
+      "name": "First Opportunity",
+      "description": "Register your first sales opportunity"
+    },
+    "five_opportunities": {
+      "name": "Five Opportunities",
+      "description": "Register 5 sales opportunities"
+    },
+    "first_deal_won": {
+      "name": "First Deal Won",
+      "description": "Close your first won deal"
+    },
+    "two_deals_won": {
+      "name": "Two Deals Won",
+      "description": "Close 2 won deals"
+    },
+    "quick_document_signing": {
+      "name": "Quick Document Signing",
+      "description": "Sign legal documents within 7 days"
+    },
+    "training_module_complete": {
+      "name": "Training Module Complete",
+      "description": "Complete a training module"
+    },
+    "complete_profile": {
+      "name": "Complete Profile",
+      "description": "Fill out 100% of your partner profile"
+    },
+    "attend_webinar": {
+      "name": "Attend Webinar",
+      "description": "Attend a live webinar or event"
+    },
+    "refer_partner": {
+      "name": "Refer Partner",
+      "description": "Refer another partner who joins"
+    }
+  },
+  "rewards": {
+    "achievements": "Achievements",
+    "progress": "Progress",
+    "page_description": "Track your achievements and progress toward the next tier. Earn points by completing key milestones and bonus activities.",
+    "your_tier": "Your Current Tier",
+    "total_points": "{points} total points",
+    "benefits": "Your Benefits",
+    "tier_roadmap": "Tier Progression",
+    "next_tier": "Next Tier Requirements",
+    "next_tier_message": "Keep working towards {tier}!",
+    "reach_tier": "To reach {tier}, complete the following:",
+    "rating_requirement": "Rating Score",
+    "required_achievements": "Required Achievements",
+    "annual_requirements": "Annual Maintenance Requirements",
+    "certified_employees": "Certified Employees",
+    "opportunities": "Opportunities Registered",
+    "deals_won": "Deals Won",
+    "annual_renewal": "Annual Renewal",
+    "renewal_status_met": "You're meeting all annual requirements to maintain your current tier!",
+    "renewal_status_at_risk": "You may not meet your annual requirements to maintain your tier. Complete more activities!",
+    "renewal_date": "Next Renewal Date",
+    "days_until_renewal": "Days Until Renewal",
+    "current_requirements": "Current Progress",
+    "platinum_achieved": "You've Reached Platinum!",
+    "platinum_message": "Congratulations! You've achieved the highest tier. Continue to exceed your annual requirements to maintain this status.",
+    "bonus_achievements": "Bonus Achievements",
+    "bonus_description": "Earn extra points with these repeatable achievements to boost your rating.",
+    "bonus_tip": "Tip",
+    "bonus_tip": "Complete bonus achievements multiple times throughout the year to earn extra points and boost your rating faster.",
+    "view_rewards": "View Full Rewards",
+    "recent_achievements": "Recent Achievements",
+    "progress_to_next_tier": "Progress to {tier}"
+  },
+  "tier_benefits": {
+    "discount": "{percent}% discount on all products",
+    "priority_support": "Priority Support",
+    "co_marketing": "Co-Marketing Opportunities",
+    "dedicated_account_manager": "Dedicated Account Manager"
   }
 }

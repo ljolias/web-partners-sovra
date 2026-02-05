@@ -1,6 +1,7 @@
 import { redis } from '@/lib/redis/client';
 import { keys } from '@/lib/redis/keys';
 import type { RatingEvent, RatingEventType } from '@/types';
+import { checkAndAwardAchievement, getAchievementCount, incrementAnnualMetric } from '@/lib/achievements';
 
 // Points awarded/deducted for each event type
 export const EVENT_POINTS: Record<RatingEventType, number> = {
@@ -18,6 +19,60 @@ export const EVENT_POINTS: Record<RatingEventType, number> = {
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+}
+
+/**
+ * Process achievement awards based on rating events
+ * This is called after logging rating events
+ */
+async function processAchievementsForEvent(
+  partnerId: string,
+  eventType: RatingEventType
+): Promise<void> {
+  try {
+    switch (eventType) {
+      case 'CERTIFICATION_EARNED': {
+        // Award certification achievements
+        const certCount = await getAchievementCount(partnerId, 'first_certification');
+
+        if (certCount === 0) {
+          await checkAndAwardAchievement(partnerId, 'first_certification');
+        } else if (certCount === 1) {
+          await checkAndAwardAchievement(partnerId, 'second_certification');
+        } else if (certCount === 2) {
+          await checkAndAwardAchievement(partnerId, 'third_certification');
+        }
+
+        // Increment annual certification counter
+        await incrementAnnualMetric(partnerId, 'certifications', 1);
+        break;
+      }
+
+      case 'DEAL_CLOSED_WON': {
+        // Award deal achievements
+        const dealsWonCount = await getAchievementCount(partnerId, 'first_deal_won');
+
+        if (dealsWonCount === 0) {
+          await checkAndAwardAchievement(partnerId, 'first_deal_won');
+        } else if (dealsWonCount === 1) {
+          await checkAndAwardAchievement(partnerId, 'two_deals_won');
+        }
+
+        // Increment annual deals won counter
+        await incrementAnnualMetric(partnerId, 'deals_won', 1);
+        break;
+      }
+
+      case 'TRAINING_MODULE_COMPLETED': {
+        // Award training achievements
+        await checkAndAwardAchievement(partnerId, 'training_module_complete');
+        break;
+      }
+    }
+  } catch (error) {
+    console.error('Error processing achievements for event:', error);
+    // Don't throw - we don't want achievement processing to block rating event logging
+  }
 }
 
 /**
@@ -43,6 +98,12 @@ export async function logRatingEvent(
   await redis.zadd(keys.ratingEvents(partnerId), {
     score: new Date(event.createdAt).getTime(),
     member: JSON.stringify(event),
+  });
+
+  // Process achievement awards based on event type
+  // Run in background to avoid blocking the response
+  processAchievementsForEvent(partnerId, eventType).catch((error) => {
+    console.error('Background achievement processing error:', error);
   });
 
   return event;

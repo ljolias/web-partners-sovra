@@ -15,7 +15,11 @@
     "all": "Todos",
     "none": "Ninguno",
     "yes": "Si",
-    "no": "No"
+    "no": "No",
+    "complete": "Completado",
+    "achievement": "logro",
+    "achievements": "logros",
+    "days": "dias"
   },
   "auth": {
     "login": "Iniciar Sesion",
@@ -36,6 +40,7 @@
     "trainingCenter": "Centro de Entrenamiento",
     "certifications": "Certificaciones",
     "legal": "Documentos Legales",
+    "partnerLevel": "Nivel de Partner",
     "commissions": "Comisiones",
     "copilot": "Sales Copilot",
     "team": "Mi Equipo"
@@ -419,5 +424,108 @@
         "description": "Oportunidades cerradas exitosamente y valor promedio de las mismas."
       }
     }
+  },
+  "tiers": {
+    "bronze": "Bronce",
+    "silver": "Plata",
+    "gold": "Oro",
+    "platinum": "Platino"
+  },
+  "achievements": {
+    "title": "Logros",
+    "categories": {
+      "certification": "Certificaciones",
+      "deals": "Oportunidades",
+      "training": "Capacitacion",
+      "compliance": "Cumplimiento",
+      "engagement": "Participacion"
+    },
+    "first_certification": {
+      "name": "Primera Certificacion",
+      "description": "Certifica tu primer empleado"
+    },
+    "second_certification": {
+      "name": "Segunda Certificacion",
+      "description": "Certifica tu segundo empleado"
+    },
+    "third_certification": {
+      "name": "Tercera Certificacion",
+      "description": "Certifica tu tercer empleado"
+    },
+    "first_opportunity": {
+      "name": "Primera Oportunidad",
+      "description": "Registra tu primera oportunidad de venta"
+    },
+    "five_opportunities": {
+      "name": "Cinco Oportunidades",
+      "description": "Registra 5 oportunidades de venta"
+    },
+    "first_deal_won": {
+      "name": "Primer Trato Ganado",
+      "description": "Cierra tu primer trato ganado"
+    },
+    "two_deals_won": {
+      "name": "Dos Tratos Ganados",
+      "description": "Cierra 2 tratos ganados"
+    },
+    "quick_document_signing": {
+      "name": "Firma Rapida de Documentos",
+      "description": "Firma documentos legales en 7 dias"
+    },
+    "training_module_complete": {
+      "name": "Modulo de Capacitacion Completo",
+      "description": "Completa un modulo de capacitacion"
+    },
+    "complete_profile": {
+      "name": "Perfil Completo",
+      "description": "Completa el 100% de tu perfil de partner"
+    },
+    "attend_webinar": {
+      "name": "Asistir a Webinar",
+      "description": "Asiste a un webinar o evento en vivo"
+    },
+    "refer_partner": {
+      "name": "Referir Partner",
+      "description": "Refiere otro partner que se una"
+    }
+  },
+  "rewards": {
+    "achievements": "Logros",
+    "progress": "Progreso",
+    "page_description": "Realiza un seguimiento de tus logros y progreso hacia el siguiente nivel. Gana puntos completando hitos clave y actividades bonus.",
+    "your_tier": "Tu Nivel Actual",
+    "total_points": "{points} puntos totales",
+    "benefits": "Tus Beneficios",
+    "tier_roadmap": "Progresion de Nivel",
+    "next_tier": "Requisitos del Siguiente Nivel",
+    "next_tier_message": "¡Sigue trabajando hacia {tier}!",
+    "reach_tier": "Para alcanzar {tier}, completa lo siguiente:",
+    "rating_requirement": "Calificacion",
+    "required_achievements": "Logros Requeridos",
+    "annual_requirements": "Requisitos de Mantenimiento Anual",
+    "certified_employees": "Empleados Certificados",
+    "opportunities": "Oportunidades Registradas",
+    "deals_won": "Tratos Ganados",
+    "annual_renewal": "Renovacion Anual",
+    "renewal_status_met": "¡Estás cumpliendo con todos los requisitos anuales para mantener tu nivel actual!",
+    "renewal_status_at_risk": "Es posible que no cumplas con tus requisitos anuales para mantener tu nivel. ¡Completa más actividades!",
+    "renewal_date": "Fecha de Proxima Renovacion",
+    "days_until_renewal": "Dias Hasta la Renovacion",
+    "current_requirements": "Progreso Actual",
+    "platinum_achieved": "¡Has Alcanzado Platino!",
+    "platinum_message": "¡Felicitaciones! Has alcanzado el nivel mas alto. Continúa superando tus requisitos anuales para mantener este estado.",
+    "bonus_achievements": "Logros Bonus",
+    "bonus_description": "Gana puntos extras con estos logros repetibles para impulsar tu calificacion.",
+    "bonus_tip": "Consejo",
+    "bonus_tip_text": "Completa logros bonus multiples veces durante el año para ganar puntos extras e impulsar tu calificacion mas rapido.",
+    "view_rewards": "Ver Recompensas Completas",
+    "recent_achievements": "Logros Recientes",
+    "progress_to_next_tier": "Progreso hacia {tier}"
+  },
+  "tier_benefits": {
+    "discount": "{percent}% de descuento en todos los productos",
+    "priority_support": "Soporte Prioritario",
+    "co_marketing": "Oportunidades de Co-Marketing",
+    "dedicated_account_manager": "Gerente de Cuenta Dedicado"
   }
 }

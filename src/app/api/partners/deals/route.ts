@@ -7,7 +7,9 @@ import {
   hasValidCertification,
   hasSignedRequiredDocs,
   generateId,
+  incrementAnnualMetric,
 } from '@/lib/redis';
+import { checkAndAwardAchievement } from '@/lib/achievements';
 import type { Deal, GovernmentLevel } from '@/types';
 
 const dealSchema = z.object({
@@ -111,6 +113,16 @@ export async function POST(request: NextRequest) {
     };
 
     await createDeal(deal);
+
+    // Track opportunity registration for achievements
+    const opportunitiesCount = await incrementAnnualMetric(partner.id, 'opportunities', 1);
+
+    // Award opportunity achievements
+    if (opportunitiesCount === 1) {
+      await checkAndAwardAchievement(partner.id, 'first_opportunity');
+    } else if (opportunitiesCount === 5) {
+      await checkAndAwardAchievement(partner.id, 'five_opportunities');
+    }
 
     return NextResponse.json({ deal }, { status: 201 });
   } catch (error) {

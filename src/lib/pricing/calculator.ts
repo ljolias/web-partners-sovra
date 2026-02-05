@@ -1,4 +1,20 @@
 import type { PricingConfig, PartnerTier, QuoteProducts, QuoteServices, QuoteDiscounts, SovraIdPlan } from '@/types';
+import { getTierDiscount } from '@/lib/achievements/tiers';
+
+/**
+ * Pricing calculator for quotes
+ *
+ * Tier-based discounts:
+ * - Bronze: 5% (from TIER_REQUIREMENTS)
+ * - Silver: 20% (from TIER_REQUIREMENTS)
+ * - Gold: 25% (from TIER_REQUIREMENTS)
+ * - Platinum: 30% (from TIER_REQUIREMENTS)
+ *
+ * Note: The actual discounts applied are configured in the PricingConfig.
+ * These should be kept in sync with TIER_REQUIREMENTS in src/lib/achievements/tiers.ts
+ *
+ * Additional lead bonus discounts can be applied when partnerGeneratedLead = true
+ */
 
 export interface CalculatePriceParams {
   population: number;

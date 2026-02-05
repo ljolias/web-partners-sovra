@@ -1383,3 +1383,116 @@ export async function addAuditLog(
 
   await createAuditLog(log);
 }
+
+// ============ Achievement Operations ============
+
+export async function recordAchievement(
+  partnerId: string,
+  achievementId: string,
+  completedAt: string = new Date().toISOString()
+): Promise<void> {
+  const key = `partner:achievements:${partnerId}`;
+  await redis.hset(key, { [achievementId]: completedAt });
+}
+
+export async function getAchievements(partnerId: string): Promise<Record<string, string>> {
+  const key = `partner:achievements:${partnerId}`;
+  const data = await redis.hgetall(key);
+  return (data as Record<string, string>) || {};
+}
+
+export async function removeAchievementRecord(partnerId: string, achievementId: string): Promise<void> {
+  const key = `partner:achievements:${partnerId}`;
+  await redis.hdel(key, achievementId);
+}
+
+// ============ Tier History Operations ============
+
+export async function recordTierChange(
+  partnerId: string,
+  tier: PartnerTier,
+  reason: 'achievement' | 'annual_renewal' | 'manual',
+  previousTier?: PartnerTier
+): Promise<void> {
+  const key = `partner:${partnerId}:tier:history`;
+  const entry = {
+    tier,
+    changedAt: new Date().toISOString(),
+    reason,
+    previousTier: previousTier || '',
+  };
+
+  const pipeline = redis.pipeline();
+  pipeline.zadd(key, {
+    score: Date.now(),
+    member: JSON.stringify(entry),
+  });
+
+  // Also update the partner's current tier
+  pipeline.hset(`partner:${partnerId}`, { tier });
+
+  await pipeline.exec();
+}
+
+export async function getTierHistory(partnerId: string, limit = 50): Promise<Array<{
+  tier: PartnerTier;
+  changedAt: string;
+  reason: 'achievement' | 'annual_renewal' | 'manual';
+  previousTier?: PartnerTier;
+}>> {
+  const key = `partner:${partnerId}:tier:history`;
+  const entries = await redis.zrange<string[]>(key, 0, limit - 1, { rev: true });
+
+  return entries.map((entry) => JSON.parse(entry));
+}
+
+// ============ Annual Progress Tracking ============
+
+export async function updateAnnualProgress(
+  partnerId: string,
+  updates: {
+    opportunities?: number;
+    deals_won?: number;
+    certifications?: number;
+  }
+): Promise<void> {
+  const key = `partner:${partnerId}:annual:progress`;
+  const pipeline = redis.pipeline();
+
+  const hashUpdate: Record<string, string> = {};
+  for (const [field, value] of Object.entries(updates)) {
+    if (value !== undefined) {
+      hashUpdate[field] = value.toString();
+    }
+  }
+
+  if (Object.keys(hashUpdate).length > 0) {
+    pipeline.hset(key, hashUpdate);
+    await pipeline.exec();
+  }
+}
+
+export async function getAnnualProgress(partnerId: string): Promise<{
+  opportunities: number;
+  deals_won: number;
+  certifications: number;
+}> {
+  const key = `partner:${partnerId}:annual:progress`;
+  const data = await redis.hgetall(key);
+
+  return {
+    opportunities: data && data.opportunities ? parseInt(data.opportunities as string) : 0,
+    deals_won: data && data.deals_won ? parseInt(data.deals_won as string) : 0,
+    certifications: data && data.certifications ? parseInt(data.certifications as string) : 0,
+  };
+}
+
+export async function incrementAnnualMetric(
+  partnerId: string,
+  metric: 'opportunities' | 'deals_won' | 'certifications',
+  amount: number = 1
+): Promise<number> {
+  const key = `partner:${partnerId}:annual:progress`;
+  const result = await redis.hincrby(key, metric, amount);
+  return typeof result === 'number' ? result : parseInt(String(result), 10);
+}
