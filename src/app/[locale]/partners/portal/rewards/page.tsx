@@ -67,18 +67,22 @@ export default function RewardsPage() {
         if (!progressRes.ok) throw new Error('Failed to fetch progress');
         const progressData = await progressRes.json();
 
-        // Calculate progress by category
-        const categories = [
-          'certification',
-          'deals',
-          'training',
-          'compliance',
-          'engagement',
-        ];
+        // Fetch dynamic achievement definitions from admin config
+        const defsRes = await fetch('/api/partners/achievements/definitions');
+        const defsData = defsRes.ok ? await defsRes.json() : null;
+        const dynamicAchievements = (defsData?.achievements || {}) as Record<string, any>;
+
+        // Calculate progress by category using dynamic definitions
+        const categories = Array.from(
+          new Set(Object.values(dynamicAchievements).map((a: any) => a.category)),
+        );
+
         const progressByCategory: Record<string, AchievementProgressType> = {};
 
         for (const category of categories) {
-          const categoryAchievements = getAchievementsByCategory(category);
+          const categoryAchievements = Object.values(dynamicAchievements).filter(
+            (a) => a.category === category,
+          );
           const earnedIds = new Set(achievementsData.achievements.map((a: Achievement) => a.id));
 
           const completed = categoryAchievements.filter((a) =>
