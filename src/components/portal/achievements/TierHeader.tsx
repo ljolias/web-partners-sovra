@@ -31,46 +31,46 @@ export function TierHeader({
   const benefits = TIER_REQUIREMENTS[currentTier].benefits;
 
   return (
-    <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-indigo-200 p-6">
+    <Card className="bg-dark-surface border border-white/5 card-hover-gradient p-6">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
-          <div className="rounded-lg bg-indigo-100 p-3">
-            <IconComponent className="h-8 w-8 text-indigo-600" />
+          <div className="rounded-lg bg-primary/10 p-3">
+            <IconComponent className="h-8 w-8 text-primary" />
           </div>
 
           <div>
-            <p className="text-sm text-gray-600">{t('rewards.your_tier')}</p>
-            <h2 className="text-3xl font-bold text-gray-900 capitalize">
+            <p className="text-sm text-neutral">{t('rewards.your_tier')}</p>
+            <h2 className="text-4xl md:text-5xl font-bold font-display text-white capitalize">
               {t(`tiers.${currentTier}`)}
             </h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-neutral mt-1">
               {t('rewards.total_points', { points: totalPoints })}
             </p>
           </div>
         </div>
 
-        <Badge className="text-lg px-4 py-2 capitalize">
+        <Badge className="text-lg px-4 py-2 capitalize bg-primary text-white">
           {t(`tiers.${currentTier}`)}
         </Badge>
       </div>
 
       {showBenefits && benefits.features.length > 0 && (
-        <div className="mt-6 pt-6 border-t border-indigo-200">
-          <h4 className="text-sm font-semibold text-gray-900 mb-3">
+        <div className="mt-6 pt-6 border-t border-white/10">
+          <h4 className="text-sm font-semibold text-white mb-3">
             {t('rewards.benefits')}
           </h4>
           <div className="grid grid-cols-2 gap-2">
             {benefits.features.map((feature) => (
               <div key={feature} className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
-                <span className="text-sm text-gray-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary/60" />
+                <span className="text-sm text-neutral">
                   {t(`tier_benefits.${feature}`)}
                 </span>
               </div>
             ))}
             <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
-              <span className="text-sm text-gray-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary/60" />
+              <span className="text-sm text-neutral">
                 {t('tier_benefits.discount', { percent: benefits.discount })}
               </span>
             </div>
