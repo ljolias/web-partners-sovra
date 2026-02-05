@@ -1,8 +1,22 @@
 import { redis } from '@/lib/redis/client';
 import { ACHIEVEMENTS, getAchievementsByCategory } from './definitions';
-import type { Achievement, AchievementProgress } from '@/types/achievements';
+import { getRewardsConfig } from '@/lib/redis/rewards';
+import type { Achievement, AchievementProgress, AchievementDefinition } from '@/types/achievements';
 
 const ACHIEVEMENT_KEY_PREFIX = 'partner:achievements';
+
+/**
+ * Get dynamic achievements from Redis config, with fallback to static ACHIEVEMENTS
+ */
+async function getDynamicAchievements(): Promise<Record<string, AchievementDefinition>> {
+  try {
+    const config = await getRewardsConfig();
+    return config.achievements;
+  } catch (error) {
+    console.warn('Failed to load achievements from Redis, using static definitions:', error);
+    return ACHIEVEMENTS;
+  }
+}
 
 /**
  * Award an achievement to a partner if they haven't already earned it
@@ -12,7 +26,8 @@ export async function checkAndAwardAchievement(
   partnerId: string,
   achievementId: string,
 ): Promise<boolean> {
-  const definition = ACHIEVEMENTS[achievementId];
+  const dynamicAchievements = await getDynamicAchievements();
+  const definition = dynamicAchievements[achievementId];
   if (!definition) {
     console.warn(`Achievement not found: ${achievementId}`);
     return false;
@@ -60,6 +75,9 @@ export async function getPartnerAchievements(
     return achievements;
   }
 
+  // Get dynamic achievement definitions from Redis
+  const dynamicAchievements = await getDynamicAchievements();
+
   // Group earned achievements by ID (handling repeatable achievements)
   const earnedMap: Record<string, string[]> = {};
   for (const [earnedId, completedAtValue] of Object.entries(earnedData)) {
@@ -74,7 +92,7 @@ export async function getPartnerAchievements(
 
   // Build achievements list
   for (const [baseId, completedDates] of Object.entries(earnedMap)) {
-    const definition = ACHIEVEMENTS[baseId];
+    const definition = dynamicAchievements[baseId];
     if (!definition) continue;
 
     // For repeatable achievements, create an entry for each earned instance
@@ -105,7 +123,10 @@ export async function getAchievementProgressByCategory(
   category: string,
 ): Promise<AchievementProgress> {
   const earnedAchievements = await getPartnerAchievements(partnerId);
-  const categoryAchievements = getAchievementsByCategory(category);
+  const dynamicAchievements = await getDynamicAchievements();
+  const categoryAchievements = Object.values(dynamicAchievements).filter(
+    (a) => a.category === category,
+  );
 
   const earnedIds = new Set(
     earnedAchievements.map((a) => a.id),
@@ -172,6 +193,13 @@ export async function removeAchievement(
   partnerId: string,
   achievementId: string,
 ): Promise<boolean> {
+  const dynamicAchievements = await getDynamicAchievements();
+  const definition = dynamicAchievements[achievementId];
+  if (!definition) {
+    console.warn(`Achievement not found: ${achievementId}`);
+    return false;
+  }
+
   const key = `${ACHIEVEMENT_KEY_PREFIX}:${partnerId}`;
   const result = await redis.hdel(key, achievementId);
   return (result as unknown as number) > 0;

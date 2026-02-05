@@ -1,5 +1,13 @@
 // Achievement Definitions
-export { ACHIEVEMENTS, getAchievementById, getAchievementsByCategory, getAllAchievements } from './definitions';
+export {
+  ACHIEVEMENTS,
+  getAchievementById,
+  getAchievementsByCategory,
+  getAllAchievements,
+  getAchievementByIdDynamic,
+  getAchievementsByCategoryDynamic,
+  getAllAchievementsDynamic,
+} from './definitions';
 
 // Tier Configuration
 export {

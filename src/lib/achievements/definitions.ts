@@ -143,3 +143,40 @@ export function getAchievementsByCategory(
 export function getAllAchievements(): AchievementDefinition[] {
   return Object.values(ACHIEVEMENTS);
 }
+
+/**
+ * Get achievement definition by ID from dynamic config (Redis)
+ * Falls back to static ACHIEVEMENTS if config not available
+ */
+export async function getAchievementByIdDynamic(
+  id: string,
+  dynamicAchievements?: Record<string, AchievementDefinition>,
+): Promise<AchievementDefinition | undefined> {
+  const achievements = dynamicAchievements || ACHIEVEMENTS;
+  return achievements[id];
+}
+
+/**
+ * Get achievements by category from dynamic config (Redis)
+ * Falls back to static ACHIEVEMENTS if config not available
+ */
+export function getAchievementsByCategoryDynamic(
+  category: string,
+  dynamicAchievements?: Record<string, AchievementDefinition>,
+): AchievementDefinition[] {
+  const achievements = dynamicAchievements || ACHIEVEMENTS;
+  return Object.values(achievements).filter(
+    (achievement) => achievement.category === category,
+  );
+}
+
+/**
+ * Get all achievements from dynamic config (Redis)
+ * Falls back to static ACHIEVEMENTS if config not available
+ */
+export function getAllAchievementsDynamic(
+  dynamicAchievements?: Record<string, AchievementDefinition>,
+): AchievementDefinition[] {
+  const achievements = dynamicAchievements || ACHIEVEMENTS;
+  return Object.values(achievements);
+}
