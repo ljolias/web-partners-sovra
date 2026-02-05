@@ -23,25 +23,25 @@ export function AchievementCard({ achievement, earned }: AchievementCardProps) {
     <Card
       className={`p-4 transition-all duration-200 card-hover-gradient ${
         earned
-          ? 'bg-dark-surface border border-primary/20'
-          : 'bg-dark-surface/50 border border-white/5 opacity-60'
+          ? 'bg-[var(--color-surface)] border border-[var(--color-primary)]/20'
+          : 'bg-[var(--color-surface)]/50 border border-[var(--color-border)] opacity-60'
       }`}
     >
       <div className="flex items-start gap-3">
         <div
           className={`mt-1 rounded-lg p-2 ${
-            earned ? 'bg-primary/10' : 'bg-white/5'
+            earned ? 'bg-[var(--color-primary)]/10' : 'bg-[var(--color-surface-hover)]'
           }`}
         >
           {/* Use dynamic icon component */}
           {IconComponent && typeof IconComponent === 'function' ? (
             // @ts-ignore - lucide-react dynamic import
             <IconComponent
-              className={`h-6 w-6 ${earned ? 'text-primary' : 'text-neutral'}`}
+              className={`h-6 w-6 ${earned ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-secondary)]'}`}
             />
           ) : (
             <Icons.Award
-              className={`h-6 w-6 ${earned ? 'text-primary' : 'text-neutral'}`}
+              className={`h-6 w-6 ${earned ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-secondary)]'}`}
             />
           )}
         </div>
@@ -49,10 +49,10 @@ export function AchievementCard({ achievement, earned }: AchievementCardProps) {
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <h4 className="font-semibold text-sm text-white">
+              <h4 className="font-semibold text-sm text-[var(--color-text-primary)]">
                 {t(`${achievement.name}`)}
               </h4>
-              <p className="text-xs text-neutral mt-1">
+              <p className="text-xs text-[var(--color-text-secondary)] mt-1">
                 {t(`${achievement.description}`)}
               </p>
             </div>
@@ -67,7 +67,7 @@ export function AchievementCard({ achievement, earned }: AchievementCardProps) {
             </Badge>
 
             {earned && achievement.completedAt && (
-              <span className="text-xs text-neutral/60">
+              <span className="text-xs text-[var(--color-text-secondary)]/60">
                 {new Date(achievement.completedAt).toLocaleDateString()}
               </span>
             )}

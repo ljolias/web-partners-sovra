@@ -15,12 +15,12 @@ export function NextTierCard({ requirements }: NextTierCardProps) {
 
   if (!requirements) {
     return (
-      <Card className="p-6 bg-dark-surface border border-white/5 card-hover-gradient">
+      <Card className="p-6 bg-[var(--color-surface)] border border-[var(--color-border)] card-hover-gradient">
         <div className="text-center">
-          <h3 className="text-lg font-bold font-display text-white mb-2">
+          <h3 className="text-lg font-bold font-display text-[var(--color-text-primary)] mb-2">
             {t('rewards.platinum_achieved')}
           </h3>
-          <p className="text-neutral">
+          <p className="text-[var(--color-text-secondary)]">
             {t('rewards.platinum_message')}
           </p>
         </div>
@@ -29,13 +29,13 @@ export function NextTierCard({ requirements }: NextTierCardProps) {
   }
 
   return (
-    <Card className="p-6 border border-primary/20 bg-dark-surface card-hover-gradient">
+    <Card className="p-6 border border-[var(--color-primary)]/20 bg-[var(--color-surface)] card-hover-gradient">
       <div className="space-y-6">
         <div>
-          <h3 className="text-lg font-bold font-display text-white mb-2">
+          <h3 className="text-lg font-bold font-display text-[var(--color-text-primary)] mb-2">
             {t('rewards.next_tier')}
           </h3>
-          <p className="text-sm text-neutral capitalize">
+          <p className="text-sm text-[var(--color-text-secondary)] capitalize">
             {t('rewards.reach_tier', { tier: t(`tiers.${requirements.tier}`) })}
           </p>
         </div>
@@ -43,10 +43,10 @@ export function NextTierCard({ requirements }: NextTierCardProps) {
         {/* Rating Requirement */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-neutral">
+            <label className="text-sm font-medium text-[var(--color-text-secondary)]">
               {t('rewards.rating_requirement')}
             </label>
-            <span className="text-sm font-semibold text-white">
+            <span className="text-sm font-semibold text-[var(--color-text-primary)]">
               {requirements.rating.current} / {requirements.rating.required}
             </span>
           </div>
@@ -59,14 +59,14 @@ export function NextTierCard({ requirements }: NextTierCardProps) {
         {/* Achievement Requirements */}
         {requirements.achievements.remaining.length > 0 && (
           <div>
-            <h4 className="text-sm font-semibold text-white mb-2">
+            <h4 className="text-sm font-semibold text-[var(--color-text-primary)] mb-2">
               {t('rewards.required_achievements')}
             </h4>
             <div className="space-y-2">
               {requirements.achievements.remaining.map((achievement) => (
                 <div key={achievement.id} className="flex items-start gap-2">
-                  <Circle className="h-4 w-4 text-neutral/40 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm text-neutral">
+                  <Circle className="h-4 w-4 text-[var(--color-text-secondary)]/40 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-[var(--color-text-secondary)]">
                     {t(`${achievement.name}`)}
                   </span>
                 </div>
@@ -77,7 +77,7 @@ export function NextTierCard({ requirements }: NextTierCardProps) {
 
         {/* Annual Requirements */}
         <div>
-          <h4 className="text-sm font-semibold text-white mb-3">
+          <h4 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">
             {t('rewards.annual_requirements')}
           </h4>
           <div className="space-y-2">
@@ -87,13 +87,13 @@ export function NextTierCard({ requirements }: NextTierCardProps) {
                 {requirements.annualRequirements.certifiedEmployees.met ? (
                   <CheckCircle2 className="h-4 w-4 text-emerald-400" />
                 ) : (
-                  <Circle className="h-4 w-4 text-neutral/40" />
+                  <Circle className="h-4 w-4 text-[var(--color-text-secondary)]/40" />
                 )}
-                <span className="text-neutral">
+                <span className="text-[var(--color-text-secondary)]">
                   {t('rewards.certified_employees')}
                 </span>
               </div>
-              <span className="font-semibold text-white">
+              <span className="font-semibold text-[var(--color-text-primary)]">
                 {requirements.annualRequirements.certifiedEmployees.current} /
                 {requirements.annualRequirements.certifiedEmployees.required}
               </span>
@@ -105,13 +105,13 @@ export function NextTierCard({ requirements }: NextTierCardProps) {
                 {requirements.annualRequirements.opportunities.met ? (
                   <CheckCircle2 className="h-4 w-4 text-emerald-400" />
                 ) : (
-                  <Circle className="h-4 w-4 text-neutral/40" />
+                  <Circle className="h-4 w-4 text-[var(--color-text-secondary)]/40" />
                 )}
-                <span className="text-neutral">
+                <span className="text-[var(--color-text-secondary)]">
                   {t('rewards.opportunities')}
                 </span>
               </div>
-              <span className="font-semibold text-white">
+              <span className="font-semibold text-[var(--color-text-primary)]">
                 {requirements.annualRequirements.opportunities.current} /
                 {requirements.annualRequirements.opportunities.required}
               </span>
@@ -123,13 +123,13 @@ export function NextTierCard({ requirements }: NextTierCardProps) {
                 {requirements.annualRequirements.dealsWon.met ? (
                   <CheckCircle2 className="h-4 w-4 text-emerald-400" />
                 ) : (
-                  <Circle className="h-4 w-4 text-neutral/40" />
+                  <Circle className="h-4 w-4 text-[var(--color-text-secondary)]/40" />
                 )}
-                <span className="text-neutral">
+                <span className="text-[var(--color-text-secondary)]">
                   {t('rewards.deals_won')}
                 </span>
               </div>
-              <span className="font-semibold text-white">
+              <span className="font-semibold text-[var(--color-text-primary)]">
                 {requirements.annualRequirements.dealsWon.current} /
                 {requirements.annualRequirements.dealsWon.required}
               </span>

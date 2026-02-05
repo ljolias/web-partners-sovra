@@ -19,16 +19,16 @@ export function BonusAchievements({
   const t = useTranslations();
 
   return (
-    <Card className="p-6 bg-dark-surface border border-amber-500/20 card-hover-gradient">
+    <Card className="p-6 bg-[var(--color-surface)] border border-[var(--color-border)] card-hover-gradient">
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-amber-400" />
-          <h3 className="text-lg font-bold font-display text-white">
+          <h3 className="text-lg font-bold font-display text-[var(--color-text-primary)]">
             {t('rewards.bonus_achievements')}
           </h3>
         </div>
 
-        <p className="text-sm text-neutral">
+        <p className="text-sm text-[var(--color-text-secondary)]">
           {t('rewards.bonus_description')}
         </p>
 
@@ -48,8 +48,8 @@ export function BonusAchievements({
           })}
         </div>
 
-        <div className="p-3 bg-white/5 rounded-lg border border-amber-500/30">
-          <p className="text-xs text-neutral">
+        <div className="p-3 bg-[var(--color-surface-hover)] rounded-lg border border-[var(--color-border)]">
+          <p className="text-xs text-[var(--color-text-secondary)]">
             <span className="font-semibold text-amber-400">
               {t('rewards.tip')}:
             </span>{' '}
