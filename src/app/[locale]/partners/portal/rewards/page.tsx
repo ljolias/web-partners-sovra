@@ -12,6 +12,7 @@ import { AnnualRenewalCard } from '@/components/portal/achievements/AnnualRenewa
 import { BonusAchievements } from '@/components/portal/achievements/BonusAchievements';
 import { AchievementCard } from '@/components/portal/achievements/AchievementCard';
 import { AchievementProgress } from '@/components/portal/achievements/AchievementProgress';
+import { HowToEarnPoints } from '@/components/portal/achievements/HowToEarnPoints';
 import {
   getAchievementsByCategory,
   getAllAchievements,
@@ -152,6 +153,11 @@ export default function RewardsPage() {
         currentTier={state.partner.tier}
         nextTier={state.nextTierRequirements?.tier || null}
       />
+
+      {/* How to Earn Points Section */}
+      <section className="py-6">
+        <HowToEarnPoints />
+      </section>
 
       {/* Tab Navigation */}
       <div className="flex gap-2 border-b border-gray-200 mb-6">
