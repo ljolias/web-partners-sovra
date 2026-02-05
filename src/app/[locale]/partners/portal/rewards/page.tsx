@@ -122,7 +122,7 @@ export default function RewardsPage() {
   if (state.loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <SovraLoader />
+        <SovraLoader size="md" className="text-[var(--color-primary)]" />
       </div>
     );
   }
@@ -134,8 +134,8 @@ export default function RewardsPage() {
     <div className="space-y-6 pb-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">
-          {t('navigation.rewards')}
+        <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">
+          {t('nav.rewards')}
         </h1>
         <p className="text-gray-600 mt-2">
           {t('rewards.page_description')}
