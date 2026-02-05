@@ -123,7 +123,7 @@ export function AchievementConfigurator({
     <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">
-          Configuracion de Puntos de Logros
+          Configuración de puntos
         </h2>
         {!newAchievementForm && (
           <button

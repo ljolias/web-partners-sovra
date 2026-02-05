@@ -400,12 +400,12 @@
       "saved": "Cambios guardados"
     },
     "rewards_admin": {
-      "title": "Gestion de Recompensas",
+      "title": "Gestión de recompensas",
       "description": "Gestiona puntos de logros, requisitos de tiers y recompensas de partners",
       "configuration": "Configuracion",
       "partner_management": "Gestion de Partners",
       "manual_awards": "Premios Manuales",
-      "achievement_config": "Configuracion de Puntos de Logros",
+      "achievement_config": "Configuración de puntos",
       "tier_requirements": "Requisitos de Tier",
       "partner_tier_manager": "Gestor de Tier de Partners",
       "total_partners": "Total de Partners",

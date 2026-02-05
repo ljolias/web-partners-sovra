@@ -46,7 +46,7 @@ const navigation = [
   { name: 'Documentos Legales', href: '/sovra/dashboard/documents', icon: FileText },
   { name: 'Training Center', href: '/sovra/dashboard/training', icon: GraduationCap },
   { name: 'Configurar Precios', href: '/sovra/dashboard/pricing', icon: DollarSign },
-  { name: 'Rewards Management', href: '/sovra/dashboard/rewards', icon: Trophy },
+  { name: 'Gestión de recompensas', href: '/sovra/dashboard/rewards', icon: Trophy },
   { name: 'Audit Log', href: '/sovra/dashboard/audit', icon: Activity },
   { name: 'Configuracion', href: '/sovra/dashboard/settings', icon: Settings },
 ];
