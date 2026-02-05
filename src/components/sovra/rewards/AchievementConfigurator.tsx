@@ -68,7 +68,7 @@ export function AchievementConfigurator({
   return (
     <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-6">
       <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6">
-        Achievement Point Configuration
+        Configuracion de Puntos de Logros
       </h2>
 
       {error && (
@@ -114,7 +114,7 @@ export function AchievementConfigurator({
                           }
                           className="w-20 px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] text-center"
                         />
-                        <span className="text-sm text-[var(--color-text-secondary)]">points</span>
+                        <span className="text-sm text-[var(--color-text-secondary)]">puntos</span>
                       </div>
                       <span
                         className={`text-xs px-2 py-1 rounded ${
@@ -123,7 +123,7 @@ export function AchievementConfigurator({
                             : 'bg-gray-500/10 text-gray-700 dark:text-gray-400'
                         }`}
                       >
-                        {achievement.repeatable ? 'Repeatable' : 'One-time'}
+                        {achievement.repeatable ? 'Repetible' : 'Unica'}
                       </span>
                     </div>
                   </div>
@@ -143,12 +143,12 @@ export function AchievementConfigurator({
           {saving ? (
             <>
               <SovraLoader className="h-4 w-4" />
-              Saving...
+              Guardando...
             </>
           ) : (
             <>
               <Save className="h-4 w-4" />
-              Save Changes
+              Guardar Cambios
             </>
           )}
         </button>
@@ -156,7 +156,7 @@ export function AchievementConfigurator({
         {saved && (
           <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
             <CheckCircle className="h-5 w-5" />
-            <span className="text-sm">Configuration saved successfully</span>
+            <span className="text-sm">Configuracion guardada exitosamente</span>
           </div>
         )}
       </div>

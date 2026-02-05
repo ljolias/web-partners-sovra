@@ -120,7 +120,7 @@ export function AchievementAwardModal() {
   return (
     <div className="max-w-2xl mx-auto bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-6">
       <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6">
-        Manually Award or Revoke Achievements
+        Otorgar o Revocar Logros Manualmente
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -139,7 +139,7 @@ export function AchievementAwardModal() {
                   : 'bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-primary)]'
               }`}
             >
-              Award Achievement
+              Otorgar Logro
             </button>
             <button
               type="button"
@@ -150,7 +150,7 @@ export function AchievementAwardModal() {
                   : 'bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-primary)]'
               }`}
             >
-              Revoke Achievement
+              Revocar Logro
             </button>
           </div>
         </div>
@@ -158,7 +158,7 @@ export function AchievementAwardModal() {
         {/* Partner Selection */}
         <div>
           <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-            Partner *
+            Socio *
           </label>
           <div className="relative">
             {selectedPartner ? (
@@ -181,7 +181,7 @@ export function AchievementAwardModal() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--color-text-secondary)]" />
                   <input
                     type="text"
-                    placeholder="Search partners..."
+                    placeholder="Buscar socios..."
                     value={partnerSearch}
                     onChange={(e) => {
                       setPartnerSearch(e.target.value);
@@ -215,7 +215,7 @@ export function AchievementAwardModal() {
                       ))
                     ) : (
                       <p className="p-4 text-[var(--color-text-secondary)] text-sm">
-                        No partners found
+                        No se encontraron socios
                       </p>
                     )}
                   </div>
@@ -229,7 +229,7 @@ export function AchievementAwardModal() {
         {selectedPartner && (
           <div>
             <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-              Achievement *
+              Logro *
             </label>
 
             {/* Category Selection */}
@@ -288,12 +288,12 @@ export function AchievementAwardModal() {
         {/* Reason */}
         <div>
           <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-            Reason *
+            Razon *
           </label>
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Explain why this action is being taken..."
+            placeholder="Explique por que se esta realizando esta accion..."
             className="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] text-sm resize-none"
             rows={3}
           />
@@ -304,7 +304,7 @@ export function AchievementAwardModal() {
                 : 'text-[var(--color-text-secondary)]'
             }`}
           >
-            {reason.length}/10 characters minimum
+            {reason.length}/10 caracteres minimo
           </p>
         </div>
 
@@ -339,12 +339,12 @@ export function AchievementAwardModal() {
           {loading ? (
             <>
               <SovraLoader className="h-4 w-4" />
-              Processing...
+              Procesando...
             </>
           ) : action === 'award' ? (
-            'Award Achievement'
+            'Otorgar Logro'
           ) : (
-            'Revoke Achievement'
+            'Revocar Logro'
           )}
         </button>
       </form>

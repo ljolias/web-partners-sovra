@@ -102,7 +102,7 @@ export function TierRequirementsEditor({
   return (
     <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-6">
       <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6">
-        Tier Requirements
+        Requisitos de Nivel
       </h2>
 
       {error && (
@@ -130,7 +130,7 @@ export function TierRequirementsEditor({
                 {/* Min Rating */}
                 <div>
                   <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                    Minimum Rating
+                    Calificacion Minima
                   </label>
                   <input
                     type="number"
@@ -147,7 +147,7 @@ export function TierRequirementsEditor({
                 {/* Discount */}
                 <div>
                   <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                    Partner Discount (%)
+                    Descuento de Partner (%)
                   </label>
                   <input
                     type="number"
@@ -164,7 +164,7 @@ export function TierRequirementsEditor({
                 {/* Annual Requirements */}
                 <div>
                   <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                    Required Certified Employees
+                    Empleados Certificados Requeridos
                   </label>
                   <input
                     type="number"
@@ -183,7 +183,7 @@ export function TierRequirementsEditor({
 
                 <div>
                   <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                    Required Opportunities
+                    Oportunidades Requeridas
                   </label>
                   <input
                     type="number"
@@ -202,7 +202,7 @@ export function TierRequirementsEditor({
 
                 <div>
                   <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                    Required Deals Won
+                    Deals Ganados Requeridos
                   </label>
                   <input
                     type="number"
@@ -233,12 +233,12 @@ export function TierRequirementsEditor({
           {saving ? (
             <>
               <SovraLoader className="h-4 w-4" />
-              Saving...
+              Guardando...
             </>
           ) : (
             <>
               <Save className="h-4 w-4" />
-              Save Changes
+              Guardar Cambios
             </>
           )}
         </button>
@@ -246,7 +246,7 @@ export function TierRequirementsEditor({
         {saved && (
           <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
             <CheckCircle className="h-5 w-5" />
-            <span className="text-sm">Configuration saved successfully</span>
+            <span className="text-sm">Configuracion guardada exitosamente</span>
           </div>
         )}
       </div>

@@ -87,7 +87,7 @@ export function TierChangeModal({
         {/* Header */}
         <div className="sticky top-0 flex items-center justify-between p-6 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
           <h2 className="text-xl font-bold text-[var(--color-text-primary)]">
-            Change Partner Tier
+            Cambiar Nivel del Partner
           </h2>
           <button
             onClick={onClose}
@@ -110,7 +110,7 @@ export function TierChangeModal({
           {/* Current vs New Tier */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-xs text-[var(--color-text-secondary)] mb-1">Current Tier</p>
+              <p className="text-xs text-[var(--color-text-secondary)] mb-1">Nivel Actual</p>
               <div className="px-3 py-2 bg-[var(--color-bg)] rounded border border-[var(--color-border)]">
                 <p className="capitalize font-semibold text-[var(--color-text-primary)]">
                   {partner.tier}
@@ -119,7 +119,7 @@ export function TierChangeModal({
             </div>
             <div>
               <label className="text-xs text-[var(--color-text-secondary)] mb-1 block">
-                New Tier
+                Nuevo Nivel
               </label>
               <select
                 value={newTier}
@@ -137,14 +137,14 @@ export function TierChangeModal({
           {/* Benefits Comparison */}
           <div className="p-3 bg-[var(--color-bg)] rounded border border-[var(--color-border)] space-y-2">
             <p className="text-sm font-semibold text-[var(--color-text-primary)]">
-              Benefits Change
+              Cambio de Beneficios
             </p>
             <div className="text-xs text-[var(--color-text-secondary)] space-y-1">
               <p>
-                Current Discount: <span className="font-semibold">{currentTierReqs.benefits.discount}%</span>
+                Descuento Actual: <span className="font-semibold">{currentTierReqs.benefits.discount}%</span>
               </p>
               <p>
-                New Discount: <span className="font-semibold">{newTierReqs.benefits.discount}%</span>
+                Nuevo Descuento: <span className="font-semibold">{newTierReqs.benefits.discount}%</span>
               </p>
             </div>
           </div>
@@ -152,7 +152,7 @@ export function TierChangeModal({
           {/* Reason */}
           <div>
             <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-              Reason for Change *
+              Razon del Cambio *
             </label>
             <textarea
               value={reason}
@@ -162,7 +162,7 @@ export function TierChangeModal({
               rows={3}
             />
             <p className={`text-xs mt-1 ${reason.length >= 10 ? 'text-green-600 dark:text-green-400' : 'text-[var(--color-text-secondary)]'}`}>
-              {reason.length}/10 characters minimum
+              {reason.length}/10 caracteres minimo
             </p>
           </div>
 
@@ -176,10 +176,10 @@ export function TierChangeModal({
             />
             <div className="flex-1">
               <p className="text-xs font-medium text-yellow-700 dark:text-yellow-400">
-                Skip Eligibility Requirements
+                Omitir Requisitos de Elegibilidad
               </p>
               <p className="text-xs text-yellow-600 dark:text-yellow-500">
-                Allow tier change even if partner doesn't meet minimum requirements
+                Permitir cambio de nivel incluso si el partner no cumple los requisitos minimos
               </p>
             </div>
           </label>
@@ -210,7 +210,7 @@ export function TierChangeModal({
               disabled={loading}
               className="flex-1 px-4 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)] transition-all disabled:opacity-50"
             >
-              Cancel
+              Cancelar
             </button>
             <button
               type="submit"
@@ -220,10 +220,10 @@ export function TierChangeModal({
               {loading ? (
                 <>
                   <SovraLoader className="h-4 w-4" />
-                  Changing...
+                  Cambiando...
                 </>
               ) : (
-                'Confirm Change'
+                'Confirmar Cambio'
               )}
             </button>
           </div>

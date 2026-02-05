@@ -30,7 +30,7 @@ export function RewardsManager({ initialConfig }: RewardsManagerProps) {
             className="flex items-center gap-2 data-[state=active]:bg-[var(--color-primary)] data-[state=active]:text-white"
           >
             <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">Configuration</span>
+            <span className="hidden sm:inline">Configuracion</span>
           </TabsTrigger>
           <TabsTrigger
             value="partners"
@@ -44,7 +44,7 @@ export function RewardsManager({ initialConfig }: RewardsManagerProps) {
             className="flex items-center gap-2 data-[state=active]:bg-[var(--color-primary)] data-[state=active]:text-white"
           >
             <Trophy className="h-4 w-4" />
-            <span className="hidden sm:inline">Awards</span>
+            <span className="hidden sm:inline">Premios</span>
           </TabsTrigger>
         </TabsList>
 

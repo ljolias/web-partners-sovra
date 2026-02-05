@@ -115,7 +115,7 @@ export function PartnerTierManager() {
       <div className="flex items-center justify-center h-96">
         <div className="flex flex-col items-center gap-3">
           <SovraLoader className="h-8 w-8" />
-          <p className="text-[var(--color-text-secondary)]">Loading partners...</p>
+          <p className="text-[var(--color-text-secondary)]">Cargando partners...</p>
         </div>
       </div>
     );
@@ -126,15 +126,15 @@ export function PartnerTierManager() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="p-4 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg">
-          <p className="text-sm text-[var(--color-text-secondary)]">Total Partners</p>
+          <p className="text-sm text-[var(--color-text-secondary)]">Total de Partners</p>
           <p className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.total}</p>
         </div>
         <div className="p-4 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg">
-          <p className="text-sm text-[var(--color-text-secondary)]">Average Points</p>
+          <p className="text-sm text-[var(--color-text-secondary)]">Puntos Promedio</p>
           <p className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.avgPoints}</p>
         </div>
         <div className="p-4 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg">
-          <p className="text-sm text-[var(--color-text-secondary)]">Average Rating</p>
+          <p className="text-sm text-[var(--color-text-secondary)]">Calificacion Promedio</p>
           <p className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.avgRating}</p>
         </div>
       </div>
@@ -143,13 +143,13 @@ export function PartnerTierManager() {
       <div className="flex flex-col gap-4 md:flex-row md:items-end">
         <div className="flex-1">
           <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-            Search Partners
+            Buscar Partners
           </label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--color-text-secondary)]" />
             <input
               type="text"
-              placeholder="Search by company name..."
+              placeholder="Buscar por nombre de empresa..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)]"
@@ -159,14 +159,14 @@ export function PartnerTierManager() {
 
         <div>
           <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-            Filter by Tier
+            Filtrar por Nivel
           </label>
           <select
             value={selectedTier}
             onChange={(e) => setSelectedTier(e.target.value as PartnerTier | 'all')}
             className="px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)]"
           >
-            <option value="all">All Tiers</option>
+            <option value="all">Todos los Niveles</option>
             <option value="bronze">Bronze</option>
             <option value="silver">Silver</option>
             <option value="gold">Gold</option>
@@ -176,16 +176,16 @@ export function PartnerTierManager() {
 
         <div>
           <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-            Sort By
+            Ordenar Por
           </label>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as 'points' | 'rating' | 'name')}
             className="px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)]"
           >
-            <option value="points">Total Points</option>
-            <option value="rating">Rating</option>
-            <option value="name">Company Name</option>
+            <option value="points">Puntos Totales</option>
+            <option value="rating">Calificacion</option>
+            <option value="name">Nombre Empresa</option>
           </select>
         </div>
 
@@ -194,7 +194,7 @@ export function PartnerTierManager() {
           className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-all"
         >
           <DownloadCloud className="h-4 w-4" />
-          Export CSV
+          Exportar CSV
         </button>
       </div>
 
@@ -212,22 +212,22 @@ export function PartnerTierManager() {
             <thead className="bg-[var(--color-bg)] border-b border-[var(--color-border)]">
               <tr>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-[var(--color-text-primary)]">
-                  Company
+                  Empresa
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-[var(--color-text-primary)]">
-                  Country
+                  Pais
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-[var(--color-text-primary)]">
-                  Tier
+                  Nivel
                 </th>
                 <th className="px-6 py-3 text-right text-sm font-semibold text-[var(--color-text-primary)]">
-                  Rating
+                  Calificacion
                 </th>
                 <th className="px-6 py-3 text-right text-sm font-semibold text-[var(--color-text-primary)]">
-                  Points
+                  Puntos
                 </th>
                 <th className="px-6 py-3 text-center text-sm font-semibold text-[var(--color-text-primary)]">
-                  Actions
+                  Acciones
                 </th>
               </tr>
             </thead>
@@ -263,7 +263,7 @@ export function PartnerTierManager() {
                       className="inline-flex items-center gap-1 px-3 py-1.5 bg-[var(--color-primary)] text-white rounded hover:bg-[var(--color-primary)]/90 transition-all text-sm"
                     >
                       <ArrowUpRight className="h-3 w-3" />
-                      Change Tier
+                      Cambiar Nivel
                     </button>
                   </td>
                 </tr>
@@ -274,7 +274,7 @@ export function PartnerTierManager() {
 
         {filteredPartners.length === 0 && (
           <div className="p-8 text-center">
-            <p className="text-[var(--color-text-secondary)]">No partners found</p>
+            <p className="text-[var(--color-text-secondary)]">No se encontraron partners</p>
           </div>
         )}
       </div>
