@@ -110,6 +110,7 @@ export function CourseEditorModal({
   const [apiError, setApiError] = useState<string | null>(null);
   const [showModuleTypeSelector, setShowModuleTypeSelector] = useState(false);
   const [editingModuleId, setEditingModuleId] = useState<string | null>(null);
+  const [editingModule, setEditingModule] = useState<EnhancedCourseModule | null>(null);
 
   // ============================================
   // Data Fetching
@@ -242,11 +243,16 @@ export function CourseEditorModal({
       ...prev,
       modules: [...(prev.modules || []), newModule],
     }));
+    setEditingModule(newModule);
     setEditingModuleId(newModule.id);
   };
 
   const handleEditModule = (moduleId: string) => {
-    setEditingModuleId(moduleId);
+    const module = course.modules?.find((m) => m.id === moduleId);
+    if (module) {
+      setEditingModule(module);
+      setEditingModuleId(moduleId);
+    }
   };
 
   const handleModuleSave = (updatedModule: EnhancedCourseModule) => {
@@ -751,15 +757,15 @@ export function CourseEditorModal({
       />
 
       {/* Module Editor */}
-      {editingModuleId && (
+      {editingModuleId && editingModule && (
         <ModuleEditorModal
           isOpen={!!editingModuleId}
-          onClose={() => setEditingModuleId(null)}
+          onClose={() => {
+            setEditingModuleId(null);
+            setEditingModule(null);
+          }}
           onSave={handleModuleSave}
-          module={
-            course.modules?.find((m) => m.id === editingModuleId) ||
-            ({} as EnhancedCourseModule)
-          }
+          module={editingModule}
         />
       )}
     </AnimatePresence>
