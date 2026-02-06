@@ -699,3 +699,136 @@ export interface PartnerFormData {
   contactEmail: string;
   contactPhone?: string;
 }
+
+// ============ Training Types (Enhanced) ============
+
+export interface LocalizedString {
+  es?: string;
+  en?: string;
+  pt?: string;
+}
+
+export type ModuleType = 'video' | 'reading' | 'quiz' | 'download';
+export type EnhancedCourseCategory = 'sales' | 'technical' | 'legal' | 'product';
+export type CourseDifficulty = 'basic' | 'intermediate' | 'advanced';
+export type CourseStatus = 'draft' | 'published' | 'archived';
+
+export interface EnhancedCourseModule {
+  id: string;
+  type: ModuleType;
+  title: LocalizedString;
+  description?: LocalizedString;
+  content?: LocalizedString;
+  duration: number;
+  order: number;
+  videoUrl?: string;
+  videoId?: string;
+  thumbnailUrl?: string;
+  passingScore?: number;
+  maxAttempts?: number;
+  randomizeQuestions?: boolean;
+  showCorrectAnswers?: boolean;
+}
+
+export interface EnhancedTrainingCourse {
+  id?: string;
+  title: LocalizedString;
+  description: LocalizedString;
+  category: EnhancedCourseCategory;
+  level: CourseDifficulty;
+  estimatedHours: number;
+  modules: EnhancedCourseModule[];
+  hasCertification: boolean;
+  status: CourseStatus;
+  passingScore: number;
+  certification?: {
+    credentialName: string;
+    credentialDescription: string;
+    issuerName: string;
+    issuerEmail: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface TimeSeriesDataPoint {
+  date: string;
+  count: number;
+}
+
+export interface CourseDetailedAnalytics {
+  enrollments: number;
+  completions: number;
+  completionRate: number;
+  averageScore: number;
+  averageTimeToComplete: number;
+  dropoffRates: Array<{ moduleId: string; moduleName: string; dropoffRate: number }>;
+}
+
+export type ProgressStatus = 'not_started' | 'in_progress' | 'completed';
+
+export interface ModuleProgress {
+  moduleId: string;
+  status: ProgressStatus;
+  score?: number;
+  startedAt?: string;
+  completedAt?: string;
+  attempts?: number;
+  timeSpentMinutes?: number;
+}
+
+export interface EnhancedTrainingProgress {
+  userId: string;
+  courseId: string;
+  status: ProgressStatus;
+  moduleProgress: ModuleProgress[];
+  overallScore: number;
+  startedAt: string;
+  completedAt?: string;
+  lastAccessedAt: string;
+  totalTimeSpentMinutes: number;
+  certificateId?: string;
+  certificateIssuedAt?: string;
+}
+
+export type CertificationStatus = 'issued' | 'claimed' | 'expired' | 'revoked';
+
+export interface TrainingCertification {
+  id: string;
+  userId: string;
+  courseId: string;
+  courseName: LocalizedString;
+  userName: string;
+  userEmail: string;
+  status: CertificationStatus;
+  issuedAt: string;
+  claimedAt?: string;
+  expiresAt?: string;
+  credentialUrl?: string;
+  verificationCode: string;
+  score: number;
+}
+
+export interface ModuleDropoffRate {
+  moduleId: string;
+  moduleName: string;
+  dropoffRate: number;
+}
+
+export interface CredentialClaimAnalytics {
+  totalIssued: number;
+  totalClaimed: number;
+  claimRate: number;
+  averageClaimTimeHours: number;
+  pending: number;
+  expiringIn30Days: number;
+}
+
+export interface TrainingOverviewMetrics {
+  totalCourses: number;
+  publishedCourses: number;
+  draftCourses: number;
+  totalEnrollments: number;
+  averageCompletionRate: number;
+  totalCertifications: number;
+}

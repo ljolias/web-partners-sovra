@@ -16,7 +16,6 @@ import {
   Edit,
   Trash2,
   Globe,
-  GlobeOff,
   Clock,
   BookOpen,
   Filter,
@@ -31,6 +30,7 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  EyeOff,
 } from 'lucide-react';
 import { CourseEditorModal } from '@/components/sovra/training/CourseEditorModal';
 import type {
@@ -45,14 +45,14 @@ import type {
 // ============================================
 
 const CATEGORY_CONFIG: Record<EnhancedCourseCategory, { label: string; color: string; bgColor: string }> = {
-  sales_training: { label: 'Ventas', color: 'text-blue-600', bgColor: 'bg-blue-100' },
-  technical_training: { label: 'Tecnico', color: 'text-purple-600', bgColor: 'bg-purple-100' },
-  legal_compliance: { label: 'Legal', color: 'text-amber-600', bgColor: 'bg-amber-100' },
-  product_mastery: { label: 'Producto', color: 'text-green-600', bgColor: 'bg-green-100' },
+  sales: { label: 'Ventas', color: 'text-blue-600', bgColor: 'bg-blue-100' },
+  technical: { label: 'Tecnico', color: 'text-purple-600', bgColor: 'bg-purple-100' },
+  legal: { label: 'Legal', color: 'text-amber-600', bgColor: 'bg-amber-100' },
+  product: { label: 'Producto', color: 'text-green-600', bgColor: 'bg-green-100' },
 };
 
 const DIFFICULTY_CONFIG: Record<CourseDifficulty, { label: string; color: string; bgColor: string }> = {
-  beginner: { label: 'Principiante', color: 'text-green-600', bgColor: 'bg-green-100' },
+  basic: { label: 'Basico', color: 'text-green-600', bgColor: 'bg-green-100' },
   intermediate: { label: 'Intermedio', color: 'text-yellow-600', bgColor: 'bg-yellow-100' },
   advanced: { label: 'Avanzado', color: 'text-red-600', bgColor: 'bg-red-100' },
 };
@@ -266,7 +266,7 @@ function CourseCard({ course, onEdit, onPublish, onUnpublish, onArchive, onDelet
   }, [menuOpen]);
 
   const categoryConfig = CATEGORY_CONFIG[course.category];
-  const difficultyConfig = DIFFICULTY_CONFIG[course.difficulty];
+  const difficultyConfig = DIFFICULTY_CONFIG[course.level];
   const statusConfig = STATUS_CONFIG[course.status];
 
   // Count module types
@@ -337,7 +337,7 @@ function CourseCard({ course, onEdit, onPublish, onUnpublish, onArchive, onDelet
                     onClick={() => { setMenuOpen(false); onUnpublish(); }}
                     className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-amber-600 hover:bg-amber-50"
                   >
-                    <GlobeOff className="w-4 h-4" />
+                    <EyeOff className="w-4 h-4" />
                     Despublicar
                   </button>
                 )}
@@ -676,7 +676,7 @@ export default function TrainingAdminPage() {
         comparison = (a.title.es || '').localeCompare(b.title.es || '');
         break;
       case 'createdAt':
-        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        comparison = new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
         break;
       case 'status':
         comparison = a.status.localeCompare(b.status);
@@ -918,11 +918,11 @@ export default function TrainingAdminPage() {
                 <CourseCard
                   key={course.id}
                   course={course}
-                  onEdit={() => setEditingCourseId(course.id)}
-                  onPublish={() => handlePublish(course.id)}
-                  onUnpublish={() => handleUnpublish(course.id)}
-                  onArchive={() => handleArchive(course.id)}
-                  onDelete={() => handleDelete(course.id)}
+                  onEdit={() => course.id && setEditingCourseId(course.id)}
+                  onPublish={() => course.id && handlePublish(course.id)}
+                  onUnpublish={() => course.id && handleUnpublish(course.id)}
+                  onArchive={() => course.id && handleArchive(course.id)}
+                  onDelete={() => course.id && handleDelete(course.id)}
                 />
               ))}
             </AnimatePresence>

@@ -38,7 +38,7 @@ import type {
   TrainingOverviewMetrics,
   ModuleDropoffRate,
   CourseStatus,
-} from '@/types/training';
+} from '@/types';
 
 // ============================================================================
 // HELPER UTILITIES

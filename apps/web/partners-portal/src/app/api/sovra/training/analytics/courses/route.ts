@@ -26,7 +26,7 @@ import {
   getAllEnhancedCourses,
   getCourseDetailedAnalytics,
 } from '@/lib/redis/training';
-import type { EnhancedTrainingCourse, CourseDetailedAnalytics } from '@/types/training';
+import type { EnhancedTrainingCourse, CourseDetailedAnalytics } from '@/types';
 
 // Validation constants
 const VALID_SORT_FIELDS = ['enrollments', 'completions', 'score', 'dropoff', 'name'] as const;
@@ -202,12 +202,14 @@ export async function GET(request: NextRequest) {
 
     // Step 5: Fetch analytics for each course in parallel
     const coursesWithAnalytics: CourseWithAnalytics[] = await Promise.all(
-      allCourses.map(async (course) => {
-        const analytics = await getCourseDetailedAnalytics(course.id);
+      allCourses
+        .filter((course) => course.id)
+        .map(async (course) => {
+          const analytics = await getCourseDetailedAnalytics(course.id!);
         const overallDropoff = calculateOverallDropoffRate(analytics);
 
         return {
-          courseId: course.id,
+          courseId: course.id!,
           title: getCourseTitle(course),
           status: course.status,
           enrollments: analytics.enrollments,

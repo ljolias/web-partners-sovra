@@ -25,7 +25,7 @@ import {
   getEnrollmentTimeSeries,
   getCompletionTimeSeries,
 } from '@/lib/redis/training';
-import type { TimeSeriesDataPoint } from '@/types/training';
+import type { TimeSeriesDataPoint } from '@/types';
 
 // Validation constants
 const VALID_TYPES = ['enrollments', 'completions'] as const;
