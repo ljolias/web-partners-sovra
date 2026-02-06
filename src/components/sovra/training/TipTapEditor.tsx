@@ -29,6 +29,7 @@ export function TipTapEditor({
   placeholder = 'Comienza a escribir...',
 }: TipTapEditorProps) {
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: {
