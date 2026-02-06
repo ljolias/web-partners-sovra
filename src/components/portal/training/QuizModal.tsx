@@ -24,8 +24,8 @@ export function QuizModal({ module, locale, onClose, onSubmit }: QuizModalProps)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<{ passed: boolean; score: number } | null>(null);
 
-  const question = module.quiz[currentQuestion];
-  const progress = ((currentQuestion + 1) / module.quiz.length) * 100;
+  const question = module.quiz?.[currentQuestion];
+  const progress = module.quiz?.length > 0 ? ((currentQuestion + 1) / module.quiz.length) * 100 : 0;
   const allAnswered = answers.every((a) => a !== null);
 
   const handleSelect = (optionIndex: number) => {
@@ -73,7 +73,11 @@ export function QuizModal({ module, locale, onClose, onSubmit }: QuizModalProps)
 
         {/* Content */}
         <div className="p-6">
-          {result ? (
+          {!module.quiz || module.quiz.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No questions available for this module</p>
+            </div>
+          ) : result ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -118,11 +122,11 @@ export function QuizModal({ module, locale, onClose, onSubmit }: QuizModalProps)
                   exit={{ opacity: 0, x: -20 }}
                 >
                   <h3 className="text-lg font-medium text-gray-900 mb-4">
-                    {question.question[locale] || question.question.en}
+                    {question.question[locale as keyof typeof question.question] || question.question.en}
                   </h3>
 
                   <div className="space-y-3">
-                    {(question.options[locale] || question.options.en).map((option, index) => (
+                    {(question.options[locale] || question.options.en || []).map((option, index) => (
                       <button
                         key={index}
                         onClick={() => handleSelect(index)}
