@@ -45,10 +45,10 @@ interface ValidationErrors {
 // ============================================
 
 const CATEGORY_OPTIONS: Array<{ value: EnhancedCourseCategory; label: string }> = [
-  { value: 'sales_training', label: 'Capacitacion en Ventas' },
-  { value: 'technical_training', label: 'Capacitacion Tecnica' },
-  { value: 'legal_compliance', label: 'Cumplimiento Legal' },
-  { value: 'product_mastery', label: 'Dominio del Producto' },
+  { value: 'sales' as EnhancedCourseCategory, label: 'Ventas' },
+  { value: 'technical' as EnhancedCourseCategory, label: 'Tecnico' },
+  { value: 'legal' as EnhancedCourseCategory, label: 'Legal' },
+  { value: 'product' as EnhancedCourseCategory, label: 'Producto' },
 ];
 
 const DIFFICULTY_OPTIONS: Array<{ value: CourseDifficulty; label: string }> = [
@@ -76,7 +76,7 @@ const TAB_CONFIG: Array<{ id: TabType; label: string; icon: React.ReactNode }> =
 const getInitialCourseState = (): Partial<EnhancedTrainingCourse> => ({
   title: { es: '', en: '', pt: '' },
   description: { es: '', en: '', pt: '' },
-  category: 'sales_training',
+  category: 'sales' as EnhancedCourseCategory,
   difficulty: 'beginner',
   estimatedHours: 1,
   modules: [],
@@ -475,7 +475,7 @@ export function CourseEditorModal({
                       <div>
                         <label className={labelClasses}>Categoria</label>
                         <select
-                          value={course.category || 'sales_training'}
+                          value={course.category || 'sales'}
                           onChange={handleCategoryChange}
                           className={inputClasses}
                         >
