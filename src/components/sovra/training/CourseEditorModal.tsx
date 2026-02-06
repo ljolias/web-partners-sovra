@@ -391,35 +391,28 @@ export function CourseEditorModal({
 
           {/* Tabs */}
           <div className="flex border-b border-[var(--color-border)]">
-            {TAB_CONFIG.map((tab) => {
-              // Hide certification tab if not enabled
-              if (tab.id === 'certification' && !course.hasCertification) {
-                return null;
-              }
-
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`
-                    flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors relative
-                    ${activeTab === tab.id
-                      ? 'text-[var(--color-primary)]'
-                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
-                    }
-                  `}
-                >
-                  {tab.icon}
-                  {tab.label}
-                  {activeTab === tab.id && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--color-primary)]"
-                    />
-                  )}
-                </button>
-              );
-            })}
+            {TAB_CONFIG.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`
+                  flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors relative
+                  ${activeTab === tab.id
+                    ? 'text-[var(--color-primary)]'
+                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                  }
+                `}
+              >
+                {tab.icon}
+                {tab.label}
+                {activeTab === tab.id && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--color-primary)]"
+                  />
+                )}
+              </button>
+            ))}
           </div>
 
           {/* Content */}
@@ -593,81 +586,112 @@ export function CourseEditorModal({
                 )}
 
                 {/* Tab: Certification */}
-                {activeTab === 'certification' && course.hasCertification && (
+                {activeTab === 'certification' && (
                   <motion.div
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 10 }}
                     className="space-y-6"
                   >
-                    <div className="p-4 bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/20 rounded-lg">
-                      <div className="flex items-start gap-3">
-                        <Award className="w-5 h-5 text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
+                    {/* Enable/Disable Certification Toggle */}
+                    <div className="flex items-center justify-between p-4 bg-[var(--color-surface-hover)] border border-[var(--color-border)] rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Award className="w-5 h-5 text-[var(--color-primary)]" />
                         <div>
                           <p className="text-sm font-medium text-[var(--color-text-primary)]">
-                            Configuracion de Certificacion
+                            Habilitar Certificacion
                           </p>
-                          <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-                            Los estudiantes que completen este curso y aprueben los quizzes
-                            recibiran una credencial verificable.
+                          <p className="text-xs text-[var(--color-text-secondary)]">
+                            Permite emitir credenciales verificables al completar
                           </p>
                         </div>
                       </div>
-                    </div>
-
-                    {/* Credential Name */}
-                    <div>
-                      <label className={labelClasses}>
-                        Nombre de la Credencial <span className="text-red-500">*</span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={course.hasCertification || false}
+                          onChange={handleCertificationToggle}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-[var(--color-border)] peer-focus:ring-2 peer-focus:ring-[var(--color-primary)] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-primary)]"></div>
                       </label>
-                      <input
-                        type="text"
-                        value={course.certification?.credentialName || ''}
-                        onChange={(e) => handleCertificationFieldChange('credentialName', e.target.value)}
-                        placeholder="Ej: Certificacion en Ventas B2B"
-                        className={inputClasses}
-                      />
-                      {errors['certification.credentialName'] && (
-                        <p className="text-sm text-red-500 mt-1">{errors['certification.credentialName']}</p>
-                      )}
                     </div>
 
-                    {/* Credential Description */}
-                    <div>
-                      <label className={labelClasses}>Descripcion de la Credencial</label>
-                      <textarea
-                        rows={3}
-                        value={course.certification?.credentialDescription || ''}
-                        onChange={(e) => handleCertificationFieldChange('credentialDescription', e.target.value)}
-                        placeholder="Describe las competencias que certifica esta credencial..."
-                        className={inputClasses + ' resize-none'}
-                      />
-                    </div>
-
-                    {/* Issuer Name & Email */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className={labelClasses}>Nombre del Emisor</label>
-                        <input
-                          type="text"
-                          value={course.certification?.issuerName || ''}
-                          onChange={(e) => handleCertificationFieldChange('issuerName', e.target.value)}
-                          placeholder="Ej: Sovra Academy"
-                          className={inputClasses}
-                        />
+                    {/* Certificate Fields - Only show if enabled */}
+                    {course.hasCertification && (
+                      <div className="p-4 bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/20 rounded-lg">
+                        <div className="flex items-start gap-3">
+                          <Award className="w-5 h-5 text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-medium text-[var(--color-text-primary)]">
+                              Configuracion de Certificacion
+                            </p>
+                            <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+                              Personaliza los detalles de la credencial que recibiran los estudiantes
+                            </p>
+                          </div>
+                        </div>
                       </div>
+                    )}
 
-                      <div>
-                        <label className={labelClasses}>Email del Emisor</label>
-                        <input
-                          type="email"
-                          value={course.certification?.issuerEmail || ''}
-                          onChange={(e) => handleCertificationFieldChange('issuerEmail', e.target.value)}
-                          placeholder="Ej: certifications@sovra.io"
-                          className={inputClasses}
-                        />
-                      </div>
-                    </div>
+                    {/* Credential Fields - Only show if enabled */}
+                    {course.hasCertification && (
+                      <>
+                        {/* Credential Name */}
+                        <div>
+                          <label className={labelClasses}>
+                            Nombre de la Credencial <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={course.certification?.credentialName || ''}
+                            onChange={(e) => handleCertificationFieldChange('credentialName', e.target.value)}
+                            placeholder="Ej: Certificacion en Ventas B2B"
+                            className={inputClasses}
+                          />
+                          {errors['certification.credentialName'] && (
+                            <p className="text-sm text-red-500 mt-1">{errors['certification.credentialName']}</p>
+                          )}
+                        </div>
+
+                        {/* Credential Description */}
+                        <div>
+                          <label className={labelClasses}>Descripcion de la Credencial</label>
+                          <textarea
+                            rows={3}
+                            value={course.certification?.credentialDescription || ''}
+                            onChange={(e) => handleCertificationFieldChange('credentialDescription', e.target.value)}
+                            placeholder="Describe las competencias que certifica esta credencial..."
+                            className={inputClasses + ' resize-none'}
+                          />
+                        </div>
+
+                        {/* Issuer Name & Email */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className={labelClasses}>Nombre del Emisor</label>
+                            <input
+                              type="text"
+                              value={course.certification?.issuerName || ''}
+                              onChange={(e) => handleCertificationFieldChange('issuerName', e.target.value)}
+                              placeholder="Ej: Sovra Academy"
+                              className={inputClasses}
+                            />
+                          </div>
+
+                          <div>
+                            <label className={labelClasses}>Email del Emisor</label>
+                            <input
+                              type="email"
+                              value={course.certification?.issuerEmail || ''}
+                              onChange={(e) => handleCertificationFieldChange('issuerEmail', e.target.value)}
+                              placeholder="Ej: certifications@sovra.io"
+                              className={inputClasses}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </motion.div>
                 )}
               </>
