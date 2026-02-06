@@ -52,9 +52,9 @@ const CATEGORY_OPTIONS: Array<{ value: EnhancedCourseCategory; label: string }> 
 ];
 
 const DIFFICULTY_OPTIONS: Array<{ value: CourseDifficulty; label: string }> = [
-  { value: 'beginner', label: 'Principiante' },
-  { value: 'intermediate', label: 'Intermedio' },
-  { value: 'advanced', label: 'Avanzado' },
+  { value: 'basic' as CourseDifficulty, label: 'Basico' },
+  { value: 'intermediate' as CourseDifficulty, label: 'Intermedio' },
+  { value: 'advanced' as CourseDifficulty, label: 'Avanzado' },
 ];
 
 const STATUS_OPTIONS: Array<{ value: CourseStatus; label: string }> = [
@@ -77,7 +77,7 @@ const getInitialCourseState = (): Partial<EnhancedTrainingCourse> => ({
   title: { es: '', en: '', pt: '' },
   description: { es: '', en: '', pt: '' },
   category: 'sales' as EnhancedCourseCategory,
-  difficulty: 'beginner',
+  difficulty: 'basic' as CourseDifficulty,
   estimatedHours: 1,
   modules: [],
   hasCertification: false,
@@ -490,7 +490,7 @@ export function CourseEditorModal({
                       <div>
                         <label className={labelClasses}>Dificultad</label>
                         <select
-                          value={course.difficulty || 'beginner'}
+                          value={course.difficulty || 'basic'}
                           onChange={handleDifficultyChange}
                           className={inputClasses}
                         >
@@ -551,26 +551,6 @@ export function CourseEditorModal({
                       </select>
                     </div>
 
-                    {/* Has Certification Toggle */}
-                    <div className="flex items-center justify-between p-4 bg-[var(--color-surface-hover)] rounded-lg">
-                      <div>
-                        <p className="text-sm font-medium text-[var(--color-text-primary)]">
-                          Emitir Certificacion
-                        </p>
-                        <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
-                          Habilita credenciales al completar el curso
-                        </p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={course.hasCertification || false}
-                          onChange={handleCertificationToggle}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-[var(--color-border)] peer-focus:ring-2 peer-focus:ring-[var(--color-primary)]/50 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-primary)]" />
-                      </label>
-                    </div>
                   </motion.div>
                 )}
 
