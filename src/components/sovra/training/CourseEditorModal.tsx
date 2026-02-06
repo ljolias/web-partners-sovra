@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -100,6 +101,9 @@ export function CourseEditorModal({
   onSuccess,
   courseId,
 }: CourseEditorModalProps) {
+  const params = useParams();
+  const currentLocale = (params.locale as string || 'es') as 'es' | 'en' | 'pt';
+
   // State
   const [course, setCourse] = useState<Partial<EnhancedTrainingCourse>>(getInitialCourseState());
   const [loading, setLoading] = useState(false);
@@ -449,6 +453,7 @@ export function CourseEditorModal({
                       value={course.title || { es: '', en: '', pt: '' }}
                       onChange={handleTitleChange}
                       required
+                      currentLocale={currentLocale}
                       placeholder={{ es: 'Fundamentos de Ventas', en: 'Sales Fundamentals', pt: 'Fundamentos de Vendas' }}
                       error={errors['title.es']}
                     />
@@ -460,6 +465,7 @@ export function CourseEditorModal({
                       onChange={handleDescriptionChange}
                       required
                       type="textarea"
+                      currentLocale={currentLocale}
                       placeholder={{ es: 'Descripcion del curso...', en: 'Course description...', pt: 'Descricao do curso...' }}
                       error={errors['description.es']}
                     />
