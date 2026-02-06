@@ -14,45 +14,61 @@ export async function GET() {
     const publishedCourses = await getPublishedTrainingCourses();
 
     // Convert published courses to module format for the frontend
-    const coursesAsModules: TrainingModule[] = publishedCourses.map((course) => {
-      // Convert CourseQuizQuestion[] to QuizQuestion[]
-      // CourseQuizQuestion.options is LocalizedString[] (array of {en, es, pt})
-      // QuizQuestion.options is Record<string, string[]> ({en: [], es: [], pt: []})
-      const quizQuestions = course.modules
-        .filter((m) => m.type === 'quiz' && m.quiz)
-        .flatMap((m) => m.quiz || [])
-        .map((q, idx) => {
-          // Convert options from LocalizedString[] to Record<string, string[]>
-          const convertedOptions: Record<string, string[]> = {};
-          const locales = ['en', 'es', 'pt'];
+    const coursesAsModules: TrainingModule[] = [];
 
-          for (const locale of locales) {
-            convertedOptions[locale] = q.options.map((opt) => opt[locale] || opt.en || '');
-          }
+    for (const course of publishedCourses) {
+      // Create a module for each module in the course
+      for (const courseModule of course.modules) {
+        // Handle quiz modules specially
+        if (courseModule.type === 'quiz' && courseModule.quiz) {
+          const quizQuestions = courseModule.quiz.map((q, idx) => {
+            const convertedOptions: Record<string, string[]> = {};
+            const locales = ['en', 'es', 'pt'];
 
-          return {
-            id: `q${idx}`,
-            question: q.question,
-            options: convertedOptions,
-            correctAnswer: q.correctAnswer,
-          };
-        });
+            for (const locale of locales) {
+              convertedOptions[locale] = q.options.map((opt) => opt[locale] || opt.en || '');
+            }
 
-      // Calculate total duration from modules
-      const totalDuration = course.modules.reduce((sum, m) => sum + (m.duration || 0), 0);
+            return {
+              id: `q${idx}`,
+              question: q.question,
+              options: convertedOptions,
+              correctAnswer: q.correctAnswer,
+            };
+          });
 
-      return {
-        id: course.id,
-        title: course.title,
-        description: course.description,
-        content: course.description, // Use description as content for now
-        duration: totalDuration || 30,
-        order: course.order || 0,
-        quiz: quizQuestions,
-        passingScore: course.passingScore || 70,
-        createdAt: course.createdAt,
-      };
-    });
+          coursesAsModules.push({
+            id: courseModule.id,
+            title: courseModule.title,
+            description: courseModule.title, // Use title as description
+            content: courseModule.title,
+            duration: courseModule.duration || 30,
+            order: 0,
+            quiz: quizQuestions,
+            passingScore: course.passingScore || 70,
+            createdAt: course.createdAt,
+          } as any);
+        } else {
+          // Non-quiz modules (video, reading, download)
+          const moduleContent = courseModule.type === 'video' && courseModule.videoUrl
+            ? courseModule.videoUrl
+            : courseModule.documentUrl || courseModule.title;
+
+          coursesAsModules.push({
+            id: courseModule.id,
+            title: courseModule.title,
+            description: courseModule.title,
+            content: moduleContent,
+            duration: courseModule.duration || 30,
+            order: 0,
+            quiz: [],
+            passingScore: 0,
+            createdAt: course.createdAt,
+            videoUrl: courseModule.videoUrl,
+          } as any);
+        }
+      }
+    }
 
     // Combine legacy modules and courses (courses take priority by ID)
     const legacyIds = new Set(legacyModules.map((m) => m.id));
