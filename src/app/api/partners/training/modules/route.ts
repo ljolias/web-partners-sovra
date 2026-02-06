@@ -38,16 +38,19 @@ export async function GET() {
           };
         });
 
+      // Calculate total duration from modules
+      const totalDuration = course.modules.reduce((sum, m) => sum + (m.duration || 0), 0);
+
       return {
         id: course.id,
         title: course.title,
         description: course.description,
         content: course.description, // Use description as content for now
-        duration: course.duration,
-        order: course.order,
+        duration: totalDuration || course.estimatedHours * 60 || 30,
+        order: course.order || 0,
         quiz: quizQuestions,
-        passingScore: course.passingScore,
-        createdAt: course.createdAt,
+        passingScore: course.passingScore || 70,
+        createdAt: course.createdAt || new Date().toISOString(),
       };
     });
 

@@ -35,11 +35,20 @@ export function TrainingCenterView({ locale }: TrainingCenterViewProps) {
           fetch('/api/partners/certifications'),
         ]);
 
-        if (modulesRes.ok && progressRes.ok) {
+        if (modulesRes.ok) {
           const modulesData = await modulesRes.json();
-          const progressData = await progressRes.json();
+          console.log('Modules loaded:', modulesData.modules);
           setModules(modulesData.modules || []);
+        } else {
+          const error = await modulesRes.json();
+          console.error('Failed to load modules:', error);
+        }
+
+        if (progressRes.ok) {
+          const progressData = await progressRes.json();
           setProgress(progressData.progress || {});
+        } else {
+          console.error('Failed to load progress');
         }
 
         if (certsRes.ok) {
@@ -73,9 +82,14 @@ export function TrainingCenterView({ locale }: TrainingCenterViewProps) {
         if (module) {
           setQuizModule(module);
         }
+      } else {
+        const error = await res.json();
+        console.error('Failed to start module:', error);
+        alert(`Error: ${error.error || 'Failed to start module'}`);
       }
     } catch (error) {
       console.error('Failed to start module:', error);
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
