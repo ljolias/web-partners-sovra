@@ -1,0 +1,3 @@
+{
+  "/api/sovra/deals/[dealId]/request-info/route": "app/api/sovra/deals/[dealId]/request-info/route.js"
+}

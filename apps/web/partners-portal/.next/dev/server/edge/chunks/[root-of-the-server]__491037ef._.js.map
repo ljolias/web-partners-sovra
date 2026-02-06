@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 16, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/src/i18n/config.ts"],"sourcesContent":["export const locales = ['en', 'es', 'pt'] as const;\nexport type Locale = (typeof locales)[number];\n\nexport const defaultLocale: Locale = 'es';\n\nexport const localeNames: Record<Locale, string> = {\n  en: 'English',\n  es: 'Espanol',\n  pt: 'Portugues',\n};\n"],"names":[],"mappings":";;;;;;;;AAAO,MAAM,UAAU;IAAC;IAAM;IAAM;CAAK;AAGlC,MAAM,gBAAwB;AAE9B,MAAM,cAAsC;IACjD,IAAI;IACJ,IAAI;IACJ,IAAI;AACN"}},
+    {"offset": {"line": 39, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/src/i18n/index.ts"],"sourcesContent":["export { locales, defaultLocale, localeNames, type Locale } from './config';\n"],"names":[],"mappings":";AAAA"}},
+    {"offset": {"line": 46, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/src/middleware.ts"],"sourcesContent":["import createMiddleware from 'next-intl/middleware';\nimport { locales, defaultLocale } from '@/i18n';\n\nexport default createMiddleware({\n  locales,\n  defaultLocale,\n  localePrefix: 'always',\n});\n\nexport const config = {\n  matcher: [\n    // Match all pathnames except for\n    // - API routes\n    // - _next (Next.js internals)\n    // - Static files (images, fonts, etc.)\n    '/((?!api|_next|.*\\\\..*).*)',\n  ],\n};\n"],"names":[],"mappings":";;;;;;;;;;;AACA;AAAA;;;uCAEe,iBAAiB;IAC9B,SAAA,wIAAO;IACP,eAAA,8IAAa;IACb,cAAc;AAChB;AAEO,MAAM,SAAS;IACpB,SAAS;QACP,iCAAiC;QACjC,eAAe;QACf,8BAA8B;QAC9B,uCAAuC;QACvC;KACD;AACH"}}]
+}

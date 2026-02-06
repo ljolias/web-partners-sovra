@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 22, "column": 0}, "map": {"version":3,"sources":["file:///Users/lucasjolias/code/playground/apps/web/partners-portal/src/app/%5Blocale%5D/page.tsx"],"sourcesContent":["import { redirect } from 'next/navigation';\n\ninterface LocalePageProps {\n  params: Promise<{ locale: string }>;\n}\n\nexport default async function LocalePage({ params }: LocalePageProps) {\n  const { locale } = await params;\n  redirect(`/${locale}/partners/login`);\n}\n"],"names":[],"mappings":";;;;AAAA;AAAA;;AAMe,eAAe,WAAW,EAAE,MAAM,EAAmB;IAClE,MAAM,EAAE,MAAM,EAAE,GAAG,MAAM;IACzB,IAAA,kWAAQ,EAAC,CAAC,CAAC,EAAE,OAAO,eAAe,CAAC;AACtC"}}]
+}

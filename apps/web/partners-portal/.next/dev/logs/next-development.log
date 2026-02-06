@@ -1,0 +1,142 @@
+[00:00:01.039] Server  WARN    ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:01.156] Server  LOG     ✓ Ready in 888ms
+[00:00:33.172] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:36.413] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:13:04.988] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:13:17.908] Server  LOG     [Legal API] Fetching documents for partner: "1770347217345-gpll3vs" "Acme Corp"
+[00:13:17.909] Server  LOG     [Redis] Fetching documents for partner: "1770347217345-gpll3vs" "key:" "partner:1770347217345-gpll3vs:legal:documents"
+[00:13:18.084] Server  LOG     [Redis] Found document IDs: 0 []
+[00:13:18.085] Server  LOG     [Legal API] Found 0 "documents"
+[00:13:18.447] Server  LOG     [Legal API] Fetching documents for partner: "1770347217345-gpll3vs" "Acme Corp"
+[00:13:18.448] Server  LOG     [Redis] Fetching documents for partner: "1770347217345-gpll3vs" "key:" "partner:1770347217345-gpll3vs:legal:documents"
+[00:13:18.621] Server  LOG     [Redis] Found document IDs: 0 []
+[00:13:18.622] Server  LOG     [Legal API] Found 0 "documents"
+[00:14:02.236] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:14:13.863] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:14:16.776] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:14:35.255] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:14:35.692] Server  LOG     [Legal API] Fetching documents for partner: "1770347217345-gpll3vs" "Acme Corp"
+[00:14:35.692] Server  LOG     [Redis] Fetching documents for partner: "1770347217345-gpll3vs" "key:" "partner:1770347217345-gpll3vs:legal:documents"
+[00:14:35.868] Server  LOG     [Redis] Found document IDs: 0 []
+[00:14:35.869] Server  LOG     [Legal API] Found 0 "documents"
+[10:59:52.597] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[11:00:52.341] Server  LOG     [Legal API] Fetching documents for partner: "1770347217345-gpll3vs" "Acme Corp"
+[11:00:52.342] Server  LOG     [Redis] Fetching documents for partner: "1770347217345-gpll3vs" "key:" "partner:1770347217345-gpll3vs:legal:documents"
+[11:00:52.514] Server  LOG     [Redis] Found document IDs: 0 []
+[11:00:52.515] Server  LOG     [Legal API] Found 0 "documents"
+[11:00:52.870] Server  LOG     [Legal API] Fetching documents for partner: "1770347217345-gpll3vs" "Acme Corp"
+[11:00:52.871] Server  LOG     [Redis] Fetching documents for partner: "1770347217345-gpll3vs" "key:" "partner:1770347217345-gpll3vs:legal:documents"
+[11:00:53.042] Server  LOG     [Redis] Found document IDs: 0 []
+[11:00:53.043] Server  LOG     [Legal API] Found 0 "documents"
+[11:50:04.837] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[12:01:55.841] Server  ERROR   ⨯ ./src/middleware.ts:1:1
+Module not found: Can't resolve 'next-intl/middleware'
+> 1 | import createMiddleware from 'next-intl/middleware';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import { locales, defaultLocale } from '@/i18n';
+  3 |
+  4 | export default createMiddleware({
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[12:01:55.842] Server  ERROR   ⨯ ./src/middleware.ts:1:1
+Module not found: Can't resolve 'next-intl/middleware'
+> 1 | import createMiddleware from 'next-intl/middleware';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import { locales, defaultLocale } from '@/i18n';
+  3 |
+  4 | export default createMiddleware({
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[12:01:55.860] Server  ERROR   ⨯ ./src/middleware.ts:1:1
+Module not found: Can't resolve 'next-intl/middleware'
+> 1 | import createMiddleware from 'next-intl/middleware';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import { locales, defaultLocale } from '@/i18n';
+  3 |
+  4 | export default createMiddleware({
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[12:01:55.860] Server  ERROR   ⨯ ./src/middleware.ts:1:1
+Module not found: Can't resolve 'next-intl/middleware'
+> 1 | import createMiddleware from 'next-intl/middleware';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import { locales, defaultLocale } from '@/i18n';
+  3 |
+  4 | export default createMiddleware({
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[12:01:57.197] Server  LOG     ✓ Compiled in 5.9s
+[12:01:58.355] Browser ERROR   ./src/middleware.ts:1:1
+Module not found: Can't resolve 'next-intl/middleware'
+> 1 | import createMiddleware from 'next-intl/middleware';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import { locales, defaultLocale } from '@/i18n';
+  3 |
+  4 | export default createMiddleware({
+
+https://nextjs.org/docs/messages/module-not-found
+[12:01:58.355] Browser ERROR   ./src/middleware.ts:1:1
+Module not found: Can't resolve 'next-intl/middleware'
+> 1 | import createMiddleware from 'next-intl/middleware';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import { locales, defaultLocale } from '@/i18n';
+  3 |
+  4 | export default createMiddleware({
+
+https://nextjs.org/docs/messages/module-not-found
+[12:01:58.389] Browser ERROR   ./src/middleware.ts:1:1
+Module not found: Can't resolve 'next-intl/middleware'
+> 1 | import createMiddleware from 'next-intl/middleware';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import { locales, defaultLocale } from '@/i18n';
+  3 |
+  4 | export default createMiddleware({
+
+https://nextjs.org/docs/messages/module-not-found
+[12:01:58.865] Browser ERROR   uncaughtError: Error: ./src/middleware.ts:1:1
+Module not found: Can't resolve 'next-intl/middleware'
+> 1 | import createMiddleware from 'next-intl/middleware';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import { locales, defaultLocale } from '@/i18n';
+  3 |
+  4 | export default createMiddleware({
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[12:02:00.032] Browser ERROR   ./src/middleware.ts:1:1
+Module not found: Can't resolve 'next-intl/middleware'
+> 1 | import createMiddleware from 'next-intl/middleware';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import { locales, defaultLocale } from '@/i18n';
+  3 |
+  4 | export default createMiddleware({
+
+https://nextjs.org/docs/messages/module-not-found
+[12:02:00.032] Browser ERROR   ./src/middleware.ts:1:1
+Module not found: Can't resolve 'next-intl/middleware'
+> 1 | import createMiddleware from 'next-intl/middleware';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import { locales, defaultLocale } from '@/i18n';
+  3 |
+  4 | export default createMiddleware({
+
+https://nextjs.org/docs/messages/module-not-found

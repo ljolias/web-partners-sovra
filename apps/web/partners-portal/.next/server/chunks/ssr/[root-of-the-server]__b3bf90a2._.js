@@ -1,0 +1,3 @@
+module.exports=[47591,a=>{a.v({className:"inter_fe8b9d92-module__LINzvG__className",variable:"inter_fe8b9d92-module__LINzvG__variable"})},84040,a=>{"use strict";var b=a.i(33256),c=a.i(47591);let d={className:c.default.className,style:{fontFamily:"'Inter', 'Inter Fallback'",fontStyle:"normal"}};function e({children:a}){return(0,b.jsx)("html",{lang:"en",children:(0,b.jsx)("body",{className:`${d.variable} font-sans antialiased`,children:a})})}null!=c.default.variable&&(d.variable=c.default.variable),a.s(["default",()=>e,"metadata",0,{title:"Sovra Partner Portal",description:"B2B Partner Portal for Sovra Partners"}],84040)}];
+
+//# sourceMappingURL=%5Broot-of-the-server%5D__b3bf90a2._.js.map

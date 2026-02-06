@@ -1,0 +1,3 @@
+module.exports=[88947,(e,r,o)=>{r.exports=e.x("stream",()=>require("stream"))},51615,(e,r,o)=>{r.exports=e.x("node:buffer",()=>require("node:buffer"))},81111,(e,r,o)=>{r.exports=e.x("node:stream",()=>require("node:stream"))},99348,(e,r,o)=>{r.exports=e.x("string_decoder",()=>require("string_decoder"))},78500,(e,r,o)=>{r.exports=e.x("node:async_hooks",()=>require("node:async_hooks"))}];
+
+//# sourceMappingURL=%5Bexternals%5D__e3a5fe26._.js.map

@@ -1,0 +1,3 @@
+{
+  "/api/partners/tutorials/[tutorialId]/progress/route": "app/api/partners/tutorials/[tutorialId]/progress/route.js"
+}

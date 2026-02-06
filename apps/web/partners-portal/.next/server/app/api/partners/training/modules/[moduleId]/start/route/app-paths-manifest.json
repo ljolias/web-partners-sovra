@@ -1,0 +1,3 @@
+{
+  "/api/partners/training/modules/[moduleId]/start/route": "app/api/partners/training/modules/[moduleId]/start/route.js"
+}

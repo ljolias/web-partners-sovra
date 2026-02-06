@@ -1,0 +1,11 @@
+var R=require("../../../../../chunks/[turbopack]_runtime.js")("server/app/api/partners/copilot/chat/route.js")
+R.c("server/chunks/[root-of-the-server]__7363af2d._.js")
+R.c("server/chunks/apps_web_partners-portal_src_lib_auth_f6985481._.js")
+R.c("server/chunks/b2b3e_next_e35491d7._.js")
+R.c("server/chunks/apps_web_partners-portal_src_lib_claude_index_ts_e8568518._.js")
+R.c("server/chunks/apps_web_partners-portal_src_lib_redis_client_ts_86abaab4._.js")
+R.c("server/chunks/[root-of-the-server]__bf3f659d._.js")
+R.c("server/chunks/apps_web_partners-portal_src_lib_redis_operations_ts_54ee2c89._.js")
+R.c("server/chunks/c80e8__next-internal_server_app_api_partners_copilot_chat_route_actions_b4ce86ce.js")
+R.m(61169)
+module.exports=R.m(61169).exports

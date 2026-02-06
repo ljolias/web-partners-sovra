@@ -1,0 +1,680 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/api/partners/deals/[dealId]",
+      "regex": "^/api/partners/deals/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPdealId": "nxtPdealId"
+      },
+      "namedRegex": "^/api/partners/deals/(?<nxtPdealId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/partners/legal/[documentId]",
+      "regex": "^/api/partners/legal/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPdocumentId": "nxtPdocumentId"
+      },
+      "namedRegex": "^/api/partners/legal/(?<nxtPdocumentId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/partners/legal/[documentId]/download",
+      "regex": "^/api/partners/legal/([^/]+?)/download(?:/)?$",
+      "routeKeys": {
+        "nxtPdocumentId": "nxtPdocumentId"
+      },
+      "namedRegex": "^/api/partners/legal/(?<nxtPdocumentId>[^/]+?)/download(?:/)?$"
+    },
+    {
+      "page": "/api/partners/quotes/[quoteId]",
+      "regex": "^/api/partners/quotes/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPquoteId": "nxtPquoteId"
+      },
+      "namedRegex": "^/api/partners/quotes/(?<nxtPquoteId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/partners/quotes/[quoteId]/pdf",
+      "regex": "^/api/partners/quotes/([^/]+?)/pdf(?:/)?$",
+      "routeKeys": {
+        "nxtPquoteId": "nxtPquoteId"
+      },
+      "namedRegex": "^/api/partners/quotes/(?<nxtPquoteId>[^/]+?)/pdf(?:/)?$"
+    },
+    {
+      "page": "/api/partners/training/modules/[moduleId]/start",
+      "regex": "^/api/partners/training/modules/([^/]+?)/start(?:/)?$",
+      "routeKeys": {
+        "nxtPmoduleId": "nxtPmoduleId"
+      },
+      "namedRegex": "^/api/partners/training/modules/(?<nxtPmoduleId>[^/]+?)/start(?:/)?$"
+    },
+    {
+      "page": "/api/partners/tutorials/[tutorialId]/progress",
+      "regex": "^/api/partners/tutorials/([^/]+?)/progress(?:/)?$",
+      "routeKeys": {
+        "nxtPtutorialId": "nxtPtutorialId"
+      },
+      "namedRegex": "^/api/partners/tutorials/(?<nxtPtutorialId>[^/]+?)/progress(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/credentials/[credentialId]/resend",
+      "regex": "^/api/sovra/credentials/([^/]+?)/resend(?:/)?$",
+      "routeKeys": {
+        "nxtPcredentialId": "nxtPcredentialId"
+      },
+      "namedRegex": "^/api/sovra/credentials/(?<nxtPcredentialId>[^/]+?)/resend(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/credentials/[credentialId]/revoke",
+      "regex": "^/api/sovra/credentials/([^/]+?)/revoke(?:/)?$",
+      "routeKeys": {
+        "nxtPcredentialId": "nxtPcredentialId"
+      },
+      "namedRegex": "^/api/sovra/credentials/(?<nxtPcredentialId>[^/]+?)/revoke(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/credentials/[credentialId]/status",
+      "regex": "^/api/sovra/credentials/([^/]+?)/status(?:/)?$",
+      "routeKeys": {
+        "nxtPcredentialId": "nxtPcredentialId"
+      },
+      "namedRegex": "^/api/sovra/credentials/(?<nxtPcredentialId>[^/]+?)/status(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/deals/[dealId]/approve",
+      "regex": "^/api/sovra/deals/([^/]+?)/approve(?:/)?$",
+      "routeKeys": {
+        "nxtPdealId": "nxtPdealId"
+      },
+      "namedRegex": "^/api/sovra/deals/(?<nxtPdealId>[^/]+?)/approve(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/deals/[dealId]/reject",
+      "regex": "^/api/sovra/deals/([^/]+?)/reject(?:/)?$",
+      "routeKeys": {
+        "nxtPdealId": "nxtPdealId"
+      },
+      "namedRegex": "^/api/sovra/deals/(?<nxtPdealId>[^/]+?)/reject(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/deals/[dealId]/request-info",
+      "regex": "^/api/sovra/deals/([^/]+?)/request\\-info(?:/)?$",
+      "routeKeys": {
+        "nxtPdealId": "nxtPdealId"
+      },
+      "namedRegex": "^/api/sovra/deals/(?<nxtPdealId>[^/]+?)/request\\-info(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/documents/[documentId]",
+      "regex": "^/api/sovra/documents/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPdocumentId": "nxtPdocumentId"
+      },
+      "namedRegex": "^/api/sovra/documents/(?<nxtPdocumentId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/documents/[documentId]/verify",
+      "regex": "^/api/sovra/documents/([^/]+?)/verify(?:/)?$",
+      "routeKeys": {
+        "nxtPdocumentId": "nxtPdocumentId"
+      },
+      "namedRegex": "^/api/sovra/documents/(?<nxtPdocumentId>[^/]+?)/verify(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/partners/[partnerId]",
+      "regex": "^/api/sovra/partners/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPpartnerId": "nxtPpartnerId"
+      },
+      "namedRegex": "^/api/sovra/partners/(?<nxtPpartnerId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/partners/[partnerId]/credentials",
+      "regex": "^/api/sovra/partners/([^/]+?)/credentials(?:/)?$",
+      "routeKeys": {
+        "nxtPpartnerId": "nxtPpartnerId"
+      },
+      "namedRegex": "^/api/sovra/partners/(?<nxtPpartnerId>[^/]+?)/credentials(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/partners/[partnerId]/delete",
+      "regex": "^/api/sovra/partners/([^/]+?)/delete(?:/)?$",
+      "routeKeys": {
+        "nxtPpartnerId": "nxtPpartnerId"
+      },
+      "namedRegex": "^/api/sovra/partners/(?<nxtPpartnerId>[^/]+?)/delete(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/partners/[partnerId]/reactivate",
+      "regex": "^/api/sovra/partners/([^/]+?)/reactivate(?:/)?$",
+      "routeKeys": {
+        "nxtPpartnerId": "nxtPpartnerId"
+      },
+      "namedRegex": "^/api/sovra/partners/(?<nxtPpartnerId>[^/]+?)/reactivate(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/partners/[partnerId]/suspend",
+      "regex": "^/api/sovra/partners/([^/]+?)/suspend(?:/)?$",
+      "routeKeys": {
+        "nxtPpartnerId": "nxtPpartnerId"
+      },
+      "namedRegex": "^/api/sovra/partners/(?<nxtPpartnerId>[^/]+?)/suspend(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/training/courses/[courseId]",
+      "regex": "^/api/sovra/training/courses/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPcourseId": "nxtPcourseId"
+      },
+      "namedRegex": "^/api/sovra/training/courses/(?<nxtPcourseId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/training/courses/[courseId]/publish",
+      "regex": "^/api/sovra/training/courses/([^/]+?)/publish(?:/)?$",
+      "routeKeys": {
+        "nxtPcourseId": "nxtPcourseId"
+      },
+      "namedRegex": "^/api/sovra/training/courses/(?<nxtPcourseId>[^/]+?)/publish(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/training/courses/[courseId]/unpublish",
+      "regex": "^/api/sovra/training/courses/([^/]+?)/unpublish(?:/)?$",
+      "routeKeys": {
+        "nxtPcourseId": "nxtPcourseId"
+      },
+      "namedRegex": "^/api/sovra/training/courses/(?<nxtPcourseId>[^/]+?)/unpublish(?:/)?$"
+    },
+    {
+      "page": "/[locale]",
+      "regex": "^/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/[locale]/partners/login",
+      "regex": "^/([^/]+?)/partners/login(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/partners/login(?:/)?$"
+    },
+    {
+      "page": "/[locale]/partners/portal",
+      "regex": "^/([^/]+?)/partners/portal(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/partners/portal(?:/)?$"
+    },
+    {
+      "page": "/[locale]/partners/portal/certifications",
+      "regex": "^/([^/]+?)/partners/portal/certifications(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/partners/portal/certifications(?:/)?$"
+    },
+    {
+      "page": "/[locale]/partners/portal/commissions",
+      "regex": "^/([^/]+?)/partners/portal/commissions(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/partners/portal/commissions(?:/)?$"
+    },
+    {
+      "page": "/[locale]/partners/portal/deals",
+      "regex": "^/([^/]+?)/partners/portal/deals(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/partners/portal/deals(?:/)?$"
+    },
+    {
+      "page": "/[locale]/partners/portal/deals/new",
+      "regex": "^/([^/]+?)/partners/portal/deals/new(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/partners/portal/deals/new(?:/)?$"
+    },
+    {
+      "page": "/[locale]/partners/portal/deals/[dealId]",
+      "regex": "^/([^/]+?)/partners/portal/deals/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale",
+        "nxtPdealId": "nxtPdealId"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/partners/portal/deals/(?<nxtPdealId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/[locale]/partners/portal/deals/[dealId]/copilot",
+      "regex": "^/([^/]+?)/partners/portal/deals/([^/]+?)/copilot(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale",
+        "nxtPdealId": "nxtPdealId"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/partners/portal/deals/(?<nxtPdealId>[^/]+?)/copilot(?:/)?$"
+    },
+    {
+      "page": "/[locale]/partners/portal/deals/[dealId]/quote",
+      "regex": "^/([^/]+?)/partners/portal/deals/([^/]+?)/quote(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale",
+        "nxtPdealId": "nxtPdealId"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/partners/portal/deals/(?<nxtPdealId>[^/]+?)/quote(?:/)?$"
+    },
+    {
+      "page": "/[locale]/partners/portal/legal",
+      "regex": "^/([^/]+?)/partners/portal/legal(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/partners/portal/legal(?:/)?$"
+    },
+    {
+      "page": "/[locale]/partners/portal/legal/[documentId]",
+      "regex": "^/([^/]+?)/partners/portal/legal/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale",
+        "nxtPdocumentId": "nxtPdocumentId"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/partners/portal/legal/(?<nxtPdocumentId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/[locale]/partners/portal/team",
+      "regex": "^/([^/]+?)/partners/portal/team(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/partners/portal/team(?:/)?$"
+    },
+    {
+      "page": "/[locale]/partners/portal/training",
+      "regex": "^/([^/]+?)/partners/portal/training(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/partners/portal/training(?:/)?$"
+    },
+    {
+      "page": "/[locale]/partners/portal/training-center",
+      "regex": "^/([^/]+?)/partners/portal/training\\-center(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/partners/portal/training\\-center(?:/)?$"
+    },
+    {
+      "page": "/[locale]/partners/portal/tutorials-center",
+      "regex": "^/([^/]+?)/partners/portal/tutorials\\-center(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/partners/portal/tutorials\\-center(?:/)?$"
+    },
+    {
+      "page": "/[locale]/sovra/dashboard",
+      "regex": "^/([^/]+?)/sovra/dashboard(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/sovra/dashboard(?:/)?$"
+    },
+    {
+      "page": "/[locale]/sovra/dashboard/approvals",
+      "regex": "^/([^/]+?)/sovra/dashboard/approvals(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/sovra/dashboard/approvals(?:/)?$"
+    },
+    {
+      "page": "/[locale]/sovra/dashboard/audit",
+      "regex": "^/([^/]+?)/sovra/dashboard/audit(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/sovra/dashboard/audit(?:/)?$"
+    },
+    {
+      "page": "/[locale]/sovra/dashboard/documents",
+      "regex": "^/([^/]+?)/sovra/dashboard/documents(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/sovra/dashboard/documents(?:/)?$"
+    },
+    {
+      "page": "/[locale]/sovra/dashboard/partners",
+      "regex": "^/([^/]+?)/sovra/dashboard/partners(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/sovra/dashboard/partners(?:/)?$"
+    },
+    {
+      "page": "/[locale]/sovra/dashboard/partners/[partnerId]",
+      "regex": "^/([^/]+?)/sovra/dashboard/partners/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale",
+        "nxtPpartnerId": "nxtPpartnerId"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/sovra/dashboard/partners/(?<nxtPpartnerId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/[locale]/sovra/dashboard/pricing",
+      "regex": "^/([^/]+?)/sovra/dashboard/pricing(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/sovra/dashboard/pricing(?:/)?$"
+    },
+    {
+      "page": "/[locale]/sovra/dashboard/training",
+      "regex": "^/([^/]+?)/sovra/dashboard/training(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/sovra/dashboard/training(?:/)?$"
+    },
+    {
+      "page": "/[locale]/sovra/login",
+      "regex": "^/([^/]+?)/sovra/login(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/sovra/login(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/api/auth/google",
+      "regex": "^/api/auth/google(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/auth/google(?:/)?$"
+    },
+    {
+      "page": "/api/auth/google/callback",
+      "regex": "^/api/auth/google/callback(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/auth/google/callback(?:/)?$"
+    },
+    {
+      "page": "/api/partners/auth/login",
+      "regex": "^/api/partners/auth/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/auth/login(?:/)?$"
+    },
+    {
+      "page": "/api/partners/auth/logout",
+      "regex": "^/api/partners/auth/logout(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/auth/logout(?:/)?$"
+    },
+    {
+      "page": "/api/partners/auth/me",
+      "regex": "^/api/partners/auth/me(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/auth/me(?:/)?$"
+    },
+    {
+      "page": "/api/partners/auth/session",
+      "regex": "^/api/partners/auth/session(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/auth/session(?:/)?$"
+    },
+    {
+      "page": "/api/partners/certifications",
+      "regex": "^/api/partners/certifications(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/certifications(?:/)?$"
+    },
+    {
+      "page": "/api/partners/commissions",
+      "regex": "^/api/partners/commissions(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/commissions(?:/)?$"
+    },
+    {
+      "page": "/api/partners/copilot/chat",
+      "regex": "^/api/partners/copilot/chat(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/copilot/chat(?:/)?$"
+    },
+    {
+      "page": "/api/partners/copilot/session",
+      "regex": "^/api/partners/copilot/session(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/copilot/session(?:/)?$"
+    },
+    {
+      "page": "/api/partners/deals",
+      "regex": "^/api/partners/deals(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/deals(?:/)?$"
+    },
+    {
+      "page": "/api/partners/deals/validate",
+      "regex": "^/api/partners/deals/validate(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/deals/validate(?:/)?$"
+    },
+    {
+      "page": "/api/partners/demo/switch-role",
+      "regex": "^/api/partners/demo/switch\\-role(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/demo/switch\\-role(?:/)?$"
+    },
+    {
+      "page": "/api/partners/legal",
+      "regex": "^/api/partners/legal(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/legal(?:/)?$"
+    },
+    {
+      "page": "/api/partners/legal/sign",
+      "regex": "^/api/partners/legal/sign(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/legal/sign(?:/)?$"
+    },
+    {
+      "page": "/api/partners/quotes",
+      "regex": "^/api/partners/quotes(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/quotes(?:/)?$"
+    },
+    {
+      "page": "/api/partners/team",
+      "regex": "^/api/partners/team(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/team(?:/)?$"
+    },
+    {
+      "page": "/api/partners/team/credentials",
+      "regex": "^/api/partners/team/credentials(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/team/credentials(?:/)?$"
+    },
+    {
+      "page": "/api/partners/training/modules",
+      "regex": "^/api/partners/training/modules(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/training/modules(?:/)?$"
+    },
+    {
+      "page": "/api/partners/training/progress",
+      "regex": "^/api/partners/training/progress(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/training/progress(?:/)?$"
+    },
+    {
+      "page": "/api/partners/training/quiz/submit",
+      "regex": "^/api/partners/training/quiz/submit(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/training/quiz/submit(?:/)?$"
+    },
+    {
+      "page": "/api/partners/tutor/chat",
+      "regex": "^/api/partners/tutor/chat(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/tutor/chat(?:/)?$"
+    },
+    {
+      "page": "/api/partners/tutor/profile",
+      "regex": "^/api/partners/tutor/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/tutor/profile(?:/)?$"
+    },
+    {
+      "page": "/api/partners/tutorials",
+      "regex": "^/api/partners/tutorials(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/partners/tutorials(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/audit",
+      "regex": "^/api/sovra/audit(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sovra/audit(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/audit/export",
+      "regex": "^/api/sovra/audit/export(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sovra/audit/export(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/deals",
+      "regex": "^/api/sovra/deals(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sovra/deals(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/documents",
+      "regex": "^/api/sovra/documents(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sovra/documents(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/documents/send-contract",
+      "regex": "^/api/sovra/documents/send\\-contract(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sovra/documents/send\\-contract(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/partners",
+      "regex": "^/api/sovra/partners(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sovra/partners(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/pricing",
+      "regex": "^/api/sovra/pricing(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sovra/pricing(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/sovraid/status",
+      "regex": "^/api/sovra/sovraid/status(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sovra/sovraid/status(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/training/courses",
+      "regex": "^/api/sovra/training/courses(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sovra/training/courses(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/webhooks/configure",
+      "regex": "^/api/sovra/webhooks/configure(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sovra/webhooks/configure(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/webhooks/sovraid",
+      "regex": "^/api/sovra/webhooks/sovraid(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sovra/webhooks/sovraid(?:/)?$"
+    },
+    {
+      "page": "/api/sovra/webhooks/sovraid/test",
+      "regex": "^/api/sovra/webhooks/sovraid/test(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sovra/webhooks/sovraid/test(?:/)?$"
+    },
+    {
+      "page": "/api/webhooks/docusign",
+      "regex": "^/api/webhooks/docusign(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/webhooks/docusign(?:/)?$"
+    },
+    {
+      "page": "/favicon.ico",
+      "regex": "^/favicon\\.ico(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/favicon\\.ico(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

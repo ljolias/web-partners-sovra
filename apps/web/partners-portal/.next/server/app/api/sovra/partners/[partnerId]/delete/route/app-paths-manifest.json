@@ -1,0 +1,3 @@
+{
+  "/api/sovra/partners/[partnerId]/delete/route": "app/api/sovra/partners/[partnerId]/delete/route.js"
+}

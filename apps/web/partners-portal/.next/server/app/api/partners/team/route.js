@@ -1,0 +1,10 @@
+var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/partners/team/route.js")
+R.c("server/chunks/[root-of-the-server]__e98630d8._.js")
+R.c("server/chunks/apps_web_partners-portal_src_lib_redis_operations_ts_54ee2c89._.js")
+R.c("server/chunks/b2b3e_next_e35491d7._.js")
+R.c("server/chunks/apps_web_partners-portal_src_lib_redis_client_ts_86abaab4._.js")
+R.c("server/chunks/[root-of-the-server]__2dcfc09a._.js")
+R.c("server/chunks/apps_web_partners-portal_src_lib_auth_f6985481._.js")
+R.c("server/chunks/c80e8__next-internal_server_app_api_partners_team_route_actions_ad2374cf.js")
+R.m(5672)
+module.exports=R.m(5672).exports

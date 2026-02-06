@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 26, "column": 0}, "map": {"version":3,"sources":["file:///Users/lucasjolias/code/playground/apps/web/partners-portal/src/app/%5Blocale%5D/partners/portal/training/page.tsx"],"sourcesContent":["import { redirect } from 'next/navigation';\n\ninterface TrainingPageProps {\n  params: Promise<{ locale: string }>;\n}\n\nexport default async function TrainingPage({ params }: TrainingPageProps) {\n  const { locale } = await params;\n  redirect(`/${locale}/partners/portal/training-center`);\n}\n"],"names":[],"mappings":";;;;AAAA;AAAA;;AAMe,eAAe,aAAa,EAAE,MAAM,EAAqB;IACtE,MAAM,EAAE,MAAM,EAAE,GAAG,MAAM;IACzB,IAAA,kWAAQ,EAAC,CAAC,CAAC,EAAE,OAAO,gCAAgC,CAAC;AACvD"}}]
+}

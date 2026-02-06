@@ -1,0 +1,3 @@
+{
+  "/api/sovra/documents/[documentId]/verify/route": "app/api/sovra/documents/[documentId]/verify/route.js"
+}

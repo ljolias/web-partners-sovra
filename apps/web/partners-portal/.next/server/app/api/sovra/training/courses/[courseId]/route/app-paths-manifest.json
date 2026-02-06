@@ -1,0 +1,3 @@
+{
+  "/api/sovra/training/courses/[courseId]/route": "app/api/sovra/training/courses/[courseId]/route.js"
+}

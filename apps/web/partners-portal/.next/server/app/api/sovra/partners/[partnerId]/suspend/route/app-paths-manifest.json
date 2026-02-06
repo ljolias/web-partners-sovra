@@ -1,0 +1,3 @@
+{
+  "/api/sovra/partners/[partnerId]/suspend/route": "app/api/sovra/partners/[partnerId]/suspend/route.js"
+}

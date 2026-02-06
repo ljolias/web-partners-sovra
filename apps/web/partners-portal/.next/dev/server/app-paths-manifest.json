@@ -1,0 +1,23 @@
+{
+  "/[locale]/page": "app/[locale]/page.js",
+  "/[locale]/partners/login/page": "app/[locale]/partners/login/page.js",
+  "/[locale]/partners/portal/deals/page": "app/[locale]/partners/portal/deals/page.js",
+  "/[locale]/partners/portal/page": "app/[locale]/partners/portal/page.js",
+  "/[locale]/partners/portal/team/page": "app/[locale]/partners/portal/team/page.js",
+  "/[locale]/partners/portal/training-center/page": "app/[locale]/partners/portal/training-center/page.js",
+  "/[locale]/partners/portal/training/page": "app/[locale]/partners/portal/training/page.js",
+  "/[locale]/sovra/dashboard/page": "app/[locale]/sovra/dashboard/page.js",
+  "/[locale]/sovra/dashboard/training/page": "app/[locale]/sovra/dashboard/training/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/partners/auth/login/route": "app/api/partners/auth/login/route.js",
+  "/api/partners/auth/me/route": "app/api/partners/auth/me/route.js",
+  "/api/partners/certifications/route": "app/api/partners/certifications/route.js",
+  "/api/partners/demo/switch-role/route": "app/api/partners/demo/switch-role/route.js",
+  "/api/partners/legal/route": "app/api/partners/legal/route.js",
+  "/api/partners/team/route": "app/api/partners/team/route.js",
+  "/api/partners/training/modules/[moduleId]/start/route": "app/api/partners/training/modules/[moduleId]/start/route.js",
+  "/api/partners/training/modules/route": "app/api/partners/training/modules/route.js",
+  "/api/partners/training/progress/route": "app/api/partners/training/progress/route.js",
+  "/api/partners/tutor/profile/route": "app/api/partners/tutor/profile/route.js",
+  "/api/sovra/training/courses/route": "app/api/sovra/training/courses/route.js"
+}

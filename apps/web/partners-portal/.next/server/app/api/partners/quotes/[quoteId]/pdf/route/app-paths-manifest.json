@@ -1,0 +1,3 @@
+{
+  "/api/partners/quotes/[quoteId]/pdf/route": "app/api/partners/quotes/[quoteId]/pdf/route.js"
+}

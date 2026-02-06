@@ -1,0 +1,3 @@
+{
+  "/api/sovra/training/courses/[courseId]/unpublish/route": "app/api/sovra/training/courses/[courseId]/unpublish/route.js"
+}

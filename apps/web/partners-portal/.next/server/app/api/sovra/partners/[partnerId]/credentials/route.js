@@ -1,0 +1,11 @@
+var R=require("../../../../../../chunks/[turbopack]_runtime.js")("server/app/api/sovra/partners/[partnerId]/credentials/route.js")
+R.c("server/chunks/[root-of-the-server]__3c7215e6._.js")
+R.c("server/chunks/apps_web_partners-portal_src_lib_redis_operations_ts_54ee2c89._.js")
+R.c("server/chunks/b2b3e_next_e35491d7._.js")
+R.c("server/chunks/[root-of-the-server]__2dcfc09a._.js")
+R.c("server/chunks/apps_web_partners-portal_src_lib_redis_client_ts_86abaab4._.js")
+R.c("server/chunks/[root-of-the-server]__fddcbe4d._.js")
+R.c("server/chunks/apps_web_partners-portal_src_lib_auth_f6985481._.js")
+R.c("server/chunks/537e9_server_app_api_sovra_partners_[partnerId]_credentials_route_actions_d90b4b37.js")
+R.m(15940)
+module.exports=R.m(15940).exports

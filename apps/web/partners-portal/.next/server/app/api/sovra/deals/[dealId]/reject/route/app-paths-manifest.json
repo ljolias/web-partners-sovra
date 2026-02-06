@@ -1,0 +1,3 @@
+{
+  "/api/sovra/deals/[dealId]/reject/route": "app/api/sovra/deals/[dealId]/reject/route.js"
+}
