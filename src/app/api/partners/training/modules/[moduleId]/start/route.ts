@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireSession } from '@/lib/auth';
-import { getTrainingModule, updateTrainingProgress } from '@/lib/redis';
+import { getTrainingModule, updateTrainingProgress, getTrainingCourse } from '@/lib/redis';
 import type { TrainingProgress } from '@/types';
 
 export async function POST(
@@ -11,10 +11,16 @@ export async function POST(
     const { user } = await requireSession();
     const { moduleId } = await params;
 
-    const module = await getTrainingModule(moduleId);
+    // Try to get as a legacy module first
+    let module = await getTrainingModule(moduleId);
 
+    // If not found, try to get as a course (new system)
     if (!module) {
-      return NextResponse.json({ error: 'Module not found' }, { status: 404 });
+      const course = await getTrainingCourse(moduleId);
+      if (!course) {
+        return NextResponse.json({ error: 'Module not found' }, { status: 404 });
+      }
+      // If it's a course, we can still track progress with the same structure
     }
 
     const progress: TrainingProgress = {
