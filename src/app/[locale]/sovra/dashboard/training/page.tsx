@@ -170,15 +170,6 @@ function CourseCard({ course, onEdit, onPublish, onUnpublish, onDelete }: Course
         )}
       </div>
 
-      <div className="flex items-center gap-4 text-sm text-[var(--color-text-secondary)] border-t border-[var(--color-border)] pt-3 mt-3">
-        <div className="flex items-center gap-1">
-          <Users className="w-4 h-4" />
-          <span>{course.completedCount || 0} completados</span>
-        </div>
-        <div className="flex items-center gap-1 text-[var(--color-primary)]">
-          <span>{course.inProgressCount || 0} en progreso</span>
-        </div>
-      </div>
     </div>
   );
 }

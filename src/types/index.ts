@@ -254,9 +254,9 @@ export interface MEDDICScores {
 // Training Types (Legacy module format)
 export interface TrainingModule {
   id: string;
-  title: Record<string, string>; // locale -> title
-  description: Record<string, string>;
-  content: Record<string, string>;
+  title: LocalizedString;
+  description: LocalizedString;
+  content: LocalizedString;
   duration: number; // minutes
   order: number;
   quiz: QuizQuestion[];
@@ -266,14 +266,12 @@ export interface TrainingModule {
 
 export interface QuizQuestion {
   id: string;
-  question: Record<string, string>;
+  question: LocalizedString;
   options: Record<string, string[]>;
   correctAnswer: number;
 }
 
 // Training Course (Admin-managed)
-export type LocalizedString = Record<string, string>; // { en: string, es: string, pt: string }
-
 export interface TrainingCourse {
   id: string;
 
@@ -706,6 +704,7 @@ export interface LocalizedString {
   es?: string;
   en?: string;
   pt?: string;
+  [key: string]: string | undefined;
 }
 
 export type ModuleType = 'video' | 'reading' | 'quiz' | 'download';

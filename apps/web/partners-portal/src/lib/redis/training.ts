@@ -854,6 +854,7 @@ export async function calculateAverageCompletion(): Promise<number> {
 
   // Get enrollment and completion counts for all courses
   for (const course of publishedCourses) {
+    if (!course.id) continue;
     pipeline.scard(courseEnrollments(course.id));
     pipeline.scard(courseCompletions(course.id));
   }
@@ -910,6 +911,7 @@ export async function getTrainingOverviewMetrics(): Promise<TrainingOverviewMetr
   if (allCourses.length > 0) {
     const pipeline = redis.pipeline();
     for (const course of allCourses) {
+      if (!course.id) continue;
       pipeline.scard(courseEnrollments(course.id));
     }
     const enrollmentResults = await pipeline.exec();

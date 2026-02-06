@@ -123,9 +123,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         url: uploadResult.url,
-        filename: uploadResult.filename,
-        size: uploadResult.size,
-        type: uploadResult.type,
+        pathname: uploadResult.pathname,
+        contentType: uploadResult.contentType,
+        contentDisposition: uploadResult.contentDisposition,
       },
       { status: 200 }
     );

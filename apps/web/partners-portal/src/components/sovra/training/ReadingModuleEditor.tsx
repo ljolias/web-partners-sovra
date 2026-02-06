@@ -69,7 +69,7 @@ function calculateReadingTime(content: LocalizedString): number {
   const strippedText = text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
 
   // Count words
-  const wordCount = strippedText.split(' ').filter(word => word.length > 0).length;
+  const wordCount = strippedText.split(' ').filter((word: string) => word.length > 0).length;
 
   // Calculate minutes (minimum 1 minute)
   return Math.max(1, Math.ceil(wordCount / WORDS_PER_MINUTE));

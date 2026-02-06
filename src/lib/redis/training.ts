@@ -1159,7 +1159,7 @@ export async function getAllEnhancedCourses(): Promise<EnhancedTrainingCourse[]>
     title: course.title,
     description: course.description,
     category: mapCategoryToEnhanced(course.category),
-    difficulty: mapLevelToDifficulty(course.level),
+    level: mapLevelToDifficulty(course.level),
     estimatedHours: Math.ceil(course.duration / 60),
     modules: course.modules.map((m) => ({
       id: m.id,
@@ -1204,20 +1204,13 @@ export async function getEnhancedCoursesByStatus(
 // Helper functions for mapping types
 function mapCategoryToEnhanced(
   category: 'sales' | 'technical' | 'legal' | 'product'
-): 'sales_training' | 'technical_training' | 'legal_compliance' | 'product_mastery' {
-  const map = {
-    sales: 'sales_training',
-    technical: 'technical_training',
-    legal: 'legal_compliance',
-    product: 'product_mastery',
-  } as const;
-  return map[category] || 'sales_training';
+): 'sales' | 'technical' | 'legal' | 'product' {
+  return category;
 }
 
 function mapLevelToDifficulty(
   level: 'basic' | 'intermediate' | 'advanced'
-): 'beginner' | 'intermediate' | 'advanced' {
-  if (level === 'basic') return 'beginner';
+): 'basic' | 'intermediate' | 'advanced' {
   return level;
 }
 
