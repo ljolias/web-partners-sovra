@@ -292,11 +292,11 @@ export async function getUserCourseProgress(
     courseId,
     status: (data.status as EnhancedTrainingProgress['status']) || 'not_started',
     moduleProgress: safeParseJSON(data.moduleProgress as string, []),
-    overallScore: safeParseNumber(data.overallScore),
+    overallScore: safeParseNumber(data.overallScore as string | number | null | undefined),
     startedAt: (data.startedAt as string) || '',
     completedAt: data.completedAt as string | undefined,
     lastAccessedAt: (data.lastAccessedAt as string) || '',
-    totalTimeSpentMinutes: safeParseNumber(data.totalTimeSpentMinutes),
+    totalTimeSpentMinutes: safeParseNumber(data.totalTimeSpentMinutes as string | number | null | undefined),
     certificateId: data.certificateId as string | undefined,
     certificateIssuedAt: data.certificateIssuedAt as string | undefined,
   };
