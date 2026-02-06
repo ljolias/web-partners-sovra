@@ -12,6 +12,8 @@ import {
   Loader2,
 } from 'lucide-react';
 import { ModuleListEditor } from './ModuleListEditor';
+import { ModuleTypeSelectorModal } from './ModuleTypeSelectorModal';
+import { ModuleEditorModal } from './ModuleEditorModal';
 import type {
   EnhancedTrainingCourse,
   EnhancedCourseModule,
@@ -106,6 +108,8 @@ export function CourseEditorModal({
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [activeTab, setActiveTab] = useState<TabType>('details');
   const [apiError, setApiError] = useState<string | null>(null);
+  const [showModuleTypeSelector, setShowModuleTypeSelector] = useState(false);
+  const [editingModuleId, setEditingModuleId] = useState<string | null>(null);
 
   // ============================================
   // Data Fetching
@@ -223,13 +227,14 @@ export function CourseEditorModal({
   };
 
   const handleAddModule = () => {
-    // TODO: Open module editor modal
-    console.log('[CourseEditorModal] Add module clicked - placeholder');
-    // For now, add a placeholder module
+    setShowModuleTypeSelector(true);
+  };
+
+  const handleModuleTypeSelected = (type: EnhancedCourseModule['type']) => {
     const newModule: EnhancedCourseModule = {
       id: `module_${Date.now()}`,
       title: { es: 'Nuevo Modulo', en: '', pt: '' },
-      type: 'reading',
+      type,
       duration: 15,
       order: (course.modules?.length || 0) + 1,
     };
@@ -237,11 +242,21 @@ export function CourseEditorModal({
       ...prev,
       modules: [...(prev.modules || []), newModule],
     }));
+    setEditingModuleId(newModule.id);
   };
 
   const handleEditModule = (moduleId: string) => {
-    // TODO: Open module editor modal with existing module data
-    console.log('[CourseEditorModal] Edit module clicked:', moduleId);
+    setEditingModuleId(moduleId);
+  };
+
+  const handleModuleSave = (updatedModule: EnhancedCourseModule) => {
+    setCourse((prev) => ({
+      ...prev,
+      modules: (prev.modules || []).map((m) =>
+        m.id === updatedModule.id ? updatedModule : m
+      ),
+    }));
+    setEditingModuleId(null);
   };
 
   const handleDeleteModule = (moduleId: string) => {
@@ -727,6 +742,26 @@ export function CourseEditorModal({
           </div>
         </motion.div>
       </motion.div>
+
+      {/* Module Type Selector */}
+      <ModuleTypeSelectorModal
+        isOpen={showModuleTypeSelector}
+        onClose={() => setShowModuleTypeSelector(false)}
+        onSelect={handleModuleTypeSelected}
+      />
+
+      {/* Module Editor */}
+      {editingModuleId && (
+        <ModuleEditorModal
+          isOpen={!!editingModuleId}
+          onClose={() => setEditingModuleId(null)}
+          onSave={handleModuleSave}
+          module={
+            course.modules?.find((m) => m.id === editingModuleId) ||
+            ({} as EnhancedCourseModule)
+          }
+        />
+      )}
     </AnimatePresence>
   );
 }
