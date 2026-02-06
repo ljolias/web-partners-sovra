@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
-import { GraduationCap, Award, Calendar, CheckCircle } from 'lucide-react';
+import { GraduationCap, Award, Calendar, CheckCircle, ChevronLeft } from 'lucide-react';
 import { TrainingModules } from './TrainingModules';
+import { ModuleContentView } from './ModuleContentView';
 import { QuizModal } from './QuizModal';
-import { Card, CardContent, Badge, SovraLoader } from '@/components/ui';
+import { Card, CardContent, Badge, SovraLoader, Button } from '@/components/ui';
 import { cn, formatDate } from '@/lib/utils';
 import type { TrainingModule, TrainingProgress, Certification, CertificationType } from '@/types';
 
@@ -24,6 +25,7 @@ export function TrainingCenterView({ locale }: TrainingCenterViewProps) {
   const [progress, setProgress] = useState<Record<string, TrainingProgress>>({});
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [viewingModule, setViewingModule] = useState<TrainingModule | null>(null);
   const [quizModule, setQuizModule] = useState<TrainingModule | null>(null);
 
   useEffect(() => {
@@ -80,7 +82,8 @@ export function TrainingCenterView({ locale }: TrainingCenterViewProps) {
 
         const module = modules.find((m) => m.id === moduleId);
         if (module) {
-          setQuizModule(module);
+          // Show module content view instead of quiz
+          setViewingModule(module);
         }
       } else {
         const error = await res.json();
@@ -90,6 +93,19 @@ export function TrainingCenterView({ locale }: TrainingCenterViewProps) {
     } catch (error) {
       console.error('Failed to start module:', error);
       alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const handleModuleContentCompleted = () => {
+    // Module content marked as complete, now offer quiz
+    if (viewingModule && viewingModule.quiz && viewingModule.quiz.length > 0) {
+      // User will click "Take Quiz" button in ModuleContentView
+    }
+  };
+
+  const handleTakeQuizFromContent = () => {
+    if (viewingModule) {
+      setQuizModule(viewingModule);
     }
   };
 
@@ -314,6 +330,39 @@ export function TrainingCenterView({ locale }: TrainingCenterViewProps) {
             </div>
           )}
         </div>
+      )}
+
+      {/* Module Content View Modal */}
+      {viewingModule && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-40 bg-black/50 flex items-center justify-center p-4"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto"
+          >
+            <div className="p-6 space-y-6">
+              <button
+                onClick={() => setViewingModule(null)}
+                className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-4"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Back to Modules
+              </button>
+
+              <ModuleContentView
+                module={viewingModule}
+                locale={locale}
+                onCompleted={handleModuleContentCompleted}
+                onTakeQuiz={handleTakeQuizFromContent}
+              />
+            </div>
+          </motion.div>
+        </motion.div>
       )}
 
       {quizModule && (
