@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     const sanitizedCategory = category.replace(/[^a-zA-Z0-9-_]/g, '-');
 
     // Step 6: Validate file
-    const validation = validateFile(file.name, file.type, file.size, MAX_FILE_SIZE);
+    const validation = validateFile(file.name, file.type, file.size);
 
     if (!validation.valid) {
       return NextResponse.json(

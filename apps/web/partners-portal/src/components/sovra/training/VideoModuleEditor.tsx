@@ -120,7 +120,6 @@ export function VideoModuleEditor({
     onChange({
       ...module,
       videoUrl: url,
-      videoPlatform: 'youtube',
     });
   };
 

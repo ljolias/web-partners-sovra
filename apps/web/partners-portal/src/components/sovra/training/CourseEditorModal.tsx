@@ -44,14 +44,14 @@ interface ValidationErrors {
 // ============================================
 
 const CATEGORY_OPTIONS: Array<{ value: EnhancedCourseCategory; label: string }> = [
-  { value: 'sales_training', label: 'Capacitacion en Ventas' },
-  { value: 'technical_training', label: 'Capacitacion Tecnica' },
-  { value: 'legal_compliance', label: 'Cumplimiento Legal' },
-  { value: 'product_mastery', label: 'Dominio del Producto' },
+  { value: 'sales', label: 'Ventas' },
+  { value: 'technical', label: 'Tecnico' },
+  { value: 'legal', label: 'Legal' },
+  { value: 'product', label: 'Producto' },
 ];
 
 const DIFFICULTY_OPTIONS: Array<{ value: CourseDifficulty; label: string }> = [
-  { value: 'beginner', label: 'Principiante' },
+  { value: 'basic', label: 'Basico' },
   { value: 'intermediate', label: 'Intermedio' },
   { value: 'advanced', label: 'Avanzado' },
 ];
@@ -75,8 +75,8 @@ const TAB_CONFIG: Array<{ id: TabType; label: string; icon: React.ReactNode }> =
 const getInitialCourseState = (): Partial<EnhancedTrainingCourse> => ({
   title: { es: '', en: '', pt: '' },
   description: { es: '', en: '', pt: '' },
-  category: 'sales_training',
-  difficulty: 'beginner',
+  category: 'sales',
+  level: 'basic',
   estimatedHours: 1,
   modules: [],
   hasCertification: false,
@@ -176,8 +176,8 @@ export function CourseEditorModal({
     setCourse((prev) => ({ ...prev, category: e.target.value as EnhancedCourseCategory }));
   };
 
-  const handleDifficultyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCourse((prev) => ({ ...prev, difficulty: e.target.value as CourseDifficulty }));
+  const handleLevelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCourse((prev) => ({ ...prev, level: e.target.value as CourseDifficulty }));
   };
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -491,8 +491,8 @@ export function CourseEditorModal({
                       <div>
                         <label className={labelClasses}>Dificultad</label>
                         <select
-                          value={course.difficulty || 'beginner'}
-                          onChange={handleDifficultyChange}
+                          value={course.level || 'basic'}
+                          onChange={handleLevelChange}
                           className={inputClasses}
                         >
                           {DIFFICULTY_OPTIONS.map((opt) => (

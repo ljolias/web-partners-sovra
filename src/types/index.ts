@@ -742,10 +742,10 @@ export interface EnhancedTrainingCourse {
   status: CourseStatus;
   passingScore: number;
   certification?: {
-    credentialName: string;
-    credentialDescription: string;
-    issuerName: string;
-    issuerEmail: string;
+    credentialName?: string;
+    credentialDescription?: string;
+    issuerName?: string;
+    issuerEmail?: string;
   };
   createdAt?: string;
   updatedAt?: string;
