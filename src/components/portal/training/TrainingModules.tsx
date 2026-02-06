@@ -111,14 +111,10 @@ export function TrainingModules({
                         <CheckCircle className="mr-1 h-3 w-3" />
                         {t('module.quizPassed')}
                       </Badge>
-                    ) : hasStarted ? (
-                      <Button size="sm" onClick={() => onTakeQuiz(module.id)}>
-                        {t('module.quiz')}
-                      </Button>
                     ) : (
                       <Button size="sm" onClick={() => onStartModule(module.id)}>
                         <Play className="mr-1 h-4 w-4" />
-                        {t('module.start')}
+                        {hasStarted ? 'Ver Contenido' : t('module.start')}
                       </Button>
                     )}
                   </div>
