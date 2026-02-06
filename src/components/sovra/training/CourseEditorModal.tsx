@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -12,7 +11,6 @@ import {
   Settings,
   Loader2,
 } from 'lucide-react';
-import { MultiLangInput } from './MultiLangInput';
 import { ModuleListEditor } from './ModuleListEditor';
 import type {
   EnhancedTrainingCourse,
@@ -101,9 +99,6 @@ export function CourseEditorModal({
   onSuccess,
   courseId,
 }: CourseEditorModalProps) {
-  const params = useParams();
-  const currentLocale = (params.locale as string || 'es') as 'es' | 'en' | 'pt';
-
   // State
   const [course, setCourse] = useState<Partial<EnhancedTrainingCourse>>(getInitialCourseState());
   const [loading, setLoading] = useState(false);
@@ -448,27 +443,38 @@ export function CourseEditorModal({
                     className="space-y-6"
                   >
                     {/* Title */}
-                    <MultiLangInput
-                      label="Titulo del Curso"
-                      value={course.title || { es: '', en: '', pt: '' }}
-                      onChange={handleTitleChange}
-                      required
-                      currentLocale={currentLocale}
-                      placeholder={{ es: 'Fundamentos de Ventas', en: 'Sales Fundamentals', pt: 'Fundamentos de Vendas' }}
-                      error={errors['title.es']}
-                    />
+                    <div>
+                      <label className={labelClasses}>
+                        Titulo del Curso <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={course.title?.es || ''}
+                        onChange={(e) => handleTitleChange({ ...course.title, es: e.target.value })}
+                        placeholder="Fundamentos de Ventas"
+                        className={inputClasses}
+                      />
+                      {errors['title.es'] && (
+                        <p className="text-sm text-red-500 mt-1">{errors['title.es']}</p>
+                      )}
+                    </div>
 
                     {/* Description */}
-                    <MultiLangInput
-                      label="Descripcion"
-                      value={course.description || { es: '', en: '', pt: '' }}
-                      onChange={handleDescriptionChange}
-                      required
-                      type="textarea"
-                      currentLocale={currentLocale}
-                      placeholder={{ es: 'Descripcion del curso...', en: 'Course description...', pt: 'Descricao do curso...' }}
-                      error={errors['description.es']}
-                    />
+                    <div>
+                      <label className={labelClasses}>
+                        Descripcion <span className="text-red-500">*</span>
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={course.description?.es || ''}
+                        onChange={(e) => handleDescriptionChange({ ...course.description, es: e.target.value })}
+                        placeholder="Descripcion del curso..."
+                        className={inputClasses + ' resize-none'}
+                      />
+                      {errors['description.es'] && (
+                        <p className="text-sm text-red-500 mt-1">{errors['description.es']}</p>
+                      )}
+                    </div>
 
                     {/* Category & Difficulty */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
