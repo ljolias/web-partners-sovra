@@ -487,10 +487,11 @@ export async function getEnrollmentTimeSeries(
   const endTimestamp = end.getTime() + 24 * 60 * 60 * 1000 - 1; // End of day
 
   // Get entries from sorted set within timestamp range
-  const entries = await redis.zrangebyscore(
+  const entries = await redis.zrange(
     ENROLLMENT_TIMESERIES,
     startTimestamp,
-    endTimestamp
+    endTimestamp,
+    { byScore: true }
   );
 
   // Group by date
@@ -553,10 +554,11 @@ export async function getCompletionTimeSeries(
   const startTimestamp = start.getTime();
   const endTimestamp = end.getTime() + 24 * 60 * 60 * 1000 - 1;
 
-  const entries = await redis.zrangebyscore(
+  const entries = await redis.zrange(
     COMPLETION_TIMESERIES,
     startTimestamp,
-    endTimestamp
+    endTimestamp,
+    { byScore: true }
   );
 
   const dateMap = new Map<string, number>();
