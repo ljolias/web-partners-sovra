@@ -46,11 +46,11 @@ export async function GET() {
         title: course.title,
         description: course.description,
         content: course.description, // Use description as content for now
-        duration: totalDuration || course.estimatedHours * 60 || 30,
+        duration: totalDuration || 30,
         order: course.order || 0,
         quiz: quizQuestions,
         passingScore: course.passingScore || 70,
-        createdAt: course.createdAt || new Date().toISOString(),
+        createdAt: course.createdAt,
       };
     });
 
