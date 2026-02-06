@@ -25,9 +25,17 @@ export function ModuleContentView({
   const moduleDescription = (module.description?.[locale as keyof typeof module.description] || module.description?.en) as string;
   const moduleContent = (module.content?.[locale as keyof typeof module.content] || module.content?.en) as string;
 
-  // Determine module type from ID or content
-  const isVideo = moduleContent?.includes('youtube') || moduleContent?.includes('watch?v=');
-  const isDocument = !isVideo;
+  // Check if this is a video module
+  const isVideo = !!(module as any).videoUrl || moduleContent?.includes('youtube') || moduleContent?.includes('watch?v=');
+  const videoUrl = (module as any).videoUrl || moduleContent;
+
+  // Extract video ID from YouTube URL
+  const getYouTubeEmbedUrl = (url: string) => {
+    if (!url) return '';
+    const videoIdMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+    const videoId = videoIdMatch?.[1];
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+  };
 
   const handleComplete = () => {
     setWatched(true);
@@ -53,19 +61,38 @@ export function ModuleContentView({
       </div>
 
       {/* Content */}
-      <div className="bg-gray-50 rounded-lg p-8 text-center">
+      <div className="bg-gray-50 rounded-lg p-8">
         {isVideo ? (
           <div className="space-y-4">
-            <Play className="h-16 w-16 mx-auto text-gray-400" />
-            <h3 className="text-lg font-medium text-gray-900">Video Content</h3>
-            <p className="text-gray-600 max-w-md mx-auto">{moduleContent}</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Video Content</h3>
+            {videoUrl ? (
+              <div className="w-full aspect-video rounded-lg overflow-hidden bg-black">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src={getYouTubeEmbedUrl(videoUrl)}
+                  title={moduleTitle}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Play className="h-16 w-16 mx-auto text-gray-400 mb-2" />
+                <p className="text-gray-600">Video URL not available</p>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
-            <FileText className="h-16 w-16 mx-auto text-gray-400" />
-            <h3 className="text-lg font-medium text-gray-900">Reading Material</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Reading Material</h3>
             <div className="max-w-2xl mx-auto text-left bg-white p-6 rounded-lg">
-              <div dangerouslySetInnerHTML={{ __html: moduleContent }} />
+              {moduleContent ? (
+                <div dangerouslySetInnerHTML={{ __html: moduleContent }} />
+              ) : (
+                <p className="text-gray-500">No content available</p>
+              )}
             </div>
           </div>
         )}
