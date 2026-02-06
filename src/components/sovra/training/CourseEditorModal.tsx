@@ -750,15 +750,19 @@ export function CourseEditorModal({
       </motion.div>
 
       {/* Module Type Selector */}
-      <ModuleTypeSelectorModal
-        isOpen={showModuleTypeSelector}
-        onClose={() => setShowModuleTypeSelector(false)}
-        onSelect={handleModuleTypeSelected}
-      />
+      {showModuleTypeSelector && (
+        <ModuleTypeSelectorModal
+          key="module-type-selector"
+          isOpen={showModuleTypeSelector}
+          onClose={() => setShowModuleTypeSelector(false)}
+          onSelect={handleModuleTypeSelected}
+        />
+      )}
 
       {/* Module Editor */}
       {editingModuleId && editingModule && (
         <ModuleEditorModal
+          key={`module-editor-${editingModuleId}`}
           isOpen={!!editingModuleId}
           onClose={() => {
             setEditingModuleId(null);
