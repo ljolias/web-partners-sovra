@@ -2,7 +2,6 @@
 
 import { LocalizedString } from '@/types';
 import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
 
 interface MultiLangInputProps {
   label: string;
@@ -25,8 +24,6 @@ export function MultiLangInput({
 }: MultiLangInputProps) {
   const [expanded, setExpanded] = useState(false);
 
-  const baseInputClasses = 'w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] focus:border-[var(--color-primary)] focus:outline-none transition-colors';
-
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-[var(--color-text-primary)]">
@@ -37,18 +34,18 @@ export function MultiLangInput({
       {type === 'text' ? (
         <input
           type="text"
-          value={value.es || ''}
+          value={value?.es || ''}
           onChange={(e) => onChange({ ...value, es: e.target.value })}
           placeholder={placeholder?.es || `${label} (ES)`}
-          className={baseInputClasses}
+          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
         />
       ) : (
         <textarea
-          value={value.es || ''}
+          value={value?.es || ''}
           onChange={(e) => onChange({ ...value, es: e.target.value })}
           placeholder={placeholder?.es || `${label} (ES)`}
           rows={3}
-          className={baseInputClasses}
+          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
         />
       )}
 
@@ -56,10 +53,9 @@ export function MultiLangInput({
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
-        className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors flex items-center gap-1"
+        className="text-xs text-[var(--color-primary)] hover:underline"
       >
-        {expanded ? '- Ocultar traducciones' : '+ Agregar EN/PT (opcional)'}
-        {expanded && <ChevronDown className="w-3 h-3 rotate-180" />}
+        {expanded ? '✕ Ocultar traducciones' : '+ Agregar EN/PT'}
       </button>
 
       {/* English y Português (expandible) */}
@@ -69,34 +65,34 @@ export function MultiLangInput({
             <>
               <input
                 type="text"
-                value={value.en || ''}
+                value={value?.en || ''}
                 onChange={(e) => onChange({ ...value, en: e.target.value })}
                 placeholder={placeholder?.en || `${label} (EN)`}
-                className={baseInputClasses}
+                className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
               />
               <input
                 type="text"
-                value={value.pt || ''}
+                value={value?.pt || ''}
                 onChange={(e) => onChange({ ...value, pt: e.target.value })}
                 placeholder={placeholder?.pt || `${label} (PT)`}
-                className={baseInputClasses}
+                className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
               />
             </>
           ) : (
             <>
               <textarea
-                value={value.en || ''}
+                value={value?.en || ''}
                 onChange={(e) => onChange({ ...value, en: e.target.value })}
                 placeholder={placeholder?.en || `${label} (EN)`}
                 rows={3}
-                className={baseInputClasses}
+                className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
               />
               <textarea
-                value={value.pt || ''}
+                value={value?.pt || ''}
                 onChange={(e) => onChange({ ...value, pt: e.target.value })}
                 placeholder={placeholder?.pt || `${label} (PT)`}
                 rows={3}
-                className={baseInputClasses}
+                className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
               />
             </>
           )}

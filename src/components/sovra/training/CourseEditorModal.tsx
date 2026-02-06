@@ -423,7 +423,7 @@ export function CourseEditorModal({
           </div>
 
           {/* Content */}
-          <div className="p-6 overflow-y-auto max-h-[calc(90vh-220px)]">
+          <div className="p-6 overflow-y-auto max-h-[calc(90vh-220px)] bg-[var(--color-bg)]">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="w-8 h-8 text-[var(--color-primary)] animate-spin" />
