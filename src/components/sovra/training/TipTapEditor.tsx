@@ -49,16 +49,7 @@ export function TipTapEditor({
     },
     editorProps: {
       attributes: {
-        class: `prose prose-sm max-w-none w-full focus:outline-none px-3 py-2 min-h-[200px] text-[var(--color-text-primary)] bg-[var(--color-surface)]
-          [&_.ProseMirror]:text-[var(--color-text-primary)]
-          [&_.ProseMirror_p]:my-2
-          [&_.ProseMirror_h2]:text-xl [&_.ProseMirror_h2]:font-bold [&_.ProseMirror_h2]:my-3
-          [&_.ProseMirror_h3]:text-lg [&_.ProseMirror_h3]:font-bold [&_.ProseMirror_h3]:my-2
-          [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:ml-4
-          [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:ml-4
-          [&_.ProseMirror_code]:bg-[var(--color-border)] [&_.ProseMirror_code]:px-1 [&_.ProseMirror_code]:rounded
-          [&_.ProseMirror_a]:text-[var(--color-primary)] [&_.ProseMirror_a]:underline
-          [&_.ProseMirror_pre]:bg-[var(--color-border)] [&_.ProseMirror_pre]:p-3 [&_.ProseMirror_pre]:rounded`,
+        class: 'prose prose-sm max-w-none w-full focus:outline-none px-3 py-2 min-h-[200px] text-[var(--color-text-primary)] bg-[var(--color-surface)] [&_.ProseMirror]:text-[var(--color-text-primary)] [&_.ProseMirror_p]:my-2 [&_.ProseMirror_h2]:text-xl [&_.ProseMirror_h2]:font-bold [&_.ProseMirror_h2]:my-3 [&_.ProseMirror_h3]:text-lg [&_.ProseMirror_h3]:font-bold [&_.ProseMirror_h3]:my-2 [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:ml-4 [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:ml-4 [&_.ProseMirror_code]:bg-[var(--color-border)] [&_.ProseMirror_code]:px-1 [&_.ProseMirror_code]:rounded [&_.ProseMirror_a]:text-[var(--color-primary)] [&_.ProseMirror_a]:underline [&_.ProseMirror_pre]:bg-[var(--color-border)] [&_.ProseMirror_pre]:p-3 [&_.ProseMirror_pre]:rounded',
       },
     },
   });
