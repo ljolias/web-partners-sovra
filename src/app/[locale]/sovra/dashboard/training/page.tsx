@@ -50,11 +50,23 @@ function CourseCard({ course, onEdit, onPublish, onUnpublish, onDelete }: Course
   const category = categoryConfig[course.category];
   const level = levelConfig[course.level];
 
-  // Count module types
+  // Count lesson types across all modules
+  let videoCount = 0;
+  let readingCount = 0;
+  let quizCount = 0;
+
+  for (const module of course.modules || []) {
+    for (const lesson of module.lessons || []) {
+      if (lesson.type === 'video') videoCount++;
+      if (lesson.type === 'reading') readingCount++;
+    }
+    if (module.quiz && module.quiz.length > 0) quizCount++;
+  }
+
   const moduleTypes = {
-    video: course.modules?.filter((m) => m.type === 'video').length || 0,
-    document: course.modules?.filter((m) => m.type === 'document').length || 0,
-    quiz: course.modules?.filter((m) => m.type === 'quiz').length || 0,
+    video: videoCount,
+    document: readingCount,
+    quiz: quizCount,
   };
 
   return (

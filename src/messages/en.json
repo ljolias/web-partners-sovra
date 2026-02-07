@@ -546,6 +546,7 @@
     "progress": "Progress",
     "page_description": "Track your achievements and progress toward the next tier. Earn points by completing key milestones and bonus activities.",
     "your_tier": "Your Current Tier",
+    "tier": "Your Tier: {tier}",
     "total_points": "{points} total points",
     "benefits": "Your Benefits",
     "tier_roadmap": "Tier Progression",

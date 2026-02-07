@@ -1161,22 +1161,40 @@ export async function getAllEnhancedCourses(): Promise<EnhancedTrainingCourse[]>
     category: mapCategoryToEnhanced(course.category),
     level: mapLevelToDifficulty(course.level),
     estimatedHours: Math.ceil(course.duration / 60),
-    modules: course.modules.map((m) => ({
-      id: m.id,
-      title: m.title,
-      type: mapModuleType(m.type),
-      duration: m.duration,
-      order: m.order,
-      videoUrl: m.videoUrl,
-      content: m.documentUrl ? { en: m.documentUrl } : undefined,
-      questions: m.quiz?.map((q) => ({
-        id: q.id,
-        question: q.question,
-        options: q.options,
-        correctAnswer: q.correctAnswer,
-      })),
-      passingScore: course.passingScore,
-    })),
+    modules: course.modules.map((m) => {
+      // Get first lesson's type if it exists, otherwise 'quiz' if module has quiz
+      let type: 'video' | 'reading' | 'quiz' | 'download' = 'reading';
+      let videoUrl: string | undefined;
+      let content: { en: string } | undefined;
+
+      if (m.lessons && m.lessons.length > 0) {
+        const firstLesson = m.lessons[0];
+        type = firstLesson.type === 'video' ? 'video' : firstLesson.type === 'download' ? 'download' : 'reading';
+        videoUrl = firstLesson.videoUrl;
+        if (firstLesson.content) {
+          content = { en: typeof firstLesson.content === 'string' ? firstLesson.content : firstLesson.content.en || '' };
+        }
+      } else if (m.quiz && m.quiz.length > 0) {
+        type = 'quiz';
+      }
+
+      return {
+        id: m.id,
+        title: m.title,
+        type,
+        duration: m.duration || 30,
+        order: m.order,
+        videoUrl,
+        content,
+        questions: m.quiz?.map((q) => ({
+          id: q.id,
+          question: q.question,
+          options: q.options,
+          correctAnswer: q.correctAnswer,
+        })),
+        passingScore: m.passingScore || course.passingScore,
+      };
+    }),
     hasCertification: course.certificateEnabled,
     certification: course.certificateEnabled
       ? {

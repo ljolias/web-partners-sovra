@@ -11,16 +11,15 @@ import {
   Settings,
   Loader2,
 } from 'lucide-react';
-import { ModuleListEditor } from './ModuleListEditor';
-import { ModuleTypeSelectorModal } from './ModuleTypeSelectorModal';
+import { MultiLangInput } from './MultiLangInput';
 import { ModuleEditorModal } from './ModuleEditorModal';
+import { ModuleListDisplay } from './ModuleListDisplay';
 import type {
-  EnhancedTrainingCourse,
-  EnhancedCourseModule,
+  TrainingCourse,
+  CourseModule,
   LocalizedString,
-  EnhancedCourseCategory,
-  CourseDifficulty,
-  CourseStatus,
+  CourseCategory,
+  CourseLevel,
 } from '@/types';
 
 // ============================================
@@ -34,7 +33,7 @@ interface CourseEditorModalProps {
   courseId?: string; // Optional - for editing existing course
 }
 
-type TabType = 'details' | 'modules' | 'certification';
+type TabType = 'details' | 'modules';
 
 interface ValidationErrors {
   [key: string]: string;
@@ -44,51 +43,40 @@ interface ValidationErrors {
 // Constants
 // ============================================
 
-const CATEGORY_OPTIONS: Array<{ value: EnhancedCourseCategory; label: string }> = [
-  { value: 'sales' as EnhancedCourseCategory, label: 'Ventas' },
-  { value: 'technical' as EnhancedCourseCategory, label: 'Tecnico' },
-  { value: 'legal' as EnhancedCourseCategory, label: 'Legal' },
-  { value: 'product' as EnhancedCourseCategory, label: 'Producto' },
+const CATEGORY_OPTIONS: Array<{ value: CourseCategory; label: string }> = [
+  { value: 'sales', label: 'Ventas' },
+  { value: 'technical', label: 'Técnico' },
+  { value: 'legal', label: 'Legal' },
+  { value: 'product', label: 'Producto' },
 ];
 
-const LEVEL_OPTIONS: Array<{ value: string; label: string }> = [
-  { value: 'basic', label: 'Basico' },
+const LEVEL_OPTIONS: Array<{ value: CourseLevel; label: string }> = [
+  { value: 'basic', label: 'Básico' },
   { value: 'intermediate', label: 'Intermedio' },
   { value: 'advanced', label: 'Avanzado' },
 ];
 
-const STATUS_OPTIONS: Array<{ value: CourseStatus; label: string }> = [
-  { value: 'draft', label: 'Borrador' },
-  { value: 'published', label: 'Publicado' },
-  { value: 'archived', label: 'Archivado' },
-];
-
 const TAB_CONFIG: Array<{ id: TabType; label: string; icon: React.ReactNode }> = [
   { id: 'details', label: 'Detalles', icon: <Settings className="w-4 h-4" /> },
-  { id: 'modules', label: 'Modulos', icon: <BookOpen className="w-4 h-4" /> },
-  { id: 'certification', label: 'Certificacion', icon: <Award className="w-4 h-4" /> },
+  { id: 'modules', label: 'Módulos', icon: <BookOpen className="w-4 h-4" /> },
 ];
 
 // ============================================
 // Initial State
 // ============================================
 
-const getInitialCourseState = (): Partial<EnhancedTrainingCourse> => ({
+const getInitialCourseState = (): Partial<TrainingCourse> => ({
   title: { es: '', en: '', pt: '' },
   description: { es: '', en: '', pt: '' },
-  category: 'sales' as EnhancedCourseCategory,
-  level: 'basic' as CourseDifficulty,
-  estimatedHours: 1,
+  category: 'sales',
+  level: 'basic',
+  duration: 60,
   modules: [],
-  hasCertification: false,
-  status: 'draft',
+  isPublished: false,
+  isRequired: false,
   passingScore: 70,
-  certification: {
-    credentialName: '',
-    credentialDescription: '',
-    issuerName: '',
-    issuerEmail: '',
-  },
+  certificateEnabled: false,
+  order: 1,
 });
 
 // ============================================
@@ -102,15 +90,16 @@ export function CourseEditorModal({
   courseId,
 }: CourseEditorModalProps) {
   // State
-  const [course, setCourse] = useState<Partial<EnhancedTrainingCourse>>(getInitialCourseState());
+  const [course, setCourse] = useState<Partial<TrainingCourse>>(getInitialCourseState());
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [activeTab, setActiveTab] = useState<TabType>('details');
   const [apiError, setApiError] = useState<string | null>(null);
-  const [showModuleTypeSelector, setShowModuleTypeSelector] = useState(false);
-  const [editingModuleId, setEditingModuleId] = useState<string | null>(null);
-  const [editingModule, setEditingModule] = useState<EnhancedCourseModule | null>(null);
+
+  // Module editor modal state
+  const [isModuleEditorOpen, setIsModuleEditorOpen] = useState(false);
+  const [editingModule, setEditingModule] = useState<CourseModule | undefined>(undefined);
 
   // ============================================
   // Data Fetching
@@ -177,20 +166,24 @@ export function CourseEditorModal({
   };
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCourse((prev) => ({ ...prev, category: e.target.value as EnhancedCourseCategory }));
+    setCourse((prev) => ({ ...prev, category: e.target.value as CourseCategory }));
   };
 
   const handleLevelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCourse((prev) => ({ ...prev, level: e.target.value as CourseDifficulty }));
+    setCourse((prev) => ({ ...prev, level: e.target.value as CourseLevel }));
   };
 
-  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCourse((prev) => ({ ...prev, status: e.target.value as CourseStatus }));
+  const handleIsPublishedChange = () => {
+    setCourse((prev) => ({ ...prev, isPublished: !prev.isPublished }));
   };
 
-  const handleEstimatedHoursChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Math.max(1, Math.min(100, parseInt(e.target.value) || 1));
-    setCourse((prev) => ({ ...prev, estimatedHours: value }));
+  const handleIsRequiredChange = () => {
+    setCourse((prev) => ({ ...prev, isRequired: !prev.isRequired }));
+  };
+
+  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Math.max(1, Math.min(500, parseInt(e.target.value) || 1));
+    setCourse((prev) => ({ ...prev, duration: value }));
   };
 
   const handlePassingScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,71 +191,29 @@ export function CourseEditorModal({
     setCourse((prev) => ({ ...prev, passingScore: value }));
   };
 
-  const handleCertificationToggle = () => {
-    setCourse((prev) => ({ ...prev, hasCertification: !prev.hasCertification }));
-  };
-
-  const handleCertificationFieldChange = (field: string, value: string) => {
-    setCourse((prev) => ({
-      ...prev,
-      certification: {
-        ...prev.certification,
-        [field]: value,
-      },
-    }));
-    if (errors[`certification.${field}`]) {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[`certification.${field}`];
-        return newErrors;
-      });
-    }
+  const handleCertificateToggle = () => {
+    setCourse((prev) => ({ ...prev, certificateEnabled: !prev.certificateEnabled }));
   };
 
   // ============================================
   // Module Handlers
   // ============================================
 
-  const handleModulesChange = (modules: EnhancedCourseModule[]) => {
+  const handleModulesChange = (modules: CourseModule[]) => {
     setCourse((prev) => ({ ...prev, modules }));
   };
 
   const handleAddModule = () => {
-    setShowModuleTypeSelector(true);
-  };
-
-  const handleModuleTypeSelected = (type: EnhancedCourseModule['type']) => {
-    const newModule: EnhancedCourseModule = {
-      id: `module_${Date.now()}`,
-      title: { es: 'Nuevo Modulo', en: '', pt: '' },
-      type,
-      duration: 15,
-      order: (course.modules?.length || 0) + 1,
-    };
-    setCourse((prev) => ({
-      ...prev,
-      modules: [...(prev.modules || []), newModule],
-    }));
-    setEditingModule(newModule);
-    setEditingModuleId(newModule.id);
+    setEditingModule(undefined);
+    setIsModuleEditorOpen(true);
   };
 
   const handleEditModule = (moduleId: string) => {
     const module = course.modules?.find((m) => m.id === moduleId);
     if (module) {
       setEditingModule(module);
-      setEditingModuleId(moduleId);
+      setIsModuleEditorOpen(true);
     }
-  };
-
-  const handleModuleSave = (updatedModule: EnhancedCourseModule) => {
-    setCourse((prev) => ({
-      ...prev,
-      modules: (prev.modules || []).map((m) =>
-        m.id === updatedModule.id ? updatedModule : m
-      ),
-    }));
-    setEditingModuleId(null);
   };
 
   const handleDeleteModule = (moduleId: string) => {
@@ -274,6 +225,25 @@ export function CourseEditorModal({
     }));
   };
 
+  const handleSaveModule = (module: CourseModule) => {
+    if (editingModule) {
+      // Update existing module
+      const updatedModules = (course.modules || []).map((m) =>
+        m.id === module.id ? module : m
+      );
+      handleModulesChange(updatedModules);
+    } else {
+      // Add new module
+      const newModule = {
+        ...module,
+        order: (course.modules?.length || 0) + 1,
+      };
+      handleModulesChange([...(course.modules || []), newModule]);
+    }
+    setIsModuleEditorOpen(false);
+    setEditingModule(undefined);
+  };
+
   // ============================================
   // Validation
   // ============================================
@@ -283,24 +253,22 @@ export function CourseEditorModal({
 
     // Title validation
     if (!course.title?.es || course.title.es.trim() === '') {
-      newErrors['title.es'] = 'El titulo en espanol es requerido';
+      newErrors['title.es'] = 'El título en español es requerido';
     }
 
     // Description validation
     if (!course.description?.es || course.description.es.trim() === '') {
-      newErrors['description.es'] = 'La descripcion en espanol es requerida';
+      newErrors['description.es'] = 'La descripción en español es requerida';
     }
 
-    // Estimated hours validation
-    if (!course.estimatedHours || course.estimatedHours < 1) {
-      newErrors['estimatedHours'] = 'Las horas estimadas deben ser mayor a 0';
+    // Duration validation
+    if (!course.duration || course.duration < 1) {
+      newErrors['duration'] = 'La duración debe ser mayor a 0';
     }
 
-    // Certification validation
-    if (course.hasCertification) {
-      if (!course.certification?.credentialName || course.certification.credentialName.trim() === '') {
-        newErrors['certification.credentialName'] = 'El nombre de la credencial es requerido';
-      }
+    // Modules validation
+    if (!course.modules || course.modules.length === 0) {
+      newErrors['modules'] = 'Debes agregar al menos un módulo al curso';
     }
 
     setErrors(newErrors);
@@ -314,10 +282,10 @@ export function CourseEditorModal({
   const handleSave = async () => {
     if (!validate()) {
       // Switch to the tab with errors
-      if (errors['title.es'] || errors['description.es'] || errors['estimatedHours']) {
+      if (errors['title.es'] || errors['description.es'] || errors['duration']) {
         setActiveTab('details');
-      } else if (errors['certification.credentialName']) {
-        setActiveTab('certification');
+      } else if (errors['modules']) {
+        setActiveTab('modules');
       }
       return;
     }
@@ -369,12 +337,12 @@ export function CourseEditorModal({
   // Render
   // ============================================
 
-  if (!isOpen) return null;
-
   const inputClasses = 'w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-colors';
   const labelClasses = 'block text-sm font-medium text-[var(--color-text-primary)] mb-1';
 
   return (
+    <>
+    {isOpen && (
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
@@ -411,32 +379,39 @@ export function CourseEditorModal({
 
           {/* Tabs */}
           <div className="flex border-b border-[var(--color-border)]">
-            {TAB_CONFIG.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors relative
-                  ${activeTab === tab.id
-                    ? 'text-[var(--color-primary)]'
-                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
-                  }
-                `}
-              >
-                {tab.icon}
-                {tab.label}
-                {activeTab === tab.id && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--color-primary)]"
-                  />
-                )}
-              </button>
-            ))}
+            {TAB_CONFIG.map((tab) => {
+              // Hide certification tab if not enabled
+              if (tab.id === 'certification' && !course.hasCertification) {
+                return null;
+              }
+
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`
+                    flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors relative
+                    ${activeTab === tab.id
+                      ? 'text-[var(--color-primary)]'
+                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                    }
+                  `}
+                >
+                  {tab.icon}
+                  {tab.label}
+                  {activeTab === tab.id && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--color-primary)]"
+                    />
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {/* Content */}
-          <div className="p-6 overflow-y-auto max-h-[calc(90vh-220px)] bg-[var(--color-bg)]">
+          <div className="p-6 overflow-y-auto max-h-[calc(90vh-220px)]">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="w-8 h-8 text-[var(--color-primary)] animate-spin" />
@@ -464,43 +439,30 @@ export function CourseEditorModal({
                     className="space-y-6"
                   >
                     {/* Title */}
-                    <div>
-                      <label className={labelClasses}>
-                        Titulo del Curso <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={course.title?.es || ''}
-                        onChange={(e) => handleTitleChange({ ...course.title, es: e.target.value })}
-                        placeholder="Fundamentos de Ventas"
-                        className={inputClasses}
-                      />
-                      {errors['title.es'] && (
-                        <p className="text-sm text-red-500 mt-1">{errors['title.es']}</p>
-                      )}
-                    </div>
+                    <MultiLangInput
+                      label="Titulo del Curso"
+                      value={course.title || { es: '', en: '', pt: '' }}
+                      onChange={handleTitleChange}
+                      required
+                      placeholder={{ es: 'Fundamentos de Ventas', en: 'Sales Fundamentals', pt: 'Fundamentos de Vendas' }}
+                      error={errors['title.es']}
+                    />
 
                     {/* Description */}
-                    <div>
-                      <label className={labelClasses}>
-                        Descripcion <span className="text-red-500">*</span>
-                      </label>
-                      <textarea
-                        rows={4}
-                        value={course.description?.es || ''}
-                        onChange={(e) => handleDescriptionChange({ ...course.description, es: e.target.value })}
-                        placeholder="Descripcion del curso..."
-                        className={inputClasses + ' resize-none'}
-                      />
-                      {errors['description.es'] && (
-                        <p className="text-sm text-red-500 mt-1">{errors['description.es']}</p>
-                      )}
-                    </div>
+                    <MultiLangInput
+                      label="Descripcion"
+                      value={course.description || { es: '', en: '', pt: '' }}
+                      onChange={handleDescriptionChange}
+                      required
+                      type="textarea"
+                      placeholder={{ es: 'Descripcion del curso...', en: 'Course description...', pt: 'Descricao do curso...' }}
+                      error={errors['description.es']}
+                    />
 
-                    {/* Category & Difficulty */}
+                    {/* Category & Level */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className={labelClasses}>Categoria</label>
+                        <label className={labelClasses}>Categoría</label>
                         <select
                           value={course.category || 'sales'}
                           onChange={handleCategoryChange}
@@ -515,7 +477,7 @@ export function CourseEditorModal({
                       </div>
 
                       <div>
-                        <label className={labelClasses}>Dificultad</label>
+                        <label className={labelClasses}>Nivel</label>
                         <select
                           value={course.level || 'basic'}
                           onChange={handleLevelChange}
@@ -530,23 +492,26 @@ export function CourseEditorModal({
                       </div>
                     </div>
 
-                    {/* Estimated Hours & Passing Score */}
+                    {/* Duration & Passing Score */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className={labelClasses}>
-                          Horas Estimadas <span className="text-red-500">*</span>
+                          Duración (minutos) <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="number"
                           min={1}
-                          max={100}
-                          value={course.estimatedHours || 1}
-                          onChange={handleEstimatedHoursChange}
+                          max={500}
+                          value={course.duration || 60}
+                          onChange={handleDurationChange}
                           className={inputClasses}
                         />
-                        {errors['estimatedHours'] && (
-                          <p className="text-sm text-red-500 mt-1">{errors['estimatedHours']}</p>
+                        {errors['duration'] && (
+                          <p className="text-sm text-red-500 mt-1">{errors['duration']}</p>
                         )}
+                        <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+                          Se calculará automáticamente desde los módulos
+                        </p>
                       </div>
 
                       <div>
@@ -562,22 +527,71 @@ export function CourseEditorModal({
                       </div>
                     </div>
 
-                    {/* Status */}
-                    <div>
-                      <label className={labelClasses}>Estado</label>
-                      <select
-                        value={course.status || 'draft'}
-                        onChange={handleStatusChange}
-                        className={inputClasses}
-                      >
-                        {STATUS_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    {/* Toggles */}
+                    <div className="space-y-3">
+                      {/* Is Published Toggle */}
+                      <div className="flex items-center justify-between p-4 bg-[var(--color-surface-hover)] rounded-lg">
+                        <div>
+                          <p className="text-sm font-medium text-[var(--color-text-primary)]">
+                            Publicado
+                          </p>
+                          <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
+                            Hacer visible para los partners
+                          </p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={course.isPublished || false}
+                            onChange={handleIsPublishedChange}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-[var(--color-border)] peer-focus:ring-2 peer-focus:ring-[var(--color-primary)]/50 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-primary)]" />
+                        </label>
+                      </div>
 
+                      {/* Is Required Toggle */}
+                      <div className="flex items-center justify-between p-4 bg-[var(--color-surface-hover)] rounded-lg">
+                        <div>
+                          <p className="text-sm font-medium text-[var(--color-text-primary)]">
+                            Curso Obligatorio
+                          </p>
+                          <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
+                            Los partners deben completarlo
+                          </p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={course.isRequired || false}
+                            onChange={handleIsRequiredChange}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-[var(--color-border)] peer-focus:ring-2 peer-focus:ring-[var(--color-primary)]/50 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-primary)]" />
+                        </label>
+                      </div>
+
+                      {/* Certificate Enabled Toggle */}
+                      <div className="flex items-center justify-between p-4 bg-[var(--color-surface-hover)] rounded-lg">
+                        <div>
+                          <p className="text-sm font-medium text-[var(--color-text-primary)]">
+                            Emitir Certificado
+                          </p>
+                          <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
+                            Generar certificado al completar el curso
+                          </p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={course.certificateEnabled || false}
+                            onChange={handleCertificateToggle}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-[var(--color-border)] peer-focus:ring-2 peer-focus:ring-[var(--color-primary)]/50 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-primary)]" />
+                        </label>
+                      </div>
+                    </div>
                   </motion.div>
                 )}
 
@@ -588,123 +602,13 @@ export function CourseEditorModal({
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 10 }}
                   >
-                    <ModuleListEditor
+                    <ModuleListDisplay
                       modules={course.modules || []}
                       onChange={handleModulesChange}
                       onAddModule={handleAddModule}
                       onEditModule={handleEditModule}
                       onDeleteModule={handleDeleteModule}
                     />
-                  </motion.div>
-                )}
-
-                {/* Tab: Certification */}
-                {activeTab === 'certification' && (
-                  <motion.div
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 10 }}
-                    className="space-y-6"
-                  >
-                    {/* Enable/Disable Certification Toggle */}
-                    <div className="flex items-center justify-between p-4 bg-[var(--color-surface-hover)] border border-[var(--color-border)] rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Award className="w-5 h-5 text-[var(--color-primary)]" />
-                        <div>
-                          <p className="text-sm font-medium text-[var(--color-text-primary)]">
-                            Habilitar Certificacion
-                          </p>
-                          <p className="text-xs text-[var(--color-text-secondary)]">
-                            Permite emitir credenciales verificables al completar
-                          </p>
-                        </div>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={course.hasCertification || false}
-                          onChange={handleCertificationToggle}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-[var(--color-border)] peer-focus:ring-2 peer-focus:ring-[var(--color-primary)] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-primary)]"></div>
-                      </label>
-                    </div>
-
-                    {/* Certificate Fields - Only show if enabled */}
-                    {course.hasCertification && (
-                      <div className="p-4 bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/20 rounded-lg">
-                        <div className="flex items-start gap-3">
-                          <Award className="w-5 h-5 text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
-                          <div>
-                            <p className="text-sm font-medium text-[var(--color-text-primary)]">
-                              Configuracion de Certificacion
-                            </p>
-                            <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-                              Personaliza los detalles de la credencial que recibiran los estudiantes
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Credential Fields - Only show if enabled */}
-                    {course.hasCertification && (
-                      <>
-                        {/* Credential Name */}
-                        <div>
-                          <label className={labelClasses}>
-                            Nombre de la Credencial <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={course.certification?.credentialName || ''}
-                            onChange={(e) => handleCertificationFieldChange('credentialName', e.target.value)}
-                            placeholder="Ej: Certificacion en Ventas B2B"
-                            className={inputClasses}
-                          />
-                          {errors['certification.credentialName'] && (
-                            <p className="text-sm text-red-500 mt-1">{errors['certification.credentialName']}</p>
-                          )}
-                        </div>
-
-                        {/* Credential Description */}
-                        <div>
-                          <label className={labelClasses}>Descripcion de la Credencial</label>
-                          <textarea
-                            rows={3}
-                            value={course.certification?.credentialDescription || ''}
-                            onChange={(e) => handleCertificationFieldChange('credentialDescription', e.target.value)}
-                            placeholder="Describe las competencias que certifica esta credencial..."
-                            className={inputClasses + ' resize-none'}
-                          />
-                        </div>
-
-                        {/* Issuer Name & Email */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className={labelClasses}>Nombre del Emisor</label>
-                            <input
-                              type="text"
-                              value={course.certification?.issuerName || ''}
-                              onChange={(e) => handleCertificationFieldChange('issuerName', e.target.value)}
-                              placeholder="Ej: Sovra Academy"
-                              className={inputClasses}
-                            />
-                          </div>
-
-                          <div>
-                            <label className={labelClasses}>Email del Emisor</label>
-                            <input
-                              type="email"
-                              value={course.certification?.issuerEmail || ''}
-                              onChange={(e) => handleCertificationFieldChange('issuerEmail', e.target.value)}
-                              placeholder="Ej: certifications@sovra.io"
-                              className={inputClasses}
-                            />
-                          </div>
-                        </div>
-                      </>
-                    )}
                   </motion.div>
                 )}
               </>
@@ -748,30 +652,20 @@ export function CourseEditorModal({
           </div>
         </motion.div>
       </motion.div>
-
-      {/* Module Type Selector */}
-      {showModuleTypeSelector && (
-        <ModuleTypeSelectorModal
-          key="module-type-selector"
-          isOpen={showModuleTypeSelector}
-          onClose={() => setShowModuleTypeSelector(false)}
-          onSelect={handleModuleTypeSelected}
-        />
-      )}
-
-      {/* Module Editor */}
-      {editingModuleId && editingModule && (
-        <ModuleEditorModal
-          key={`module-editor-${editingModuleId}`}
-          isOpen={!!editingModuleId}
-          onClose={() => {
-            setEditingModuleId(null);
-            setEditingModule(null);
-          }}
-          onSave={handleModuleSave}
-          module={editingModule}
-        />
-      )}
     </AnimatePresence>
+    )}
+
+    {/* Module Editor Modal */}
+    <ModuleEditorModal
+      isOpen={isModuleEditorOpen}
+      onClose={() => {
+        setIsModuleEditorOpen(false);
+        setEditingModule(undefined);
+      }}
+      onSave={handleSaveModule}
+      module={editingModule}
+      order={editingModule?.order || (course.modules?.length || 0) + 1}
+    />
+    </>
   );
 }

@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
-import { GraduationCap, Award, Calendar, CheckCircle, ChevronLeft } from 'lucide-react';
+import { GraduationCap, Award, Calendar, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { TrainingModules } from './TrainingModules';
 import { ModuleContentView } from './ModuleContentView';
+import { LessonContentView } from './LessonContentView';
 import { QuizModal } from './QuizModal';
 import { Card, CardContent, Badge, SovraLoader, Button } from '@/components/ui';
 import { cn, formatDate } from '@/lib/utils';
-import type { TrainingModule, TrainingProgress, Certification, CertificationType } from '@/types';
+import type { TrainingProgress, Certification, CertificationType, TrainingCourse } from '@/types';
 
 interface TrainingCenterViewProps {
   locale: string;
@@ -21,29 +22,31 @@ export function TrainingCenterView({ locale }: TrainingCenterViewProps) {
   const t = useTranslations('trainingCenter');
   const tCert = useTranslations('certifications');
   const [activeTab, setActiveTab] = useState<TabType>('modules');
-  const [modules, setModules] = useState<TrainingModule[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
   const [progress, setProgress] = useState<Record<string, TrainingProgress>>({});
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [viewingModule, setViewingModule] = useState<TrainingModule | null>(null);
-  const [quizModule, setQuizModule] = useState<TrainingModule | null>(null);
+  const [viewingLesson, setViewingLesson] = useState<any | null>(null);
+  const [viewingModule, setViewingModule] = useState<any | null>(null);
+  const [quizModule, setQuizModule] = useState<any | null>(null);
+  const [currentCourse, setCurrentCourse] = useState<any | null>(null);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [modulesRes, progressRes, certsRes] = await Promise.all([
+        const [coursesRes, progressRes, certsRes] = await Promise.all([
           fetch('/api/partners/training/modules'),
           fetch('/api/partners/training/progress'),
           fetch('/api/partners/certifications'),
         ]);
 
-        if (modulesRes.ok) {
-          const modulesData = await modulesRes.json();
-          console.log('Modules loaded:', modulesData.modules);
-          setModules(modulesData.modules || []);
+        if (coursesRes.ok) {
+          const coursesData = await coursesRes.json();
+          console.log('Courses loaded:', coursesData.courses);
+          setCourses(coursesData.courses || []);
         } else {
-          const error = await modulesRes.json();
-          console.error('Failed to load modules:', error);
+          const error = await coursesRes.json();
+          console.error('Failed to load courses:', error);
         }
 
         if (progressRes.ok) {
@@ -80,10 +83,14 @@ export function TrainingCenterView({ locale }: TrainingCenterViewProps) {
           [moduleId]: data.progress,
         }));
 
-        const module = modules.find((m) => m.id === moduleId);
-        if (module) {
-          // Show module content view instead of quiz
-          setViewingModule(module);
+        // Find the module across all courses
+        for (const course of courses) {
+          const module = course.modules.find((m: any) => m.id === moduleId);
+          if (module) {
+            setViewingModule(module);
+            setCurrentCourse(course);
+            break;
+          }
         }
       } else {
         const error = await res.json();
@@ -110,9 +117,13 @@ export function TrainingCenterView({ locale }: TrainingCenterViewProps) {
   };
 
   const handleTakeQuiz = (moduleId: string) => {
-    const module = modules.find((m) => m.id === moduleId);
-    if (module) {
-      setQuizModule(module);
+    for (const course of courses) {
+      const module = course.modules.find((m: any) => m.id === moduleId);
+      if (module) {
+        setQuizModule(module);
+        setCurrentCourse(course);
+        break;
+      }
     }
   };
 
@@ -192,13 +203,114 @@ export function TrainingCenterView({ locale }: TrainingCenterViewProps) {
 
       {/* Tab Content */}
       {activeTab === 'modules' && (
-        <TrainingModules
-          modules={modules}
-          progress={progress}
-          locale={locale}
-          onStartModule={handleStartModule}
-          onTakeQuiz={handleTakeQuiz}
-        />
+        <div className="space-y-8">
+          {courses.map((course: TrainingCourse) => (
+            <div key={course.id} className="space-y-4">
+              {/* Course Header */}
+              <div className="border-b-2 border-[var(--color-border)] pb-4">
+                <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">
+                  {course.title.es || course.title.en}
+                </h2>
+                <p className="text-sm text-[var(--color-text-secondary)] mt-2">
+                  {course.description?.es || course.description?.en}
+                </p>
+                <div className="mt-3 flex gap-4 text-xs text-[var(--color-text-secondary)]">
+                  <span>📚 {course.modules.length} módulos</span>
+                  <span>⏱ {course.duration} minutos</span>
+                </div>
+              </div>
+
+              {/* Modules and Lessons */}
+              <div className="space-y-4">
+                {course.modules.map((module: any, moduleIdx: number) => (
+                  <div key={module.id} className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+                    {/* Module Header */}
+                    <div className="p-4 border-b border-[var(--color-border)] bg-[var(--color-surface-hover)]">
+                      <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
+                        Módulo {moduleIdx + 1}: {module.title.es || module.title.en}
+                      </h3>
+                      {module.description && (
+                        <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+                          {module.description.es || module.description.en}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Lessons in Module */}
+                    <div className="p-4 space-y-3">
+                      {module.lessons && module.lessons.length > 0 ? (
+                        <>
+                          <div className="space-y-2">
+                            {module.lessons.map((lesson: any, lessonIdx: number) => (
+                              <button
+                                key={lesson.id}
+                                onClick={() => {
+                                  setViewingLesson(lesson);
+                                  setViewingModule(module);
+                                  setCurrentCourse(course);
+                                }}
+                                className="w-full p-3 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-primary)]/5 hover:border-[var(--color-primary)] transition-colors text-left"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="text-sm font-medium text-[var(--color-text-secondary)]">
+                                    {lessonIdx + 1}.
+                                  </span>
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                      {lesson.type === 'video' && <span>🎥</span>}
+                                      {lesson.type === 'reading' && <span>📖</span>}
+                                      {lesson.type === 'download' && <span>📥</span>}
+                                      <span className="font-medium text-[var(--color-text-primary)]">
+                                        {lesson.title.es || lesson.title.en}
+                                      </span>
+                                    </div>
+                                    <span className="text-xs text-[var(--color-text-secondary)] mt-1 block">
+                                      ⏱ {lesson.duration} minutos • {lesson.type === 'video' ? 'Video' : lesson.type === 'reading' ? 'Lectura' : 'Descarga'}
+                                    </span>
+                                  </div>
+                                  <ChevronRight className="w-5 h-5 text-[var(--color-text-secondary)]" />
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Quiz for Module */}
+                          {module.quiz && module.quiz.length > 0 && (
+                            <button
+                              onClick={() => {
+                                setViewingModule(module);
+                                setCurrentCourse(course);
+                                setQuizModule(module);
+                              }}
+                              className="w-full p-3 rounded-lg border-2 border-[var(--color-primary)] bg-[var(--color-primary)]/5 hover:bg-[var(--color-primary)]/10 transition-colors text-left mt-4"
+                            >
+                              <div className="flex items-center gap-3">
+                                <span>📝</span>
+                                <div className="flex-1">
+                                  <div className="font-medium text-[var(--color-text-primary)]">
+                                    Quiz del Módulo
+                                  </div>
+                                  <span className="text-xs text-[var(--color-text-secondary)]">
+                                    {module.quiz.length} preguntas • Puntuación requerida: {module.passingScore || 70}%
+                                  </span>
+                                </div>
+                                <ChevronRight className="w-5 h-5 text-[var(--color-primary)]" />
+                              </div>
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-sm text-[var(--color-text-secondary)] py-4">
+                          No hay clases en este módulo
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
       {activeTab === 'certifications' && (
@@ -332,8 +444,8 @@ export function TrainingCenterView({ locale }: TrainingCenterViewProps) {
         </div>
       )}
 
-      {/* Module Content View Modal */}
-      {viewingModule && (
+      {/* Lesson Content View Modal */}
+      {viewingLesson && viewingModule && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -346,19 +458,16 @@ export function TrainingCenterView({ locale }: TrainingCenterViewProps) {
             className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto"
           >
             <div className="p-6 space-y-6">
-              <button
-                onClick={() => setViewingModule(null)}
-                className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-4"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Back to Modules
-              </button>
-
-              <ModuleContentView
+              <LessonContentView
+                lesson={viewingLesson}
                 module={viewingModule}
                 locale={locale}
                 onCompleted={handleModuleContentCompleted}
-                onTakeQuiz={handleTakeQuizFromContent}
+                onShowQuiz={() => {
+                  setQuizModule(viewingModule);
+                  setViewingLesson(null);
+                }}
+                onBack={() => setViewingLesson(null)}
               />
             </div>
           </motion.div>

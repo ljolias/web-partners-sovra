@@ -252,26 +252,42 @@ export interface MEDDICScores {
 }
 
 // Training Types (Legacy module format)
-export interface TrainingModule {
+// ========== LESSON (Clase) ==========
+// Contenido individual: video, lectura, descarga
+export interface Lesson {
   id: string;
   title: LocalizedString;
-  description: LocalizedString;
-  content: LocalizedString;
+  type: 'video' | 'reading' | 'download';
+
+  // Content by type
+  videoUrl?: string;
+  content?: LocalizedString; // HTML for reading
+  downloadUrl?: string;
+
   duration: number; // minutes
   order: number;
-  quiz: QuizQuestion[];
-  passingScore: number; // percentage
-  createdAt: string;
 }
 
-export interface QuizQuestion {
+// ========== MODULE (Módulo) ==========
+// Agrupación de lecciones + quiz
+export interface CourseModule {
   id: string;
-  question: LocalizedString;
-  options: Record<string, string[]>;
-  correctAnswer: number;
+  title: LocalizedString;
+  description?: LocalizedString;
+
+  // Lessons in this module
+  lessons: Lesson[];
+
+  // Quiz at end of module
+  quiz?: CourseQuizQuestion[];
+  passingScore?: number; // 0-100
+
+  order: number;
+  duration?: number; // calculated from lessons
 }
 
-// Training Course (Admin-managed)
+// ========== TRAINING COURSE ==========
+// Complete course with modules
 export interface TrainingCourse {
   id: string;
 
@@ -280,9 +296,9 @@ export interface TrainingCourse {
   description: LocalizedString;
   category: 'sales' | 'technical' | 'legal' | 'product';
   level: 'basic' | 'intermediate' | 'advanced';
-  duration: number; // minutes
+  duration: number; // minutes (calculated from modules)
 
-  // Content
+  // Content - modules contain lessons
   modules: CourseModule[];
 
   // Configuration
@@ -303,25 +319,31 @@ export interface TrainingCourse {
   updatedAt: string;
 }
 
-export interface CourseModule {
-  id: string;
-  title: LocalizedString;
-  type: 'video' | 'document' | 'quiz';
-
-  // Content by type
-  videoUrl?: string;
-  documentUrl?: string;
-  quiz?: CourseQuizQuestion[];
-
-  duration: number; // minutes
-  order: number;
-}
-
 export interface CourseQuizQuestion {
   id: string;
   question: LocalizedString;
   options: LocalizedString[];
   correctAnswer: number; // index of correct option
+}
+
+// Legacy TrainingModule - kept for backward compatibility
+export interface TrainingModule {
+  id: string;
+  title: LocalizedString;
+  description: LocalizedString;
+  content: LocalizedString;
+  duration: number; // minutes
+  order: number;
+  quiz: QuizQuestion[];
+  passingScore: number; // percentage
+  createdAt: string;
+}
+
+export interface QuizQuestion {
+  id: string;
+  question: LocalizedString;
+  options: Record<string, string[]>;
+  correctAnswer: number;
 }
 
 export type CourseCategory = 'sales' | 'technical' | 'legal' | 'product';

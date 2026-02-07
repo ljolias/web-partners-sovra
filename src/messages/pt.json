@@ -546,6 +546,7 @@
     "progress": "Progresso",
     "page_description": "Acompanhe suas conquistas e o progresso em direção ao proximo nivel. Ganhe pontos completando marcos importantes e atividades bonus.",
     "your_tier": "Seu Nivel Atual",
+    "tier": "Seu Nivel: {tier}",
     "total_points": "{points} pontos totais",
     "benefits": "Seus Beneficios",
     "tier_roadmap": "Progressao de Nivel",

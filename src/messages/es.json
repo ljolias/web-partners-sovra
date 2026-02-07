@@ -546,6 +546,7 @@
     "progress": "Progreso",
     "page_description": "Realiza un seguimiento de tus logros y progreso hacia el siguiente nivel. Gana puntos completando hitos clave y actividades bonus.",
     "your_tier": "Tu Nivel Actual",
+    "tier": "Tu Nivel: {tier}",
     "total_points": "{points} puntos totales",
     "benefits": "Tus Beneficios",
     "tier_roadmap": "Progresion de Nivel",

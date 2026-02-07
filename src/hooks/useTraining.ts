@@ -1,21 +1,21 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { TrainingModule, TrainingProgress } from '@/types';
+import type { TrainingCourse, TrainingProgress } from '@/types';
 
 export function useTraining() {
-  const [modules, setModules] = useState<TrainingModule[]>([]);
+  const [courses, setCourses] = useState<TrainingCourse[]>([]);
   const [progress, setProgress] = useState<Record<string, TrainingProgress>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchModules = useCallback(async () => {
+  const fetchCourses = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await fetch('/api/partners/training/modules');
-      if (!res.ok) throw new Error('Failed to fetch modules');
+      if (!res.ok) throw new Error('Failed to fetch courses');
       const data = await res.json();
-      setModules(data.modules || []);
+      setCourses(data.courses || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -35,9 +35,9 @@ export function useTraining() {
   }, []);
 
   useEffect(() => {
-    fetchModules();
+    fetchCourses();
     fetchProgress();
-  }, [fetchModules, fetchProgress]);
+  }, [fetchCourses, fetchProgress]);
 
   const startModule = async (moduleId: string): Promise<boolean> => {
     try {
@@ -92,22 +92,28 @@ export function useTraining() {
     return Object.values(progress).filter((p) => p.completed).length;
   };
 
+  const getTotalModuleCount = (): number => {
+    return courses.reduce((total, course) => total + course.modules.length, 0);
+  };
+
   const getOverallProgress = (): number => {
-    if (modules.length === 0) return 0;
-    return (getCompletedCount() / modules.length) * 100;
+    const totalModules = getTotalModuleCount();
+    if (totalModules === 0) return 0;
+    return (getCompletedCount() / totalModules) * 100;
   };
 
   return {
-    modules,
+    courses,
     progress,
     isLoading,
     error,
-    fetchModules,
+    fetchCourses,
     fetchProgress,
     startModule,
     submitQuiz,
     getModuleProgress,
     getCompletedCount,
+    getTotalModuleCount,
     getOverallProgress,
   };
 }
