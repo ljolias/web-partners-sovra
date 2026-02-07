@@ -379,14 +379,8 @@ export function CourseEditorModal({
 
           {/* Tabs */}
           <div className="flex border-b border-[var(--color-border)]">
-            {TAB_CONFIG.map((tab) => {
-              // Hide certification tab if not enabled
-              if (tab.id === 'certification' && !course.hasCertification) {
-                return null;
-              }
-
-              return (
-                <button
+            {TAB_CONFIG.map((tab) => (
+              <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`
@@ -406,8 +400,7 @@ export function CourseEditorModal({
                     />
                   )}
                 </button>
-              );
-            })}
+            ))}
           </div>
 
           {/* Content */}
