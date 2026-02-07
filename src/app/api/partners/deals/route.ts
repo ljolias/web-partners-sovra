@@ -16,6 +16,7 @@ import { withErrorHandling } from '@/lib/api/errorHandler';
 import { withRateLimit, RATE_LIMITS } from '@/lib/api/withRateLimit';
 import { dealSchema } from '@/lib/validation/schemas';
 import { ForbiddenError, ValidationError } from '@/lib/errors';
+import { SECURITY_FEATURES } from '@/lib/config/features';
 import type { Deal, GovernmentLevel } from '@/types';
 
 export const GET = withRateLimit(
@@ -44,22 +45,26 @@ export const POST = withRateLimit(
   withErrorHandling(async (request: NextRequest) => {
     const { user, partner } = await requireSession();
 
-    // Validate certification - RE-ENABLED
-    const hasCert = await hasValidCertification(user.id);
-    if (!hasCert) {
-      throw new ForbiddenError(
-        'Necesitas una certificación activa para registrar deals'
-      );
+    // Validate certification (can be disabled via ENFORCE_CERTIFICATION=false)
+    if (SECURITY_FEATURES.ENFORCE_CERTIFICATION) {
+      const hasCert = await hasValidCertification(user.id);
+      if (!hasCert) {
+        throw new ForbiddenError(
+          'Necesitas una certificación activa para registrar deals'
+        );
+      }
     }
 
-    // Validate legal documents - RE-ENABLED
+    // Validate legal documents (can be disabled via ENFORCE_LEGAL_DOCS=false)
     // Note: This check uses the legacy document system.
     // In the new V2 system, documents are partner-specific via DocuSign.
-    const hasLegal = await hasSignedRequiredDocs(user.id);
-    if (!hasLegal) {
-      throw new ForbiddenError(
-        'Debes firmar todos los documentos legales requeridos antes de registrar deals'
-      );
+    if (SECURITY_FEATURES.ENFORCE_LEGAL_DOCS) {
+      const hasLegal = await hasSignedRequiredDocs(user.id);
+      if (!hasLegal) {
+        throw new ForbiddenError(
+          'Debes firmar todos los documentos legales requeridos antes de registrar deals'
+        );
+      }
     }
 
     const body = await request.json();
