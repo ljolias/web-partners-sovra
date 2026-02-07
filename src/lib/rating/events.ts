@@ -2,8 +2,9 @@ import { redis } from '@/lib/redis/client';
 import { keys } from '@/lib/redis/keys';
 import type { RatingEvent, RatingEventType } from '@/types';
 import { checkAndAwardAchievement, getAchievementCount, incrementAnnualMetric } from '@/lib/achievements';
-
+import { generateId } from '@/lib/redis/operations/helpers';
 import { logger } from '@/lib/logger';
+
 // Points awarded/deducted for each event type
 export const EVENT_POINTS: Record<RatingEventType, number> = {
   COPILOT_SESSION_COMPLETED: 2,
@@ -17,10 +18,6 @@ export const EVENT_POINTS: Record<RatingEventType, number> = {
   DEAL_STALE_30_DAYS: -3,
   LOGIN_INACTIVE_30_DAYS: -2,
 };
-
-function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-}
 
 /**
  * Process achievement awards based on rating events

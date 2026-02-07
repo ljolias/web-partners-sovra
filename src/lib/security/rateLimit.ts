@@ -4,6 +4,7 @@
 
 import { redis } from '@/lib/redis/client';
 import { logger } from '@/lib/logger';
+import { randomBytes } from 'crypto';
 
 export interface RateLimitConfig {
   interval: number; // seconds
@@ -38,8 +39,9 @@ export async function rateLimit(
     // Count requests in current window
     pipeline.zcard(key);
 
-    // Add current request
-    pipeline.zadd(key, { score: now, member: `${now}-${Math.random()}` });
+    // Add current request with cryptographically secure random suffix
+    const randomSuffix = randomBytes(4).toString('hex');
+    pipeline.zadd(key, { score: now, member: `${now}-${randomSuffix}` });
 
     // Set expiration to avoid memory leaks
     pipeline.expire(key, config.interval * 2);
