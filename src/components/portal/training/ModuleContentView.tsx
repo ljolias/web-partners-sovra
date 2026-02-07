@@ -3,7 +3,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Play, FileText, Download, CheckCircle, Clock } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Button } from '@/components/ui';
+import { sanitizeHtml } from '@/lib/security/sanitize';
 import type { TrainingModule, CourseModule } from '@/types';
 
 // Extended module type for backward compatibility with video modules
@@ -97,7 +100,18 @@ export function ModuleContentView({
             <h3 className="text-lg font-medium text-gray-900 mb-4">Reading Material</h3>
             <div className="max-w-2xl mx-auto text-left bg-white p-6 rounded-lg">
               {moduleContent ? (
-                <div dangerouslySetInnerHTML={{ __html: moduleContent }} />
+                <div className="prose prose-sm max-w-none">
+                  {/* Check if content is HTML or Markdown */}
+                  {moduleContent.includes('<') && moduleContent.includes('>') ? (
+                    // HTML content - sanitize it
+                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(moduleContent) }} />
+                  ) : (
+                    // Markdown content - render safely
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {moduleContent}
+                    </ReactMarkdown>
+                  )}
+                </div>
               ) : (
                 <p className="text-gray-500">No content available</p>
               )}

@@ -3,7 +3,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Play, FileText, Download, CheckCircle, Clock } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Button } from '@/components/ui';
+import { sanitizeHtml } from '@/lib/security/sanitize';
 
 interface LessonContentViewProps {
   lesson: any;
@@ -94,10 +97,18 @@ export function LessonContentView({
             </h3>
             <div className="max-w-2xl mx-auto text-left bg-white p-6 rounded-lg">
               {lessonContent ? (
-                <div
-                  className="prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: lessonContent }}
-                />
+                <div className="prose prose-sm max-w-none">
+                  {/* Check if content is HTML or Markdown */}
+                  {lessonContent.includes('<') && lessonContent.includes('>') ? (
+                    // HTML content - sanitize it
+                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(lessonContent) }} />
+                  ) : (
+                    // Markdown content - render safely
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {lessonContent}
+                    </ReactMarkdown>
+                  )}
+                </div>
               ) : lesson.downloadUrl ? (
                 <a
                   href={lesson.downloadUrl}

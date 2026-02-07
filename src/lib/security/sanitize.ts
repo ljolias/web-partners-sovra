@@ -1,10 +1,11 @@
 /**
  * HTML sanitization utilities to prevent XSS attacks
  *
- * Note: This is a basic implementation. For production use with user-generated
- * HTML content, consider using DOMPurify:
- * npm install dompurify @types/dompurify
+ * Uses DOMPurify for production-grade HTML sanitization.
+ * Also provides utility functions for basic text sanitization.
  */
+
+import DOMPurify from 'dompurify';
 
 /**
  * Strips all HTML tags from a string
@@ -30,10 +31,35 @@ export function escapeHtml(input: string): string {
 }
 
 /**
- * Basic HTML sanitization - allows only safe tags
- * For production with rich content, use DOMPurify instead
+ * Production-grade HTML sanitization using DOMPurify
+ * Allows safe HTML tags and attributes while removing XSS vectors
  */
 export function sanitizeHtml(input: string): string {
+  if (typeof window === 'undefined') {
+    // Server-side: use basic sanitization
+    return sanitizeHtmlBasic(input);
+  }
+
+  // Client-side: use DOMPurify
+  return DOMPurify.sanitize(input, {
+    ALLOWED_TAGS: [
+      'p', 'br', 'strong', 'em', 'u', 'b', 'i',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'ul', 'ol', 'li',
+      'a', 'code', 'pre', 'blockquote', 'span', 'div',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td',
+      'img',
+    ],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'class', 'id', 'src', 'alt', 'title'],
+    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+  });
+}
+
+/**
+ * Basic HTML sanitization - fallback for server-side rendering
+ * @deprecated Use sanitizeHtml() which uses DOMPurify on client-side
+ */
+export function sanitizeHtmlBasic(input: string): string {
   // Allowed tags for basic formatting
   const allowedTags = [
     'p', 'br', 'strong', 'em', 'u', 'b', 'i',
