@@ -1,17 +1,9 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { ArrowLeft, Lock } from 'lucide-react';
 import { getSession, getUser, getPartner, getDeal, getPricingConfig } from '@/lib/redis/operations';
-
-// Lazy load QuoteBuilder - it's a heavy component with complex calculations
-const QuoteBuilder = dynamic(
-  () => import('@/components/portal/quotes/QuoteBuilder').then(mod => ({ default: mod.QuoteBuilder })),
-  {
-    ssr: false, // Quote builder doesn't need SSR
-  }
-);
+import { QuoteBuilderWrapper } from '@/components/portal/quotes/QuoteBuilderWrapper';
 
 interface PageProps {
   params: Promise<{ locale: string; dealId: string }>;
@@ -118,7 +110,7 @@ export default async function QuotePage({ params }: PageProps) {
 
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Nueva Cotizacion</h1>
 
-      <QuoteBuilder
+      <QuoteBuilderWrapper
         deal={deal}
         partner={partner}
         pricingConfig={pricingConfig}
