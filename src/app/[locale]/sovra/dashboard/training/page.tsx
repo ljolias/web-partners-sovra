@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -190,6 +191,7 @@ export default function TrainingAdminPage() {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
+  const t = useTranslations('trainingCenter');
   const [courses, setCourses] = useState<TrainingCourse[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -261,7 +263,7 @@ export default function TrainingAdminPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Training Center</h1>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">{t('title')}</h1>
           <p className="text-[var(--color-text-secondary)]">Gestiona los cursos de capacitacion para partners</p>
         </div>
         <div className="flex gap-2">

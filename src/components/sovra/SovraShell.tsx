@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -37,18 +38,6 @@ const languages = [
   { code: 'es', flag: '🇪🇸', name: 'Español' },
   { code: 'en', flag: '🇺🇸', name: 'English' },
   { code: 'pt', flag: '🇧🇷', name: 'Português' },
-];
-
-const navigation = [
-  { name: 'Dashboard', href: '/sovra/dashboard', icon: LayoutDashboard },
-  { name: 'Partners', href: '/sovra/dashboard/partners', icon: Users },
-  { name: 'Aprobar Oportunidades', href: '/sovra/dashboard/approvals', icon: FileCheck },
-  { name: 'Documentos Legales', href: '/sovra/dashboard/documents', icon: FileText },
-  { name: 'Training Center', href: '/sovra/dashboard/training', icon: GraduationCap },
-  { name: 'Configurar Precios', href: '/sovra/dashboard/pricing', icon: DollarSign },
-  { name: 'Gestión de recompensas', href: '/sovra/dashboard/rewards', icon: Trophy },
-  { name: 'Audit Log', href: '/sovra/dashboard/audit', icon: Activity },
-  { name: 'Configuracion', href: '/sovra/dashboard/settings', icon: Settings },
 ];
 
 function ThemeToggle() {
@@ -150,9 +139,22 @@ function LanguageDropdown({ locale, pathWithoutLocale, onSelect }: { locale: str
 export default function SovraShell({ user, children, locale }: SovraShellProps) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const t = useTranslations('nav');
 
   const basePath = `/${locale}/sovra/dashboard`;
   const pathWithoutLocale = pathname.replace(`/${locale}`, '');
+
+  const navigation = [
+    { name: 'Dashboard', href: '/sovra/dashboard', icon: LayoutDashboard },
+    { name: 'Partners', href: '/sovra/dashboard/partners', icon: Users },
+    { name: 'Aprobar Oportunidades', href: '/sovra/dashboard/approvals', icon: FileCheck },
+    { name: 'Documentos Legales', href: '/sovra/dashboard/documents', icon: FileText },
+    { name: t('trainingCenter'), href: '/sovra/dashboard/training', icon: GraduationCap },
+    { name: 'Configurar Precios', href: '/sovra/dashboard/pricing', icon: DollarSign },
+    { name: 'Gestión de recompensas', href: '/sovra/dashboard/rewards', icon: Trophy },
+    { name: 'Audit Log', href: '/sovra/dashboard/audit', icon: Activity },
+    { name: 'Configuracion', href: '/sovra/dashboard/settings', icon: Settings },
+  ];
 
   const isActive = (href: string) => {
     const fullPath = `/${locale}${href}`;
