@@ -353,11 +353,6 @@ export function LessonEditorModal({
                   <MultiLangTipTap
                     value={currentLesson.content || { es: '', en: '', pt: '' }}
                     onChange={handleContentChange}
-                    placeholder={{
-                      es: 'Escribe el contenido de lectura aquí...',
-                      en: 'Write the reading content here...',
-                      pt: 'Escreva o conteúdo de leitura aqui...',
-                    }}
                   />
                   {errors['content.es'] && (
                     <p className="text-sm text-red-500 mt-1">{errors['content.es']}</p>
