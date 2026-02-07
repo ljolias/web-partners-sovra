@@ -1,5 +1,6 @@
 import { Redis } from '@upstash/redis';
 
+import { logger } from '@/lib/logger';
 function getRedisClient(): Redis {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -7,7 +8,7 @@ function getRedisClient(): Redis {
   if (!url || !token) {
     // During build time, return a dummy client that will fail gracefully
     if (process.env.NODE_ENV === 'production' && typeof window === 'undefined') {
-      console.error('Redis credentials not configured');
+      logger.error('Redis credentials not configured');
     }
     // Return a Redis instance that will fail on actual operations
     // This allows the build to succeed

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { requireSession } from '@/lib/auth';
 import { getDeal, createCopilotSession, getCopilotMessages } from '@/lib/redis';
 
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.error('Create copilot session error:', error);
+    logger.error('Create copilot session error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

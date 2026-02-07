@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import {
   Plus,
@@ -22,9 +23,18 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SovraLoader } from '@/components/ui';
-import { CourseEditorModal } from '@/components/sovra/training/CourseEditorModal';
 import type { TrainingCourse, CourseCategory, CourseLevel, PartnerTier } from '@/types';
 
+// Lazy load CourseEditorModal - it's a large component (664 lines)
+const CourseEditorModal = dynamic(
+  () => import('@/components/sovra/training/CourseEditorModal').then(mod => ({ default: mod.CourseEditorModal })),
+  {
+    loading: () => <SovraLoader />,
+    ssr: false,
+  }
+);
+
+import { logger } from '@/lib/logger';
 const categoryConfig: Record<CourseCategory, { label: string; color: string }> = {
   sales: { label: 'Ventas', color: 'text-blue-600 bg-blue-100' },
   technical: { label: 'Tecnico', color: 'text-purple-600 bg-purple-100' },
@@ -207,7 +217,7 @@ export default function TrainingAdminPage() {
       const data = await response.json();
       setCourses(data.courses || []);
     } catch (error) {
-      console.error('Error fetching courses:', error);
+      logger.error('Error fetching courses:', { error: error });
     } finally {
       setLoading(false);
     }
@@ -222,7 +232,7 @@ export default function TrainingAdminPage() {
       await fetch(`/api/sovra/training/courses/${courseId}/publish`, { method: 'POST' });
       await fetchCourses();
     } catch (error) {
-      console.error('Error publishing course:', error);
+      logger.error('Error publishing course:', { error: error });
     }
   };
 
@@ -231,7 +241,7 @@ export default function TrainingAdminPage() {
       await fetch(`/api/sovra/training/courses/${courseId}/unpublish`, { method: 'POST' });
       await fetchCourses();
     } catch (error) {
-      console.error('Error unpublishing course:', error);
+      logger.error('Error unpublishing course:', { error: error });
     }
   };
 
@@ -242,7 +252,7 @@ export default function TrainingAdminPage() {
       await fetch(`/api/sovra/training/courses/${courseId}`, { method: 'DELETE' });
       await fetchCourses();
     } catch (error) {
-      console.error('Error deleting course:', error);
+      logger.error('Error deleting course:', { error: error });
     }
   };
 

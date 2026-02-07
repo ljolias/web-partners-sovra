@@ -1,7 +1,8 @@
+import { logger } from '@/lib/logger';
 import Anthropic from '@anthropic-ai/sdk';
 
 if (!process.env.ANTHROPIC_API_KEY) {
-  console.warn('ANTHROPIC_API_KEY is not defined - Copilot features will be disabled');
+  logger.warn('ANTHROPIC_API_KEY is not defined - Copilot features will be disabled');
 }
 
 export const anthropic = process.env.ANTHROPIC_API_KEY

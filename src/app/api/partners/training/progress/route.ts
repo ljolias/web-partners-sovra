@@ -1,18 +1,14 @@
 import { NextResponse } from 'next/server';
+import { withErrorHandling } from '@/lib/api/errorHandler';
+import { logger } from '@/lib/logger';
 import { requireSession } from '@/lib/auth';
 import { getUserTrainingProgress } from '@/lib/redis';
 
-export async function GET() {
-  try {
-    const { user } = await requireSession();
-    const progress = await getUserTrainingProgress(user.id);
+export const GET = withErrorHandling(async () => {
+  const { user } = await requireSession();
+  const progress = await getUserTrainingProgress(user.id);
 
-    return NextResponse.json({ progress });
-  } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    console.error('Get progress error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+  logger.debug('Training progress retrieved', { userId: user.id });
+
+  return NextResponse.json({ progress });
+});

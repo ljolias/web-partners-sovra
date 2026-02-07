@@ -3,6 +3,7 @@ import { ACHIEVEMENTS } from '@/lib/achievements/definitions';
 import { TIER_REQUIREMENTS } from '@/lib/achievements/tiers';
 import type { AchievementDefinition, TierRequirement, PartnerTier } from '@/types/achievements';
 
+import { logger } from '@/lib/logger';
 export interface RewardsConfig {
   achievements: Record<string, AchievementDefinition>;
   tierRequirements: Record<PartnerTier, TierRequirement>;
@@ -25,7 +26,7 @@ export async function getRewardsConfig(): Promise<RewardsConfig> {
       const parsed = JSON.parse(String(stored));
       return parsed as RewardsConfig;
     } catch (error) {
-      console.error('Failed to parse stored rewards config:', error);
+      logger.error('Failed to parse stored rewards config:', { error: error });
     }
   }
 
@@ -77,7 +78,7 @@ export async function getConfigHistory(limit = 20): Promise<RewardsConfig[]> {
       try {
         configs.push(JSON.parse(String(data)) as RewardsConfig);
       } catch (error) {
-        console.error(`Failed to parse config history ${key}:`, error);
+        logger.error('Failed to parse config history', { key, error });
       }
     }
   }
@@ -134,7 +135,7 @@ export async function getTierHistory(partnerId: string, limit = 50) {
       try {
         return JSON.parse(String(entry));
       } catch (error) {
-        console.error('Failed to parse tier history entry:', error);
+        logger.error('Failed to parse tier history entry:', { error: error });
         return null;
       }
     })

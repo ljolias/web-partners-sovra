@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { cookies } from 'next/headers';
 import {
   getSession,
@@ -65,7 +66,7 @@ export async function GET() {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
-    console.error('Get templates error:', error);
+    logger.error('Get templates error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -156,7 +157,7 @@ export async function POST(request: NextRequest) {
     if (!partner) {
       return NextResponse.json({ error: 'Partner not found' }, { status: 404 });
     }
-    console.log('[SendContract] Creating document for partner:', partnerId, partner.companyName);
+    logger.info('Creating document for partner', { partnerId, companyName: partner.companyName });
 
     // Get template if using template-based approach
     let template = null;
@@ -175,7 +176,7 @@ export async function POST(request: NextRequest) {
     if (!isDocuSignConfigured()) {
       // Create a mock envelope ID for demo purposes
       envelopeId = `mock-envelope-${generateId()}`;
-      console.log('DocuSign not configured, using mock envelope:', envelopeId);
+      logger.debug('DocuSign not configured, using mock envelope:', { envelopeId: envelopeId });
     } else {
       // Prepare signers
       const signers: EnvelopeRecipient[] = [
@@ -307,7 +308,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
-    console.error('Send contract error:', error);
+    logger.error('Send contract error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

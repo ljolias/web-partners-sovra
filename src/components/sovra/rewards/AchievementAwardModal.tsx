@@ -6,6 +6,7 @@ import { SovraLoader } from '@/components/ui';
 import { ACHIEVEMENTS } from '@/lib/achievements/definitions';
 import type { AchievementCategory } from '@/types/achievements';
 
+import { logger } from '@/lib/logger';
 interface PartnerOption {
   id: string;
   companyName: string;
@@ -43,7 +44,7 @@ export function AchievementAwardModal() {
       }));
       setPartners(partnerList);
     } catch (err) {
-      console.error('Load partners error:', err);
+      logger.error('Load partners error:', { error: err });
     } finally {
       setLoadingPartners(false);
     }
@@ -111,7 +112,7 @@ export function AchievementAwardModal() {
     } catch (err) {
       const message = err instanceof Error ? err.message : `Error ${action}ing achievement`;
       setError(message);
-      console.error('Award/revoke error:', err);
+      logger.error('Award/revoke error:', { error: err });
     } finally {
       setLoading(false);
     }

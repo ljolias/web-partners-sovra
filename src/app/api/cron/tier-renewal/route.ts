@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { processAllDueRenewals } from '@/lib/achievements/renewal';
 
 /**
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Cron tier renewal error:', error);
+    logger.error('Cron tier renewal error:', { error: error });
     return NextResponse.json(
       {
         success: false,
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Cron tier renewal error:', error);
+    logger.error('Cron tier renewal error:', { error: error });
     return NextResponse.json(
       {
         success: false,

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * SovraID API Client
  *
@@ -125,7 +126,7 @@ export class SovraIdClient {
       return { success: true, webhook: result };
     } catch (error) {
       // If the endpoint doesn't exist, the webhook must be configured via dashboard
-      console.warn('[SovraID] Webhook configuration via API not available:', error);
+      logger.warn('[SovraID] Webhook configuration via API not available:', { error });
       throw error;
     }
   }

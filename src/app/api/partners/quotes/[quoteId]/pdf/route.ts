@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { requireSession } from '@/lib/auth';
 import { getQuote, getDeal, getPartner } from '@/lib/redis';
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.error('Generate PDF error:', error);
+    logger.error('Generate PDF error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

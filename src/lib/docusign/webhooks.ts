@@ -4,6 +4,7 @@
  * Handle DocuSign Connect webhook events
  */
 
+import { logger } from '@/lib/logger';
 import {
   getLegalDocumentByEnvelopeId,
   updateLegalDocumentV2,
@@ -80,7 +81,7 @@ export async function processWebhookEvent(
   const document = await getLegalDocumentByEnvelopeId(envelopeId);
 
   if (!document) {
-    console.warn(`No document found for envelope ${envelopeId}`);
+    logger.warn('No document found for envelope', { envelopeId });
     return { success: false, message: 'Document not found for envelope' };
   }
 
@@ -115,7 +116,7 @@ export async function processWebhookEvent(
       break;
 
     default:
-      console.log(`Unhandled webhook event type: ${event.event}`);
+      logger.warn('Unhandled webhook event type', { eventType: event.event });
   }
 
   return { success: true, message: `Processed ${event.event} event` };

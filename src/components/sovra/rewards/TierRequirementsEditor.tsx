@@ -6,6 +6,7 @@ import { SovraLoader } from '@/components/ui';
 import type { RewardsConfig } from '@/lib/redis/rewards';
 import type { PartnerTier } from '@/types';
 
+import { logger } from '@/lib/logger';
 interface TierRequirementsEditorProps {
   config: RewardsConfig;
   onConfigUpdate: (config: RewardsConfig) => void;
@@ -93,7 +94,7 @@ export function TierRequirementsEditor({
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al guardar la configuracion';
       setError(message);
-      console.error('Save error:', err);
+      logger.error('Save error:', { error: err });
     } finally {
       setSaving(false);
     }

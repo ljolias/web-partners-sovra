@@ -14,6 +14,7 @@
 import crypto from 'crypto';
 import type { DocuSignSigner } from '@/types';
 
+import { logger } from '@/lib/logger';
 // Configuration
 const config = {
   integrationKey: process.env.DOCUSIGN_INTEGRATION_KEY || '',
@@ -403,7 +404,7 @@ export function verifyWebhookSignature(
   signature: string
 ): boolean {
   if (!config.webhookSecret) {
-    console.warn('DocuSign webhook secret not configured');
+    logger.warn('DocuSign webhook secret not configured');
     return false;
   }
 

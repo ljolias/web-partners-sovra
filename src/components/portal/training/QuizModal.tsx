@@ -6,10 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, CheckCircle, XCircle } from 'lucide-react';
 import { Button, Progress } from '@/components/ui';
 import { cn } from '@/lib/utils';
-import type { TrainingModule, QuizQuestion } from '@/types';
+import type { TrainingModule, CourseModule, QuizQuestion } from '@/types';
 
 interface QuizModalProps {
-  module: TrainingModule;
+  module: TrainingModule | CourseModule;
   locale: string;
   onClose: () => void;
   onSubmit: (answers: number[]) => Promise<{ passed: boolean; score: number } | null>;
@@ -17,15 +17,20 @@ interface QuizModalProps {
 
 export function QuizModal({ module, locale, onClose, onSubmit }: QuizModalProps) {
   const t = useTranslations('training.quiz');
+
+  // Validate quiz exists
+  const quiz = module.quiz || [];
+  const hasQuiz = quiz.length > 0;
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>(
-    new Array(module.quiz.length).fill(null)
+    new Array(quiz.length).fill(null)
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<{ passed: boolean; score: number } | null>(null);
 
-  const question = module.quiz?.[currentQuestion];
-  const progress = module.quiz?.length > 0 ? ((currentQuestion + 1) / module.quiz.length) * 100 : 0;
+  const question = quiz[currentQuestion];
+  const progress = quiz.length > 0 ? ((currentQuestion + 1) / quiz.length) * 100 : 0;
   const allAnswered = answers.every((a) => a !== null);
 
   const handleSelect = (optionIndex: number) => {
@@ -35,7 +40,7 @@ export function QuizModal({ module, locale, onClose, onSubmit }: QuizModalProps)
   };
 
   const handleNext = () => {
-    if (currentQuestion < module.quiz.length - 1) {
+    if (currentQuestion < quiz.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     }
   };
@@ -94,7 +99,7 @@ export function QuizModal({ module, locale, onClose, onSubmit }: QuizModalProps)
                 <>
                   <XCircle className="mx-auto h-16 w-16 text-red-500" />
                   <h3 className="mt-4 text-xl font-semibold text-gray-900">
-                    {t('failed', { score: result.score, required: module.passingScore })}
+                    {t('failed', { score: result.score, required: module.passingScore || 70 })}
                   </h3>
                 </>
               )}
@@ -107,7 +112,7 @@ export function QuizModal({ module, locale, onClose, onSubmit }: QuizModalProps)
               {/* Progress */}
               <div className="mb-6">
                 <div className="flex justify-between text-sm text-gray-500 mb-2">
-                  <span>{t('question', { current: currentQuestion + 1, total: module.quiz.length })}</span>
+                  <span>{t('question', { current: currentQuestion + 1, total: quiz.length })}</span>
                   <span>{Math.round(progress)}%</span>
                 </div>
                 <Progress value={progress} />
@@ -121,12 +126,14 @@ export function QuizModal({ module, locale, onClose, onSubmit }: QuizModalProps)
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                 >
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">
-                    {question.question[locale as keyof typeof question.question] || question.question.en}
-                  </h3>
+                  {question && (
+                    <>
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">
+                        {question.question[locale as keyof typeof question.question] || question.question.en}
+                      </h3>
 
-                  <div className="space-y-3">
-                    {(question.options[locale] || question.options.en || []).map((option, index) => (
+                      <div className="space-y-3">
+                        {((question.options as Record<string, string[]>)[locale] || (question.options as Record<string, string[]>)['en'] || []).map((option: string, index: number) => (
                       <button
                         key={index}
                         onClick={() => handleSelect(index)}
@@ -139,8 +146,10 @@ export function QuizModal({ module, locale, onClose, onSubmit }: QuizModalProps)
                       >
                         <span className="text-sm text-gray-900">{option}</span>
                       </button>
-                    ))}
-                  </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </motion.div>
               </AnimatePresence>
             </>
@@ -159,7 +168,7 @@ export function QuizModal({ module, locale, onClose, onSubmit }: QuizModalProps)
               Previous
             </Button>
 
-            {currentQuestion < module.quiz.length - 1 ? (
+            {currentQuestion < quiz.length - 1 ? (
               <Button onClick={handleNext} disabled={answers[currentQuestion] === null}>
                 Next
                 <ChevronRight className="ml-1 h-4 w-4" />

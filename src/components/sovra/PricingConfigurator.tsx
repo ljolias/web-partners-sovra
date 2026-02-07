@@ -5,6 +5,7 @@ import { Save, Plus, Trash2, DollarSign, Users, Settings, Percent, Check } from 
 import { SovraLoader } from '@/components/ui';
 import type { PricingConfig } from '@/types';
 
+import { logger } from '@/lib/logger';
 interface PricingConfiguratorProps {
   initialConfig: PricingConfig;
 }
@@ -32,7 +33,7 @@ export function PricingConfigurator({ initialConfig }: PricingConfiguratorProps)
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
-      console.error('Save error:', error);
+      logger.error('Save error:', { error: error });
       alert('Error al guardar la configuracion');
     } finally {
       setSaving(false);

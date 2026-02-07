@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 import { SovraLoader } from '@/components/ui';
 import type { AuditLog, AuditAction } from '@/types';
 
+import { logger } from '@/lib/logger';
 const entityIcons: Record<string, typeof Building2> = {
   partner: Building2,
   credential: ShieldCheck,
@@ -166,7 +167,7 @@ export default function AuditPage() {
       setLogs(data.logs || []);
       setHasMore((data.logs || []).length === limit);
     } catch (error) {
-      console.error('Error fetching logs:', error);
+      logger.error('Error fetching logs:', { error: error });
     } finally {
       setLoading(false);
     }
@@ -197,7 +198,7 @@ export default function AuditPage() {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error exporting:', error);
+      logger.error('Error exporting:', { error: error });
     }
   };
 

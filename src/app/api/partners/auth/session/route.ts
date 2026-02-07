@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { getCurrentSession } from '@/lib/auth';
 
 export async function GET() {
@@ -28,7 +29,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error('Session error:', error);
+    logger.error('Session error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Plus, Search, MapPin, Users, Building2 } from 'lucide-react';
@@ -9,7 +9,7 @@ import { formatDate } from '@/lib/utils';
 import type { Deal, DealStatus } from '@/types';
 
 interface DealsListProps {
-  deals: Deal[];
+  deals: ExtendedDeal[];
   locale: string;
 }
 
@@ -19,24 +19,31 @@ const governmentLevelLabels: Record<string, string> = {
   nation: 'Nacional',
 };
 
+// Extended Deal type for backward compatibility
+interface ExtendedDeal extends Deal {
+  companyName?: string;
+  stage?: string;
+  companyDomain?: string;
+}
+
 // Helper to get display name (supports both old and new schema)
-const getDisplayName = (deal: Deal & { companyName?: string }): string => {
-  return deal.clientName || (deal as any).companyName || 'Sin nombre';
+const getDisplayName = (deal: ExtendedDeal): string => {
+  return deal.clientName || deal.companyName || 'Sin nombre';
 };
 
 // Helper to get status/stage (supports both old and new schema)
-const getStatus = (deal: Deal & { stage?: string }): string => {
-  return deal.status || (deal as any).stage || 'pending_approval';
+const getStatus = (deal: ExtendedDeal): string => {
+  return deal.status || deal.stage || 'pending_approval';
 };
 
-export function DealsList({ deals, locale }: DealsListProps) {
+export const DealsList = memo(function DealsList({ deals, locale }: DealsListProps) {
   const t = useTranslations('deals');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<DealStatus | 'all'>('all');
 
-  const basePath = `/${locale}/partners/portal/deals`;
+  const basePath = useMemo(() => `/${locale}/partners/portal/deals`, [locale]);
 
-  const statusColors: Record<string, string> = {
+  const statusColors: Record<string, string> = useMemo(() => ({
     // New schema statuses
     pending_approval: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
     approved: 'bg-green-500/10 text-green-600 border-green-500/20',
@@ -49,9 +56,9 @@ export function DealsList({ deals, locale }: DealsListProps) {
     qualified: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
     proposal: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
     negotiation: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
-  };
+  }), []);
 
-  const statusLabels: Record<string, string> = {
+  const statusLabels: Record<string, string> = useMemo(() => ({
     // New schema statuses
     pending_approval: 'Pendiente',
     approved: 'Aprobada',
@@ -64,23 +71,25 @@ export function DealsList({ deals, locale }: DealsListProps) {
     qualified: 'Calificado',
     proposal: 'Propuesta',
     negotiation: 'Negociacion',
-  };
+  }), []);
 
-  const filteredDeals = deals.filter((deal) => {
-    const displayName = getDisplayName(deal);
-    const contactName = deal.contactName || '';
-    const country = deal.country || (deal as any).companyDomain || '';
-    const status = getStatus(deal);
+  const filteredDeals = useMemo(() => {
+    return deals.filter((deal) => {
+      const displayName = getDisplayName(deal);
+      const contactName = deal.contactName || '';
+      const country = deal.country || deal.companyDomain || '';
+      const status = getStatus(deal);
 
-    const matchesSearch =
-      displayName.toLowerCase().includes(search.toLowerCase()) ||
-      contactName.toLowerCase().includes(search.toLowerCase()) ||
-      country.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+      const matchesSearch =
+        displayName.toLowerCase().includes(search.toLowerCase()) ||
+        contactName.toLowerCase().includes(search.toLowerCase()) ||
+        country.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [deals, search, statusFilter]);
 
-  const statuses: (DealStatus | 'all')[] = [
+  const statuses: (DealStatus | 'all')[] = useMemo(() => [
     'all',
     'pending_approval',
     'approved',
@@ -88,14 +97,14 @@ export function DealsList({ deals, locale }: DealsListProps) {
     'more_info',
     'closed_won',
     'closed_lost',
-  ];
+  ], []);
 
-  const formatPopulation = (pop: number | undefined): string => {
+  const formatPopulation = useCallback((pop: number | undefined): string => {
     if (pop === undefined || pop === null) return 'N/A';
     if (pop >= 1000000) return `${(pop / 1000000).toFixed(1)}M`;
     if (pop >= 1000) return `${Math.round(pop / 1000)}K`;
     return pop.toString();
-  };
+  }, []);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -234,4 +243,4 @@ export function DealsList({ deals, locale }: DealsListProps) {
       )}
     </div>
   );
-}
+});

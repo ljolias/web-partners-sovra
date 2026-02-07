@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { requireSession } from '@/lib/auth';
 
 /**
@@ -105,7 +106,7 @@ export async function POST(request: NextRequest) {
       result,
     });
   } catch (error) {
-    console.error('[Webhook Test] Error:', error);
+    logger.error('[Webhook Test] Error:', { error: error });
     return NextResponse.json({ error: 'Test failed' }, { status: 500 });
   }
 }

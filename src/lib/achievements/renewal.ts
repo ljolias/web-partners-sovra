@@ -5,6 +5,7 @@ import { TIER_REQUIREMENTS, getPreviousTier } from './tiers';
 import type { PartnerTier } from '@/types/achievements';
 import type { Partner } from '@/types';
 
+import { logger } from '@/lib/logger';
 /**
  * Check if a partner's annual renewal date has passed
  * and their tier should be reviewed
@@ -84,7 +85,7 @@ export async function processAnnualRenewal(partnerId: string): Promise<{
       meetsRequirements: renewalStatus.currentlyMeets,
     };
   } catch (error) {
-    console.error(`Error processing renewal for partner ${partnerId}:`, error);
+    logger.error('Error processing renewal for partner', { partnerId, error });
     throw error;
   }
 }
@@ -133,14 +134,14 @@ export async function processAllDueRenewals(): Promise<{
           }
         }
       } catch (error) {
-        console.error(`Error renewing partner ${partnerId}:`, error);
+        logger.error('Error renewing partner', { partnerId, error });
         stats.errors++;
       }
     }
 
     return stats;
   } catch (error) {
-    console.error('Error processing all renewals:', error);
+    logger.error('Error processing all renewals:', { error: error });
     throw error;
   }
 }

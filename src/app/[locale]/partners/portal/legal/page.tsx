@@ -14,6 +14,7 @@ import {
 import { SovraLoader } from '@/components/ui';
 import type { LegalDocument, DocumentAuditEvent, User, UserRole, DocumentCategory } from '@/types';
 
+import { logger } from '@/lib/logger';
 interface LegalPageProps {
   params: Promise<{ locale: string }>;
 }
@@ -58,10 +59,10 @@ export default function LegalPage({ params }: LegalPageProps) {
         if (data.partnerId && data.partnerName) {
           setPartnerInfo({ partnerId: data.partnerId, partnerName: data.partnerName });
         }
-        console.log('[LegalPage] Loaded', data.documents?.length || 0, 'documents for partner:', data.partnerName, data.partnerId);
+        logger.debug('Loaded documents for partner', { count: data.documents?.length || 0, partnerName: data.partnerName, partnerId: data.partnerId });
       }
     } catch (error) {
-      console.error('Failed to fetch documents:', error);
+      logger.error('Failed to fetch documents:', { error: error });
     }
   }, []);
 
@@ -85,7 +86,7 @@ export default function LegalPage({ params }: LegalPageProps) {
         setIsAuthorized(true);
         await fetchDocuments();
       } catch (error) {
-        console.error('Failed to check access:', error);
+        logger.error('Failed to check access:', { error: error });
       } finally {
         setIsLoading(false);
       }
@@ -106,7 +107,7 @@ export default function LegalPage({ params }: LegalPageProps) {
         setAuditEvents(data.auditEvents || []);
       }
     } catch (error) {
-      console.error('Failed to fetch document details:', error);
+      logger.error('Failed to fetch document details:', { error: error });
     } finally {
       setIsDetailLoading(false);
     }
@@ -128,7 +129,7 @@ export default function LegalPage({ params }: LegalPageProps) {
         document.body.removeChild(a);
       }
     } catch (error) {
-      console.error('Failed to download document:', error);
+      logger.error('Failed to download document:', { error: error });
     }
   };
 
@@ -150,7 +151,7 @@ export default function LegalPage({ params }: LegalPageProps) {
         document.body.removeChild(a);
       }
     } catch (error) {
-      console.error('Failed to download certificate:', error);
+      logger.error('Failed to download certificate:', { error: error });
     }
   };
 

@@ -9,6 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { requireSession } from '@/lib/auth/session';
 import { uploadFileFromBuffer, validateFile } from '@/lib/storage/blob';
 
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
     try {
       session = await requireSession();
     } catch (error) {
-      console.error('Authentication failed:', error);
+      logger.error('Authentication failed:', { error: error });
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }
@@ -34,9 +35,7 @@ export async function POST(request: NextRequest) {
 
     // Step 2: Check user role (must be sovra_admin)
     if (session.user.role !== 'sovra_admin') {
-      console.warn(
-        `Unauthorized upload attempt by user ${session.user.id} with role ${session.user.role}`
-      );
+      logger.warn('Unauthorized upload attempt by user with role', { id: session.user.id, role: session.user.role });
       return NextResponse.json(
         { error: 'Forbidden: sovra_admin role required' },
         { status: 403 }
@@ -48,7 +47,7 @@ export async function POST(request: NextRequest) {
     try {
       formData = await request.formData();
     } catch (error) {
-      console.error('Failed to parse FormData:', error);
+      logger.error('Failed to parse FormData:', { error: error });
       return NextResponse.json(
         { error: 'Invalid request body' },
         { status: 400 }
@@ -91,7 +90,7 @@ export async function POST(request: NextRequest) {
       const arrayBuffer = await file.arrayBuffer();
       buffer = Buffer.from(arrayBuffer);
     } catch (error) {
-      console.error('Failed to read file content:', error);
+      logger.error('Failed to read file content:', { error: error });
       return NextResponse.json(
         { error: 'Failed to read file content' },
         { status: 500 }
@@ -112,7 +111,7 @@ export async function POST(request: NextRequest) {
         file.type
       );
     } catch (error) {
-      console.error('File upload failed:', error);
+      logger.error('File upload failed:', { error: error });
       return NextResponse.json(
         { error: 'Upload failed' },
         { status: 500 }
@@ -131,7 +130,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     // Catch-all error handler
-    console.error('Unexpected error in upload route:', error);
+    logger.error('Unexpected error in upload route:', { error: error });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

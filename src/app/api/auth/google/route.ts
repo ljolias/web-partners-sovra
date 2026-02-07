@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { cookies } from 'next/headers';
 import { getGoogleAuthUrl, generateOAuthState } from '@/lib/auth/google';
 
@@ -20,7 +21,7 @@ export async function GET() {
 
     return NextResponse.redirect(authUrl);
   } catch (error) {
-    console.error('Google OAuth error:', error);
+    logger.error('Google OAuth error:', { error: error });
     return NextResponse.redirect(new URL('/es/sovra/login?error=oauth_failed', process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'));
   }
 }

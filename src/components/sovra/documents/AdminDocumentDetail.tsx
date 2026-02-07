@@ -7,6 +7,7 @@ import { Button, Badge } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import type { LegalDocument, DocumentAuditEvent, DocumentStatus } from '@/types';
 
+import { logger } from '@/lib/logger';
 interface AdminDocumentDetailProps {
   document: LegalDocument;
   isOpen: boolean;
@@ -53,7 +54,7 @@ export function AdminDocumentDetail({ document, isOpen, onClose, onRefresh }: Ad
         setAuditEvents(data.auditEvents || []);
       }
     } catch (error) {
-      console.error('Failed to fetch audit events:', error);
+      logger.error('Failed to fetch audit events:', { error: error });
     } finally {
       setIsLoading(false);
     }
@@ -93,7 +94,7 @@ export function AdminDocumentDetail({ document, isOpen, onClose, onRefresh }: Ad
         onClose();
       }
     } catch (error) {
-      console.error('Failed to verify document:', error);
+      logger.error('Failed to verify document:', { error: error });
     }
   };
 

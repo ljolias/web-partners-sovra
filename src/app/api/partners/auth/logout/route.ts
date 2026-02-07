@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { logout } from '@/lib/auth';
 
 export async function POST() {
@@ -6,7 +7,7 @@ export async function POST() {
     await logout();
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Logout error:', error);
+    logger.error('Logout error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

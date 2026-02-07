@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { requireSession } from '@/lib/auth';
 import { getSovraIdClient, isSovraIdConfigured, SovraIdApiError } from '@/lib/sovraid';
 
@@ -136,7 +137,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.error('[Webhook Configure] Error:', error);
+    logger.error('[Webhook Configure] Error:', { error: error });
 
     if (error instanceof SovraIdApiError) {
       return NextResponse.json({

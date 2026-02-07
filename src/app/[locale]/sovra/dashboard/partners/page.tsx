@@ -34,6 +34,7 @@ import { cn } from '@/lib/utils';
 import { SovraLoader } from '@/components/ui';
 import type { Partner, PartnerTier } from '@/types';
 
+import { logger } from '@/lib/logger';
 const tierConfig: Record<PartnerTier, { label: string; color: string; icon: string }> = {
   bronze: { label: 'Bronze', color: 'text-amber-600 bg-amber-500/10', icon: '' },
   silver: { label: 'Silver', color: 'text-[var(--color-text-secondary)] bg-[var(--color-surface-hover)]', icon: '' },
@@ -152,7 +153,7 @@ function CreatePartnerModal({ isOpen, onClose, onSuccess }: CreatePartnerModalPr
 
       if (!credentialResponse.ok) {
         // Partner created but credential failed - still show success but log warning
-        console.warn('Partner created but credential issuance failed');
+        logger.warn('Partner created but credential issuance failed');
         onSuccess();
         handleClose();
         return;
@@ -952,7 +953,7 @@ export default function PartnersPage() {
       const data = await response.json();
       setPartners(data.partners || []);
     } catch (error) {
-      console.error('Error fetching partners:', error);
+      logger.error('Error fetching partners:', { error: error });
     } finally {
       setLoading(false);
     }
@@ -978,7 +979,7 @@ export default function PartnersPage() {
       await fetchPartners();
       setSuspendModal({ open: false, partner: null });
     } catch (error) {
-      console.error('Error suspending partner:', error);
+      logger.error('Error suspending partner:', { error: error });
     } finally {
       setActionLoading(false);
     }
@@ -995,7 +996,7 @@ export default function PartnersPage() {
 
       await fetchPartners();
     } catch (error) {
-      console.error('Error reactivating partner:', error);
+      logger.error('Error reactivating partner:', { error: error });
     } finally {
       setActionLoading(false);
     }
@@ -1015,7 +1016,7 @@ export default function PartnersPage() {
       await fetchPartners();
       setDeleteModal({ open: false, partner: null });
     } catch (error) {
-      console.error('Error deleting partner:', error);
+      logger.error('Error deleting partner:', { error: error });
     } finally {
       setActionLoading(false);
     }

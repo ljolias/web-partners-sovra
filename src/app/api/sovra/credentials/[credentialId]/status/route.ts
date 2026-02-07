@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { requireSession } from '@/lib/auth';
 import { getPartnerCredential, updatePartnerCredential } from '@/lib/redis';
 import { getSovraIdClient, isSovraIdConfigured, SovraIdApiError } from '@/lib/sovraid';
@@ -110,7 +111,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         isMock: false,
       });
     } catch (apiError) {
-      console.error('[Credential Status] SovraID API error:', apiError);
+      logger.error('[Credential Status] SovraID API error:', { error: apiError });
 
       if (apiError instanceof SovraIdApiError) {
         return NextResponse.json({
@@ -133,7 +134,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.error('[Credential Status] Error:', error);
+    logger.error('[Credential Status] Error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

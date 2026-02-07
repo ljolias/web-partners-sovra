@@ -3,6 +3,7 @@ import { ACHIEVEMENTS, getAchievementsByCategory } from './definitions';
 import { getRewardsConfig } from '@/lib/redis/rewards';
 import type { Achievement, AchievementProgress, AchievementDefinition } from '@/types/achievements';
 
+import { logger } from '@/lib/logger';
 const ACHIEVEMENT_KEY_PREFIX = 'partner:achievements';
 
 /**
@@ -13,7 +14,7 @@ async function getDynamicAchievements(): Promise<Record<string, AchievementDefin
     const config = await getRewardsConfig();
     return config.achievements;
   } catch (error) {
-    console.warn('Failed to load achievements from Redis, using static definitions:', error);
+    logger.warn('Failed to load achievements from Redis, using static definitions:', { error });
     return ACHIEVEMENTS;
   }
 }
@@ -29,7 +30,7 @@ export async function checkAndAwardAchievement(
   const dynamicAchievements = await getDynamicAchievements();
   const definition = dynamicAchievements[achievementId];
   if (!definition) {
-    console.warn(`Achievement not found: ${achievementId}`);
+    logger.warn('Achievement not found:', { achievementId: achievementId });
     return false;
   }
 
@@ -196,7 +197,7 @@ export async function removeAchievement(
   const dynamicAchievements = await getDynamicAchievements();
   const definition = dynamicAchievements[achievementId];
   if (!definition) {
-    console.warn(`Achievement not found: ${achievementId}`);
+    logger.warn('Achievement not found:', { achievementId: achievementId });
     return false;
   }
 

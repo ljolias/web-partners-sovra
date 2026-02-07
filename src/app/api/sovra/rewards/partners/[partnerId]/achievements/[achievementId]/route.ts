@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { cookies } from 'next/headers';
 import {
   getSession,
@@ -81,7 +82,7 @@ export async function DELETE(
     try {
       await recalculateAndUpdatePartner(partnerId, user.id);
     } catch (error) {
-      console.error(`Failed to recalculate rating for partner ${partnerId}:`, error);
+      logger.error('Failed to recalculate rating for partner', { partnerId, error });
     }
 
     // Create audit log
@@ -127,7 +128,7 @@ export async function DELETE(
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
-    console.error('Revoke achievement error:', error);
+    logger.error('Revoke achievement error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

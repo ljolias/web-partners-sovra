@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withErrorHandling } from '@/lib/api/errorHandler';
+import { logger } from '@/lib/logger';
+import { ValidationError, NotFoundError } from '@/lib/errors';
 import { z } from 'zod';
 import { requireSession } from '@/lib/auth';
 import {
@@ -17,126 +20,116 @@ const submitSchema = z.object({
   answers: z.array(z.number()),
 });
 
-export async function POST(request: NextRequest) {
-  try {
-    const { user, partner } = await requireSession();
+export const POST = withErrorHandling(async (request: NextRequest) => {
+  const { user, partner } = await requireSession();
 
-    const body = await request.json();
-    const validation = submitSchema.safeParse(body);
+  const body = await request.json();
+  const validation = submitSchema.safeParse(body);
 
-    if (!validation.success) {
-      const issues = validation.error.issues;
-      return NextResponse.json(
-        { error: issues[0]?.message || 'Validation failed' },
-        { status: 400 }
-      );
+  if (!validation.success) {
+    const issues = validation.error.issues;
+    throw new ValidationError(issues[0]?.message || 'Validation failed');
+  }
+
+  const { moduleId, answers } = validation.data;
+
+  const module = await getTrainingModule(moduleId);
+
+  if (!module) {
+    throw new NotFoundError('Module');
+  }
+
+  if (answers.length !== module.quiz.length) {
+    throw new ValidationError('Invalid number of answers');
+  }
+
+  // Calculate score
+  let correctCount = 0;
+  for (let i = 0; i < module.quiz.length; i++) {
+    if (answers[i] === module.quiz[i].correctAnswer) {
+      correctCount++;
     }
+  }
 
-    const { moduleId, answers } = validation.data;
+  const score = Math.round((correctCount / module.quiz.length) * 100);
+  const passed = score >= module.passingScore;
 
-    const module = await getTrainingModule(moduleId);
+  const progress: TrainingProgress = {
+    moduleId,
+    userId: user.id,
+    completed: passed,
+    quizScore: score,
+    completedAt: passed ? new Date().toISOString() : null,
+    startedAt: new Date().toISOString(),
+  };
 
-    if (!module) {
-      return NextResponse.json({ error: 'Module not found' }, { status: 404 });
-    }
+  await updateTrainingProgress(user.id, progress);
 
-    if (answers.length !== module.quiz.length) {
-      return NextResponse.json(
-        { error: 'Invalid number of answers' },
-        { status: 400 }
-      );
-    }
+  logger.debug('Quiz submitted', { moduleId, userId: user.id, score, passed });
 
-    // Calculate score
-    let correctCount = 0;
-    for (let i = 0; i < module.quiz.length; i++) {
-      if (answers[i] === module.quiz[i].correctAnswer) {
-        correctCount++;
-      }
-    }
+  // Log training module completion event if passed
+  if (passed) {
+    await logRatingEvent(
+      partner.id,
+      user.id,
+      'TRAINING_MODULE_COMPLETED',
+      { moduleId, score }
+    );
+  }
 
-    const score = Math.round((correctCount / module.quiz.length) * 100);
-    const passed = score >= module.passingScore;
+  // Check if user completed all modules and grant certification
+  if (passed) {
+    const allModules = await getAllTrainingModules();
+    const userProgress = await getUserTrainingProgress(user.id);
+    userProgress[moduleId] = progress;
 
-    const progress: TrainingProgress = {
-      moduleId,
-      userId: user.id,
-      completed: passed,
-      quizScore: score,
-      completedAt: passed ? new Date().toISOString() : null,
-      startedAt: new Date().toISOString(),
-    };
+    const allCompleted = allModules.every(
+      (m) => userProgress[m.id]?.completed
+    );
 
-    await updateTrainingProgress(user.id, progress);
+    if (allCompleted) {
+      const now = new Date();
+      const expiresAt = new Date(now);
+      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
-    // Log training module completion event if passed
-    if (passed) {
+      const certification: Certification = {
+        id: generateId(),
+        userId: user.id,
+        partnerId: partner.id,
+        type: 'sales_fundamentals',
+        status: 'active',
+        issuedAt: now.toISOString(),
+        expiresAt: expiresAt.toISOString(),
+      };
+
+      await createCertification(certification);
+
+      logger.info('Certification granted', { certificationId: certification.id, userId: user.id });
+
+      // Log certification earned event
       await logRatingEvent(
         partner.id,
         user.id,
-        'TRAINING_MODULE_COMPLETED',
-        { moduleId, score }
-      );
-    }
-
-    // Check if user completed all modules and grant certification
-    if (passed) {
-      const allModules = await getAllTrainingModules();
-      const userProgress = await getUserTrainingProgress(user.id);
-      userProgress[moduleId] = progress;
-
-      const allCompleted = allModules.every(
-        (m) => userProgress[m.id]?.completed
+        'CERTIFICATION_EARNED',
+        { certificationId: certification.id, type: certification.type }
       );
 
-      if (allCompleted) {
-        const now = new Date();
-        const expiresAt = new Date(now);
-        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+      // Recalculate rating after certification
+      await recalculateAndUpdatePartner(partner.id, user.id);
 
-        const certification: Certification = {
-          id: generateId(),
-          userId: user.id,
-          partnerId: partner.id,
-          type: 'sales_fundamentals',
-          status: 'active',
-          issuedAt: now.toISOString(),
-          expiresAt: expiresAt.toISOString(),
-        };
-
-        await createCertification(certification);
-
-        // Log certification earned event
-        await logRatingEvent(
-          partner.id,
-          user.id,
-          'CERTIFICATION_EARNED',
-          { certificationId: certification.id, type: certification.type }
-        );
-
-        // Recalculate rating after certification
-        await recalculateAndUpdatePartner(partner.id, user.id);
-
-        return NextResponse.json({
-          passed,
-          score,
-          progress,
-          certification,
-        });
-      }
+      return NextResponse.json({
+        passed,
+        score,
+        progress,
+        certification,
+      });
     }
-
-    // Recalculate rating if module was passed
-    if (passed) {
-      recalculateAndUpdatePartner(partner.id, user.id).catch(console.error);
-    }
-
-    return NextResponse.json({ passed, score, progress });
-  } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    console.error('Submit quiz error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+
+  // Recalculate rating if module was passed
+  if (passed) {
+    recalculateAndUpdatePartner(partner.id, user.id).catch((error) => logger.error('Operation failed', { error }));
+  }
+
+  return NextResponse.json({ passed, score, progress });
+});

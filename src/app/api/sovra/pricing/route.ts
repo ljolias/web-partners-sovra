@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { getSession, getUser, getPricingConfig, savePricingConfig } from '@/lib/redis/operations';
@@ -84,7 +85,7 @@ export async function GET() {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
-    console.error('Get pricing config error:', error);
+    logger.error('Get pricing config error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -117,7 +118,7 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
-    console.error('Update pricing config error:', error);
+    logger.error('Update pricing config error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

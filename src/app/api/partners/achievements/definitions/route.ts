@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { getRewardsConfig } from '@/lib/redis/rewards';
 
 /**
@@ -16,7 +17,7 @@ export async function GET() {
       tierRequirements: config.tierRequirements,
     });
   } catch (error) {
-    console.error('Get achievement definitions error:', error);
+    logger.error('Get achievement definitions error:', { error: error });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

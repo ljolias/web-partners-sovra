@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { updatePartnerCredential, addAuditLog, createUser, getUserByEmail, generateId, getPartner } from '@/lib/redis';
 import { sendWelcomeEmail } from '@/lib/email';
 import type { User, UserRole } from '@/types';
@@ -47,22 +48,22 @@ interface VerificationFinishedData {
 export async function POST(request: NextRequest) {
   try {
     // Log incoming request for debugging
-    console.log('[SovraID Webhook] Received request');
+    logger.info('SovraID webhook received');
 
     const rawBody = await request.text();
-    console.log('[SovraID Webhook] Raw body:', rawBody);
+    logger.debug('SovraID webhook raw body', { rawBody });
 
     // Parse the body
     let payload: SovraIdWebhookPayload;
     try {
       payload = JSON.parse(rawBody);
     } catch (e) {
-      console.error('[SovraID Webhook] Failed to parse body:', e);
+      logger.error('SovraID webhook failed to parse body', { error: e });
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
     }
 
-    console.log('[SovraID Webhook] Event type:', payload.eventType);
-    console.log('[SovraID Webhook] Event data:', JSON.stringify(payload.eventData, null, 2));
+    logger.info('SovraID webhook event type', { eventType: payload.eventType });
+    logger.debug('SovraID webhook event data', { eventData: payload.eventData });
 
     // Verify webhook secret if configured
     const webhookSecret = process.env.SOVRAID_WEBHOOK_SECRET;
@@ -74,10 +75,10 @@ export async function POST(request: NextRequest) {
         request.headers.get('x-webhook-secret') ||
         (authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : authHeader);
 
-      console.log('[SovraID Webhook] Checking authentication...');
+      logger.debug('SovraID webhook checking authentication');
 
       if (signature !== webhookSecret) {
-        console.warn('[SovraID Webhook] Signature mismatch - continuing for debugging');
+        logger.warn('SovraID webhook signature mismatch - continuing for debugging');
         // In production, uncomment this:
         // return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
@@ -94,13 +95,13 @@ export async function POST(request: NextRequest) {
         break;
 
       default:
-        console.log('[SovraID Webhook] Unhandled event type:', payload.eventType);
+        logger.warn('SovraID webhook unhandled event type', { eventType: payload.eventType });
     }
 
     // Respond within 5 seconds as recommended
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error('[SovraID Webhook] Error processing webhook:', error);
+    logger.error('SovraID webhook processing error', { error });
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 }
@@ -112,15 +113,15 @@ export async function POST(request: NextRequest) {
 async function handleCredentialIssued(eventData: CredentialIssuedData) {
   const { holderDID, invitationId, vc } = eventData;
 
-  console.log('[SovraID Webhook] Processing credential-issued');
-  console.log('[SovraID Webhook] Holder DID:', holderDID);
-  console.log('[SovraID Webhook] Invitation ID:', invitationId);
+  logger.info('SovraID webhook processing credential-issued');
+  logger.debug('SovraID webhook holder DID', { holderDID });
+  logger.debug('SovraID webhook invitation ID', { invitationId });
 
   // Find the local credential by invitation ID, credential ID, or email
   const credential = await findCredentialByInvitationId(invitationId, eventData);
 
   if (!credential) {
-    console.warn('[SovraID Webhook] Credential not found for invitation ID:', invitationId);
+    logger.warn('SovraID webhook credential not found', { invitationId });
     return;
   }
 
@@ -132,7 +133,7 @@ async function handleCredentialIssued(eventData: CredentialIssuedData) {
 
   // Create user account if it doesn't exist
   if (!existingUser) {
-    console.log('[SovraID Webhook] Creating user account for:', credential.holderEmail);
+    logger.info('SovraID webhook creating user account', { email: credential.holderEmail });
 
     userId = generateId();
     const newUser: User = {
@@ -147,7 +148,7 @@ async function handleCredentialIssued(eventData: CredentialIssuedData) {
     };
 
     await createUser(newUser);
-    console.log('[SovraID Webhook] User account created:', userId);
+    logger.info('SovraID webhook user account created', { userId });
 
     // Add audit log for user creation
     await addAuditLog(
@@ -166,7 +167,7 @@ async function handleCredentialIssued(eventData: CredentialIssuedData) {
       }
     );
   } else {
-    console.log('[SovraID Webhook] User already exists:', existingUser.id);
+    logger.debug('SovraID webhook user already exists', { userId: existingUser.id });
   }
 
   // Update local credential status to active and link to user
@@ -205,12 +206,12 @@ async function handleCredentialIssued(eventData: CredentialIssuedData) {
         partnerName: partner.companyName,
       });
     } catch (emailErr) {
-      console.error('[SovraID Webhook] Failed to send welcome email:', emailErr);
+      logger.error('SovraID webhook failed to send welcome email', { error: emailErr });
     }
   }
 
-  console.log('[SovraID Webhook] Credential activated successfully:', credential.id);
-  console.log('[SovraID Webhook] Linked to user:', userId);
+  logger.info('SovraID webhook credential activated', { credentialId: credential.id });
+  logger.debug('SovraID webhook linked to user', { userId });
 }
 
 /**
@@ -220,10 +221,10 @@ async function handleCredentialIssued(eventData: CredentialIssuedData) {
 async function handleVerificationFinished(eventData: VerificationFinishedData) {
   const { verified, holderDID, invitationId, verifiableCredentials } = eventData;
 
-  console.log('[SovraID Webhook] Processing verifiable-presentation-finished');
-  console.log('[SovraID Webhook] Verified:', verified);
-  console.log('[SovraID Webhook] Holder DID:', holderDID);
-  console.log('[SovraID Webhook] Invitation ID (presentationId):', invitationId);
+  logger.info('SovraID webhook processing verifiable-presentation-finished');
+  logger.debug('SovraID webhook verified status', { verified });
+  logger.debug('SovraID webhook holder DID', { holderDID });
+  logger.debug('SovraID webhook invitation ID (presentationId)', { invitationId });
 
   // Add audit log for the verification
   await addAuditLog(
@@ -241,7 +242,7 @@ async function handleVerificationFinished(eventData: VerificationFinishedData) {
     }
   );
 
-  console.log('[SovraID Webhook] Verification logged:', invitationId, 'verified:', verified);
+  logger.info('SovraID webhook verification logged', { invitationId, verified });
 }
 
 // ============================================
@@ -271,7 +272,7 @@ async function findCredentialByInvitationId(
 
   // Get all credentials
   const allCredentialIds = await redis.zrange('credentials:all', 0, -1);
-  console.log('[SovraID Webhook] Searching through', allCredentialIds.length, 'credentials');
+  logger.debug('SovraID webhook searching through credentials', { count: allCredentialIds.length });
 
   // Extract email from VC if available (for fallback matching)
   const vcEmail = eventData?.vc?.credentialSubject?.email as string | undefined;
@@ -279,36 +280,31 @@ async function findCredentialByInvitationId(
   // Extract just the UUID from the full credential URL if present
   const vcCredentialUuid = vcCredentialId?.split('/').pop();
 
-  console.log('[SovraID Webhook] Looking for invitationId:', invitationId);
-  console.log('[SovraID Webhook] VC email:', vcEmail);
-  console.log('[SovraID Webhook] VC credential ID:', vcCredentialUuid);
+  logger.debug('SovraID webhook looking for invitationId', { invitationId });
+  logger.debug('SovraID webhook VC email', { vcEmail });
+  logger.debug('SovraID webhook VC credential ID', { vcCredentialUuid });
 
   for (const credentialId of allCredentialIds) {
     const credential = await redis.hgetall(`credential:${credentialId}`) as CredentialRecord | null;
     if (credential && credential.id) {
-      console.log('[SovraID Webhook] Checking credential:', {
-        id: credential.id,
-        email: credential.holderEmail,
-        sovraIdCredentialId: credential.sovraIdCredentialId,
-        sovraIdInvitationId: credential.sovraIdInvitationId,
-      });
+      logger.debug('SovraID webhook checking credential', { id: credential.id, email: credential.holderEmail, sovraIdCredentialId: credential.sovraIdCredentialId, sovraIdInvitationId: credential.sovraIdInvitationId });
 
       // Try to match by invitation ID
       if (credential.sovraIdInvitationId === invitationId) {
-        console.log('[SovraID Webhook] Found by invitationId match');
+        logger.debug('SovraID webhook found by invitationId match');
         return credential;
       }
 
       // Try to match by credential ID
       if (credential.sovraIdCredentialId === invitationId ||
           credential.sovraIdCredentialId === vcCredentialUuid) {
-        console.log('[SovraID Webhook] Found by credentialId match');
+        logger.debug('SovraID webhook found by credentialId match');
         return credential;
       }
 
       // Fallback: match by email from VC
       if (vcEmail && credential.holderEmail?.toLowerCase() === vcEmail.toLowerCase()) {
-        console.log('[SovraID Webhook] Found by email match (fallback)');
+        logger.debug('SovraID webhook found by email match (fallback)');
         return credential;
       }
     }

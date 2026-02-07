@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { getCurrentSession } from '@/lib/auth';
 import {
   getPartner,
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
     // Issue credential via SovraID API if configured
     if (isSovraIdConfigured()) {
       try {
-        console.log('[Partner Team API] Issuing credential via SovraID API...');
+        logger.debug('[Partner Team API] Issuing credential via SovraID API...');
         const sovraIdClient = getSovraIdClient();
 
         // Calculate expiration date (1 year from now)
@@ -109,13 +110,13 @@ export async function POST(request: NextRequest) {
         sovraIdCredentialId = sovraIdResponse.id;
 
         // Log the full response for debugging
-        console.log('[Partner Team API] SovraID credential issued:', sovraIdCredentialId);
-        console.log('[Partner Team API] FULL API Response:', JSON.stringify(sovraIdResponse, null, 2));
+        logger.debug('[Partner Team API] SovraID credential issued:', { sovraIdCredentialId: sovraIdCredentialId });
+        logger.debug('[Partner Team API] FULL API Response:', { data: sovraIdResponse });
 
         // Store the invitation ID for webhook matching (CRITICAL!)
         const invitationWallet = sovraIdResponse.invitation_wallet;
         sovraIdInvitationId = invitationWallet?.invitationId;
-        console.log('[Partner Team API] Invitation ID:', sovraIdInvitationId);
+        logger.debug('[Partner Team API] Invitation ID:', { sovraIdInvitationId: sovraIdInvitationId });
 
         // Process the invitationContent to get the DIDComm URL
         let rawInvitationContent = invitationWallet?.invitationContent;
@@ -134,12 +135,12 @@ export async function POST(request: NextRequest) {
         }
 
         qrCode = didcommInvitationUrl;
-        console.log('[Partner Team API] Final QR Code value:', qrCode?.substring(0, 100));
+        logger.debug('Final QR Code value', { qrCodePreview: qrCode?.substring(0, 100) });
       } catch (sovraError) {
-        console.error('[Partner Team API] SovraID API error:', sovraError);
+        logger.error('[Partner Team API] SovraID API error:', { error: sovraError });
 
         if (sovraError instanceof SovraIdApiError) {
-          console.warn('[Partner Team API] Falling back to mock credential');
+          logger.warn('[Partner Team API] Falling back to mock credential');
           sovraIdCredentialId = `mock-${credentialId}`;
           qrCode = `https://sovraid.io/claim/${credentialId}`;
         } else {
@@ -147,7 +148,7 @@ export async function POST(request: NextRequest) {
         }
       }
     } else {
-      console.warn('[Partner Team API] SovraID not configured, using mock credential');
+      logger.warn('[Partner Team API] SovraID not configured, using mock credential');
       sovraIdCredentialId = `mock-${credentialId}`;
       qrCode = `https://sovraid.io/claim/${credentialId}`;
     }
@@ -201,7 +202,7 @@ export async function POST(request: NextRequest) {
         qrCodeData: didcommInvitationUrl,
       });
     } catch (emailErr) {
-      console.error('[Partner Team API] Failed to send email:', emailErr);
+      logger.error('[Partner Team API] Failed to send email:', { error: emailErr });
       // Don't fail the request if email fails
     }
 
@@ -210,7 +211,7 @@ export async function POST(request: NextRequest) {
       didcommInvitationUrl,
     }, { status: 201 });
   } catch (error) {
-    console.error('[Partner Team API] Error:', error);
+    logger.error('[Partner Team API] Error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

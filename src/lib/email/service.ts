@@ -7,6 +7,7 @@
 import { sendEmail, isEmailConfigured } from './client';
 import { credentialIssuedEmail, welcomeEmail } from './templates';
 
+import { logger } from '@/lib/logger';
 const PORTAL_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://partners.sovra.io';
 
 /**
@@ -20,7 +21,7 @@ export async function sendCredentialEmail(params: {
   qrCodeData?: string;
 }): Promise<{ success: boolean; error?: string }> {
   if (!isEmailConfigured()) {
-    console.warn('[Email Service] SMTP not configured, skipping credential email');
+    logger.warn('[Email Service] SMTP not configured, skipping credential email');
     return { success: false, error: 'Email not configured' };
   }
 
@@ -40,7 +41,7 @@ export async function sendCredentialEmail(params: {
   });
 
   if (result.success) {
-    console.log(`[Email Service] Credential email sent to ${params.to}`);
+    logger.debug('[Email Service] Credential email sent to', { to: params.to });
   }
 
   return result;
@@ -55,7 +56,7 @@ export async function sendWelcomeEmail(params: {
   partnerName: string;
 }): Promise<{ success: boolean; error?: string }> {
   if (!isEmailConfigured()) {
-    console.warn('[Email Service] SMTP not configured, skipping welcome email');
+    logger.warn('[Email Service] SMTP not configured, skipping welcome email');
     return { success: false, error: 'Email not configured' };
   }
 
@@ -73,7 +74,7 @@ export async function sendWelcomeEmail(params: {
   });
 
   if (result.success) {
-    console.log(`[Email Service] Welcome email sent to ${params.to}`);
+    logger.debug('[Email Service] Welcome email sent to', { to: params.to });
   }
 
   return result;

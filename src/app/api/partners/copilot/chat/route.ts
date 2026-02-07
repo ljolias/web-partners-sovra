@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { logger } from '@/lib/logger';
 import { requireSession } from '@/lib/auth';
 import {
   getDeal,
@@ -147,13 +148,13 @@ export async function POST(request: NextRequest) {
           );
 
           // Recalculate rating in background (non-blocking)
-          recalculateAndUpdatePartner(partner.id, user.id).catch(console.error);
+          recalculateAndUpdatePartner(partner.id, user.id).catch((error) => logger.error('Failed to recalculate partner rating', { error }));
 
           // Send done signal
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));
           controller.close();
         } catch (error) {
-          console.error('Streaming error:', error);
+          logger.error('Streaming error:', { error: error });
           const errorData = JSON.stringify({ error: 'Streaming failed' });
           controller.enqueue(encoder.encode(`data: ${errorData}\n\n`));
           controller.close();
@@ -175,7 +176,7 @@ export async function POST(request: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    console.error('Copilot chat error:', error);
+    logger.error('Copilot chat error:', { error: error });
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

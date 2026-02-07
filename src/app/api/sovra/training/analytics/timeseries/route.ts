@@ -20,6 +20,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { requireSession } from '@/lib/auth/session';
 import {
   getEnrollmentTimeSeries,
@@ -124,7 +125,7 @@ export async function GET(request: NextRequest) {
     try {
       session = await requireSession();
     } catch (error) {
-      console.error('Authentication failed:', error);
+      logger.error('Authentication failed:', { error: error });
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }
@@ -133,9 +134,7 @@ export async function GET(request: NextRequest) {
 
     // Step 2: Check user role (must be sovra_admin)
     if (session.user.role !== 'sovra_admin') {
-      console.warn(
-        `Unauthorized analytics access attempt by user ${session.user.id} with role ${session.user.role}`
-      );
+      logger.warn('Unauthorized analytics access attempt by user with role', { id: session.user.id, role: session.user.role });
       return NextResponse.json(
         { error: 'Forbidden: sovra_admin role required' },
         { status: 403 }
@@ -251,7 +250,7 @@ export async function GET(request: NextRequest) {
     );
   } catch (error) {
     // Catch-all error handler
-    console.error('Error fetching time series analytics:', error);
+    logger.error('Error fetching time series analytics:', { error: error });
     return NextResponse.json(
       {
         error: 'Internal server error',

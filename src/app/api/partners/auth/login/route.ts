@@ -1,41 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withErrorHandling } from '@/lib/api/errorHandler';
+import { logger } from '@/lib/logger';
+import { ValidationError, UnauthorizedError } from '@/lib/errors';
 import { login } from '@/lib/auth';
 import { updatePartnerLastLogin } from '@/lib/rating';
 
-export async function POST(request: NextRequest) {
-  try {
-    const { email, password } = await request.json();
+export const POST = withErrorHandling(async (request: NextRequest) => {
+  const { email, password } = await request.json();
 
-    if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
-    }
-
-    const sessionData = await login(email, password);
-
-    if (!sessionData) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
-    }
-
-    // Track login for activity monitoring
-    await updatePartnerLastLogin(sessionData.partner.id);
-
-    return NextResponse.json({
-      user: {
-        id: sessionData.user.id,
-        email: sessionData.user.email,
-        name: sessionData.user.name,
-        role: sessionData.user.role,
-      },
-      partner: {
-        id: sessionData.partner.id,
-        name: sessionData.partner.name,
-        companyName: sessionData.partner.companyName,
-        tier: sessionData.partner.tier,
-        rating: sessionData.partner.rating,
-      },
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  if (!email || !password) {
+    throw new ValidationError('Email and password are required');
   }
-}
+
+  const sessionData = await login(email, password);
+
+  if (!sessionData) {
+    throw new UnauthorizedError('Invalid credentials');
+  }
+
+  // Track login for activity monitoring
+  await updatePartnerLastLogin(sessionData.partner.id);
+
+  logger.info('User logged in', { userId: sessionData.user.id, partnerId: sessionData.partner.id });
+
+  return NextResponse.json({
+    user: {
+      id: sessionData.user.id,
+      email: sessionData.user.email,
+      name: sessionData.user.name,
+      role: sessionData.user.role,
+    },
+    partner: {
+      id: sessionData.partner.id,
+      name: sessionData.partner.name,
+      companyName: sessionData.partner.companyName,
+      tier: sessionData.partner.tier,
+      rating: sessionData.partner.rating,
+    },
+  });
+});

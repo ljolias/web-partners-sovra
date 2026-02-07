@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Email Client - Gmail SMTP
  *
@@ -56,7 +57,7 @@ export async function sendEmail(params: {
 }): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
     if (!isEmailConfigured()) {
-      console.warn('[Email] SMTP not configured, skipping email send');
+      logger.warn('[Email] SMTP not configured, skipping email send');
       return { success: false, error: 'Email not configured' };
     }
 
@@ -71,10 +72,10 @@ export async function sendEmail(params: {
       html: params.html,
     });
 
-    console.log('[Email] Sent successfully:', result.messageId);
+    logger.debug('[Email] Sent successfully:', { messageId: result.messageId });
     return { success: true, messageId: result.messageId };
   } catch (error) {
-    console.error('[Email] Failed to send:', error);
+    logger.error('[Email] Failed to send:', { error: error });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -93,10 +94,10 @@ export async function verifyEmailConnection(): Promise<boolean> {
 
     const transport = getTransporter();
     await transport.verify();
-    console.log('[Email] SMTP connection verified');
+    logger.debug('[Email] SMTP connection verified');
     return true;
   } catch (error) {
-    console.error('[Email] SMTP connection failed:', error);
+    logger.error('[Email] SMTP connection failed:', { error: error });
     return false;
   }
 }

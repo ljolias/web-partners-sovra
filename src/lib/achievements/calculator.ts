@@ -11,6 +11,7 @@ import type {
 } from '@/types/achievements';
 import { ACHIEVEMENTS } from './definitions';
 
+import { logger } from '@/lib/logger';
 /**
  * Get partner's current rating score
  * Returns cached rating or defaults to 0
@@ -140,7 +141,7 @@ export async function calculateTierEligibility(
       blockers,
     };
   } catch (error) {
-    console.error('Error calculating tier eligibility:', error);
+    logger.error('Error calculating tier eligibility:', { error: error });
     throw error;
   }
 }
@@ -205,7 +206,7 @@ export async function getNextTierRequirements(
       },
     };
   } catch (error) {
-    console.error('Error calculating next tier requirements:', error);
+    logger.error('Error calculating next tier requirements:', { error: error });
     throw error;
   }
 }
@@ -264,7 +265,7 @@ export async function checkAnnualRenewal(partnerId: string): Promise<RenewalStat
       },
     };
   } catch (error) {
-    console.error('Error checking annual renewal:', error);
+    logger.error('Error checking annual renewal:', { error: error });
     throw error;
   }
 }

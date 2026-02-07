@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { getCurrentSession } from '@/lib/auth';
 import { PortalShell } from '@/components/portal/PortalShell';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import type { Partner, User } from '@/types';
 
 interface PortalLayoutProps {
@@ -22,13 +23,15 @@ export default async function PortalLayout({ children, params }: PortalLayoutPro
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <PortalShell
-        partner={session.partner as Partner}
-        user={session.user as User}
-        locale={locale}
-      >
-        {children}
-      </PortalShell>
+      <ErrorBoundary>
+        <PortalShell
+          partner={session.partner as Partner}
+          user={session.user as User}
+          locale={locale}
+        >
+          {children}
+        </PortalShell>
+      </ErrorBoundary>
     </NextIntlClientProvider>
   );
 }

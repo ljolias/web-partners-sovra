@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { checkPermission } from '@/lib/auth';
 import {
   getPartnerUsers,
@@ -99,7 +100,7 @@ export async function GET() {
 
     return NextResponse.json({ teamMembers, pendingCredentials, activeCredentials });
   } catch (error) {
-    console.error('Get team error:', error);
+    logger.error('Get team error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

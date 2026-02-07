@@ -12,6 +12,7 @@ import { formatCurrency } from '@/lib/utils';
 import { hasPermission } from '@/lib/permissions';
 import type { TeamMemberSummary, User, UserRole, PartnerCredential } from '@/types';
 
+import { logger } from '@/lib/logger';
 interface TeamDashboardProps {
   locale: string;
 }
@@ -37,7 +38,7 @@ export function TeamDashboard({ locale }: TeamDashboardProps) {
         setPendingCredentials(data.pendingCredentials || []);
       }
     } catch (error) {
-      console.error('Failed to fetch team data:', error);
+      logger.error('Failed to fetch team data:', { error: error });
     }
   }, []);
 
@@ -62,7 +63,7 @@ export function TeamDashboard({ locale }: TeamDashboardProps) {
         setIsAuthorized(true);
         await fetchData();
       } catch (error) {
-        console.error('Failed to fetch team data:', error);
+        logger.error('Failed to fetch team data:', { error: error });
       } finally {
         setIsLoading(false);
       }

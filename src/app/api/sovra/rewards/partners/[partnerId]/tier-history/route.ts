@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { cookies } from 'next/headers';
 import { getSession, getUser, getPartner } from '@/lib/redis/operations';
 import { getTierHistory } from '@/lib/redis/rewards';
@@ -59,7 +60,7 @@ export async function GET(
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
-    console.error('Get tier history error:', error);
+    logger.error('Get tier history error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

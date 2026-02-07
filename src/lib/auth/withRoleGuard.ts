@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { requireSession } from './session';
 import { hasPermission, type Permission } from '@/lib/permissions';
 import type { UserRole } from '@/types';
@@ -27,7 +28,7 @@ export function withRoleGuard<T>(
       if (error instanceof Error && error.message === 'Unauthorized') {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
-      console.error('API error:', error);
+      logger.error('API error:', { error: error });
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   };

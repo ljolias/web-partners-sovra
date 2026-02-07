@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withErrorHandling } from '@/lib/api/errorHandler';
+import { logger } from '@/lib/logger';
+import { NotFoundError, ForbiddenError } from '@/lib/errors';
 import { requireSession } from '@/lib/auth';
 import {
   getLegalDocumentV2,
@@ -11,46 +14,40 @@ interface RouteContext {
 }
 
 // GET - Get document details with audit history
-export async function GET(request: NextRequest, context: RouteContext) {
-  try {
-    const { partner } = await requireSession();
-    const { documentId } = await context.params;
+export const GET = withErrorHandling(async (request: NextRequest, context: RouteContext) => {
+  const { partner } = await requireSession();
+  const { documentId } = await context.params;
 
-    const document = await getLegalDocumentV2(documentId);
+  const document = await getLegalDocumentV2(documentId);
 
-    if (!document) {
-      return NextResponse.json({ error: 'Document not found' }, { status: 404 });
-    }
-
-    // Verify partner owns this document
-    if (document.partnerId !== partner.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    // Get audit events
-    const auditEvents = await getDocumentAuditEvents(documentId);
-
-    // Log view event
-    const ipAddress =
-      request.headers.get('x-forwarded-for') ||
-      request.headers.get('x-real-ip') ||
-      'unknown';
-    const userAgent = request.headers.get('user-agent') || 'unknown';
-
-    await addDocumentAuditLog(
-      documentId,
-      'viewed',
-      { type: 'partner' },
-      {},
-      { ipAddress: typeof ipAddress === 'string' ? ipAddress : ipAddress[0], userAgent }
-    );
-
-    return NextResponse.json({ document, auditEvents });
-  } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    console.error('Get document error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  if (!document) {
+    throw new NotFoundError('Document');
   }
-}
+
+  // Verify partner owns this document
+  if (document.partnerId !== partner.id) {
+    throw new ForbiddenError('You do not have access to this document');
+  }
+
+  // Get audit events
+  const auditEvents = await getDocumentAuditEvents(documentId);
+
+  // Log view event
+  const ipAddress =
+    request.headers.get('x-forwarded-for') ||
+    request.headers.get('x-real-ip') ||
+    'unknown';
+  const userAgent = request.headers.get('user-agent') || 'unknown';
+
+  await addDocumentAuditLog(
+    documentId,
+    'viewed',
+    { type: 'partner' },
+    {},
+    { ipAddress: typeof ipAddress === 'string' ? ipAddress : ipAddress[0], userAgent }
+  );
+
+  logger.debug('Document viewed', { documentId, partnerId: partner.id });
+
+  return NextResponse.json({ document, auditEvents });
+});

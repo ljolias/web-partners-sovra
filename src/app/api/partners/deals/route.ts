@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { requireSession } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 import {
   getPartnerDeals,
   createDeal,
@@ -9,63 +9,57 @@ import {
   generateId,
   incrementAnnualMetric,
 } from '@/lib/redis';
+import { getPartnerDealsPaginated } from '@/lib/redis/operations/deals';
+import { createPaginatedResponse } from '@/lib/redis/pagination';
 import { checkAndAwardAchievement } from '@/lib/achievements';
+import { withErrorHandling } from '@/lib/api/errorHandler';
+import { withRateLimit, RATE_LIMITS } from '@/lib/api/withRateLimit';
+import { dealSchema } from '@/lib/validation/schemas';
+import { ForbiddenError, ValidationError } from '@/lib/errors';
 import type { Deal, GovernmentLevel } from '@/types';
 
-const dealSchema = z.object({
-  clientName: z.string().min(1, 'Client name is required'),
-  country: z.string().min(1, 'Country is required'),
-  governmentLevel: z.enum(['municipality', 'province', 'nation']),
-  population: z.number().positive('Population must be positive'),
-  contactName: z.string().min(1, 'Contact name is required'),
-  contactRole: z.string().min(1, 'Contact role is required'),
-  contactEmail: z.string().email('Invalid email address'),
-  contactPhone: z.string().optional(),
-  description: z.string().min(1, 'Description is required'),
-  partnerGeneratedLead: z.boolean().default(false),
-});
-
-export async function GET() {
-  try {
+export const GET = withRateLimit(
+  withErrorHandling(async (request: NextRequest) => {
     const { partner } = await requireSession();
-    const deals = await getPartnerDeals(partner.id);
 
-    return NextResponse.json({ deals });
-  } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Get pagination params from query string
+    const { searchParams } = new URL(request.url);
+    const cursor = searchParams.get('cursor') ? parseInt(searchParams.get('cursor')!) : undefined;
+    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined;
+
+    // Use paginated version if cursor/limit provided
+    if (cursor !== undefined || limit !== undefined) {
+      const result = await getPartnerDealsPaginated(partner.id, { cursor, limit });
+      return NextResponse.json(createPaginatedResponse(result));
     }
-    console.error('Get deals error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
 
-export async function POST(request: NextRequest) {
-  try {
+    // Fallback to legacy for backward compatibility
+    const deals = await getPartnerDeals(partner.id);
+    return NextResponse.json({ deals });
+  }),
+  RATE_LIMITS.LIST
+);
+
+export const POST = withRateLimit(
+  withErrorHandling(async (request: NextRequest) => {
     const { user, partner } = await requireSession();
 
-    // Validate certification (disabled for testing - TODO: re-enable in production)
+    // Validate certification - RE-ENABLED
     const hasCert = await hasValidCertification(user.id);
     if (!hasCert) {
-      console.log('[Deals API] Certification check failed for user:', user.id, '- allowing for testing');
-      // TODO: Re-enable this check in production
-      // return NextResponse.json(
-      //   { error: 'You need an active certification to register deals' },
-      //   { status: 403 }
-      // );
+      throw new ForbiddenError(
+        'Necesitas una certificación activa para registrar deals'
+      );
     }
 
-    // Validate legal documents (disabled for testing - TODO: re-enable in production)
+    // Validate legal documents - RE-ENABLED
     // Note: This check uses the legacy document system.
     // In the new V2 system, documents are partner-specific via DocuSign.
     const hasLegal = await hasSignedRequiredDocs(user.id);
     if (!hasLegal) {
-      console.log('[Deals API] Legal docs check failed for user:', user.id, '- allowing for testing');
-      // TODO: Re-enable this check in production
-      // return NextResponse.json(
-      //   { error: 'Please sign all required legal documents before registering deals' },
-      //   { status: 403 }
-      // );
+      throw new ForbiddenError(
+        'Debes firmar todos los documentos legales requeridos antes de registrar deals'
+      );
     }
 
     const body = await request.json();
@@ -73,10 +67,12 @@ export async function POST(request: NextRequest) {
 
     if (!validation.success) {
       const issues = validation.error.issues;
-      return NextResponse.json(
-        { error: issues[0]?.message || 'Validation failed' },
-        { status: 400 }
-      );
+      const errors: Record<string, string> = {};
+      issues.forEach((issue) => {
+        const path = issue.path.join('.');
+        errors[path] = issue.message;
+      });
+      throw new ValidationError('Validation failed', errors);
     }
 
     const data = validation.data;
@@ -115,7 +111,11 @@ export async function POST(request: NextRequest) {
     await createDeal(deal);
 
     // Track opportunity registration for achievements
-    const opportunitiesCount = await incrementAnnualMetric(partner.id, 'opportunities', 1);
+    const opportunitiesCount = await incrementAnnualMetric(
+      partner.id,
+      'opportunities',
+      1
+    );
 
     // Award opportunity achievements
     if (opportunitiesCount === 1) {
@@ -124,12 +124,13 @@ export async function POST(request: NextRequest) {
       await checkAndAwardAchievement(partner.id, 'five_opportunities');
     }
 
+    logger.info('Deal created successfully', {
+      dealId: deal.id,
+      partnerId: partner.id,
+      userId: user.id,
+    });
+
     return NextResponse.json({ deal }, { status: 201 });
-  } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    console.error('Create deal error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+  }),
+  RATE_LIMITS.CREATE
+);

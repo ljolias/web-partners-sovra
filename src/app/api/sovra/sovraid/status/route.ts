@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { requireSession } from '@/lib/auth';
 import { getSovraIdClient, isSovraIdConfigured, SovraIdApiError } from '@/lib/sovraid';
 
@@ -45,7 +46,7 @@ export async function GET() {
         },
       });
     } catch (apiError) {
-      console.error('[SovraID Status] API error:', apiError);
+      logger.error('[SovraID Status] API error:', { error: apiError });
 
       if (apiError instanceof SovraIdApiError) {
         return NextResponse.json({
@@ -72,7 +73,7 @@ export async function GET() {
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.error('[SovraID Status] Error:', error);
+    logger.error('[SovraID Status] Error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

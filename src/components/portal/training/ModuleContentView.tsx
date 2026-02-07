@@ -4,10 +4,18 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Play, FileText, Download, CheckCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui';
-import type { TrainingModule } from '@/types';
+import type { TrainingModule, CourseModule } from '@/types';
+
+// Extended module type for backward compatibility with video modules
+interface ExtendedModule extends Partial<TrainingModule> {
+  videoUrl?: string;
+  title?: any;
+  description?: any;
+  content?: any;
+}
 
 interface ModuleContentViewProps {
-  module: TrainingModule;
+  module: ExtendedModule;
   locale: string;
   onCompleted: () => void;
   onTakeQuiz: () => void;
@@ -26,8 +34,8 @@ export function ModuleContentView({
   const moduleContent = (module.content?.[locale as keyof typeof module.content] || module.content?.en) as string;
 
   // Check if this is a video module
-  const isVideo = !!(module as any).videoUrl || moduleContent?.includes('youtube') || moduleContent?.includes('watch?v=');
-  const videoUrl = (module as any).videoUrl || moduleContent;
+  const isVideo = !!module.videoUrl || moduleContent?.includes('youtube') || moduleContent?.includes('watch?v=');
+  const videoUrl = module.videoUrl || moduleContent;
 
   // Extract video ID from YouTube URL
   const getYouTubeEmbedUrl = (url: string) => {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { processWebhookEvent } from '@/lib/docusign/webhooks';
 
 // DocuSign Connect webhook handler
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
       '';
 
     if (!signature) {
-      console.warn('DocuSign webhook received without signature');
+      logger.warn('DocuSign webhook received without signature');
       // In development, we might want to process anyway
       if (process.env.NODE_ENV === 'production') {
         return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
     const result = await processWebhookEvent(payload, signature);
 
     if (!result.success) {
-      console.error('DocuSign webhook processing failed:', result.message);
+      logger.error('DocuSign webhook processing failed', { message: result.message });
       // Return 200 to prevent DocuSign from retrying for non-critical errors
       // Return 4xx/5xx for critical errors that should be retried
       if (result.message === 'Invalid webhook signature') {
@@ -36,10 +37,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true, warning: result.message }, { status: 200 });
     }
 
-    console.log('DocuSign webhook processed:', result.message);
+    logger.debug('DocuSign webhook processed', { message: result.message });
     return NextResponse.json({ received: true, message: result.message }, { status: 200 });
   } catch (error) {
-    console.error('DocuSign webhook error:', error);
+    logger.error('DocuSign webhook error:', { error: error });
     // Return 500 to trigger DocuSign retry
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

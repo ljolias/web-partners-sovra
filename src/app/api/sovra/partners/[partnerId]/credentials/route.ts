@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { requireSession } from '@/lib/auth';
 import {
   getPartner,
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.error('Get credentials error:', error);
+    logger.error('Get credentials error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -99,7 +100,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Issue credential via SovraID API if configured
     if (isSovraIdConfigured()) {
       try {
-        console.log('[Credentials API] Issuing credential via SovraID API...');
+        logger.debug('[Credentials API] Issuing credential via SovraID API...');
         const sovraIdClient = getSovraIdClient();
 
         // Calculate expiration date (1 year from now)
@@ -118,16 +119,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         sovraIdCredentialId = sovraIdResponse.id;
 
         // Log the FULL API response to understand its structure
-        console.log('[Credentials API] SovraID credential issued:', sovraIdCredentialId);
-        console.log('[Credentials API] FULL API Response:', JSON.stringify(sovraIdResponse, null, 2));
+        logger.debug('[Credentials API] SovraID credential issued:', { sovraIdCredentialId: sovraIdCredentialId });
+        logger.debug('Credentials API FULL API Response', { response: sovraIdResponse });
 
         // The invitation_wallet contains the data for wallet scanning
         const invitationWallet = sovraIdResponse.invitation_wallet;
-        console.log('[Credentials API] invitation_wallet:', JSON.stringify(invitationWallet, null, 2));
+        logger.debug('Credentials API invitation_wallet', { invitationWallet });
 
         // Store the invitation ID for webhook matching
         sovraIdInvitationId = invitationWallet?.invitationId;
-        console.log('[Credentials API] Invitation ID:', sovraIdInvitationId);
+        logger.debug('[Credentials API] Invitation ID:', { sovraIdInvitationId: sovraIdInvitationId });
 
         // Check various possible fields for the DIDComm URL
         // The API might return it in different formats
@@ -138,13 +139,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           // Check if it's already a DIDComm URL
           if (rawInvitationContent.startsWith('didcomm://')) {
             didcommInvitationUrl = rawInvitationContent;
-            console.log('[Credentials API] invitationContent is already a DIDComm URL');
+            logger.debug('[Credentials API] invitationContent is already a DIDComm URL');
           }
           // Check if it's a base64-encoded OOB invitation
           else if (rawInvitationContent.match(/^[A-Za-z0-9+/=_-]+$/)) {
             // Looks like base64, construct DIDComm URL
             didcommInvitationUrl = `didcomm://?_oob=${rawInvitationContent}`;
-            console.log('[Credentials API] Constructed DIDComm URL from base64 invitation');
+            logger.debug('[Credentials API] Constructed DIDComm URL from base64 invitation');
           }
           // Check if it's a JSON string that needs to be base64 encoded
           else if (rawInvitationContent.startsWith('{')) {
@@ -152,16 +153,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
               // It's JSON, base64 encode it for the DIDComm URL
               const base64Invitation = Buffer.from(rawInvitationContent).toString('base64url');
               didcommInvitationUrl = `didcomm://?_oob=${base64Invitation}`;
-              console.log('[Credentials API] Constructed DIDComm URL from JSON invitation');
+              logger.debug('[Credentials API] Constructed DIDComm URL from JSON invitation');
             } catch (e) {
-              console.error('[Credentials API] Failed to encode JSON invitation:', e);
+              logger.error('[Credentials API] Failed to encode JSON invitation:', { error: e });
               didcommInvitationUrl = rawInvitationContent;
             }
           }
           // Otherwise use as-is (might be a claim URL)
           else {
             didcommInvitationUrl = rawInvitationContent;
-            console.warn('[Credentials API] invitationContent format not recognized:', rawInvitationContent.substring(0, 100));
+            logger.warn('Credentials API invitationContent format not recognized', { preview: rawInvitationContent.substring(0, 100) });
           }
         }
 
@@ -169,18 +170,18 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         const anyResponse = sovraIdResponse as unknown as Record<string, unknown>;
         if (anyResponse.didcommUrl) {
           didcommInvitationUrl = anyResponse.didcommUrl as string;
-          console.log('[Credentials API] Found didcommUrl field:', didcommInvitationUrl);
+          logger.debug('[Credentials API] Found didcommUrl field:', { didcommInvitationUrl: didcommInvitationUrl });
         }
 
         qrCode = didcommInvitationUrl;
-        console.log('[Credentials API] Final QR Code value:', qrCode?.substring(0, 100));
+        logger.debug('Credentials API Final QR Code value', { qrCodePreview: qrCode?.substring(0, 100) });
       } catch (sovraError) {
-        console.error('[Credentials API] SovraID API error:', sovraError);
+        logger.error('[Credentials API] SovraID API error:', { error: sovraError });
 
         // If SovraID fails, we can still create the local record with mock data
         // This allows the system to function during API outages
         if (sovraError instanceof SovraIdApiError) {
-          console.warn('[Credentials API] Falling back to mock credential due to SovraID error');
+          logger.warn('[Credentials API] Falling back to mock credential due to SovraID error');
           sovraIdCredentialId = `mock-${credentialId}`;
           qrCode = `https://sovraid.io/claim/${credentialId}`;
         } else {
@@ -189,7 +190,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     } else {
       // SovraID not configured - use mock values
-      console.warn('[Credentials API] SovraID not configured, using mock credential');
+      logger.warn('[Credentials API] SovraID not configured, using mock credential');
       sovraIdCredentialId = `mock-${credentialId}`;
       qrCode = `https://sovraid.io/claim/${credentialId}`;
     }
@@ -241,7 +242,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         qrCodeData: didcommInvitationUrl,
       });
     } catch (emailErr) {
-      console.error('[Credentials API] Failed to send email:', emailErr);
+      logger.error('[Credentials API] Failed to send email:', { error: emailErr });
       // Don't fail the request if email fails
     }
 
@@ -253,7 +254,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.error('Issue credential error:', error);
+    logger.error('Issue credential error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

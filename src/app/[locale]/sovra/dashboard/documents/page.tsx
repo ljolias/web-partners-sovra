@@ -11,6 +11,7 @@ import { ShareDocumentModal } from '@/components/sovra/documents/ShareDocumentMo
 import { SendContractModal } from '@/components/sovra/documents/SendContractModal';
 import { AdminDocumentDetail } from '@/components/sovra/documents/AdminDocumentDetail';
 
+import { logger } from '@/lib/logger';
 const statusConfig: Record<DocumentStatus, { color: string; bgColor: string; label: string }> = {
   draft: { color: 'text-[var(--color-text-secondary)]', bgColor: 'bg-[var(--color-surface-hover)]', label: 'Borrador' },
   pending_signature: { color: 'text-amber-500', bgColor: 'bg-amber-500/10', label: 'Pendiente Firma' },
@@ -55,7 +56,7 @@ export default function SovraDocumentsPage() {
           setPartners(data.partners || []);
         }
       } catch (error) {
-        console.error('Failed to fetch partners:', error);
+        logger.error('Failed to fetch partners:', { error: error });
       } finally {
         setIsLoading(false);
       }
@@ -77,7 +78,7 @@ export default function SovraDocumentsPage() {
         setDocuments(data.documents || []);
       }
     } catch (error) {
-      console.error('Failed to fetch documents:', error);
+      logger.error('Failed to fetch documents:', { error: error });
     }
   }, [selectedPartner]);
 
@@ -366,7 +367,7 @@ function DocumentRow({ document, onView, onRefresh, formatDate }: DocumentRowPro
         onRefresh();
       }
     } catch (error) {
-      console.error('Failed to verify document:', error);
+      logger.error('Failed to verify document:', { error: error });
     }
   };
 

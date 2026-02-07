@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { cookies } from 'next/headers';
 import {
   getSession,
@@ -50,7 +51,7 @@ export async function GET() {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
-    console.error('Get rewards config error:', error);
+    logger.error('Get rewards config error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -123,7 +124,7 @@ export async function PUT(request: NextRequest) {
         try {
           await recalculateAndUpdatePartner(partner.id, user.id);
         } catch (error) {
-          console.error(`Failed to recalculate rating for partner ${partner.id}:`, error);
+          logger.error('Failed to recalculate rating for partner', { partnerId: partner.id, error });
         }
       }
     }
@@ -160,7 +161,7 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
-    console.error('Update rewards config error:', error);
+    logger.error('Update rewards config error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

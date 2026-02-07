@@ -7,6 +7,7 @@ import { SovraLoader } from '@/components/ui';
 import { calculateQuote, formatCurrency, formatPopulation, type CalculatePriceParams, type CalculatedQuote } from '@/lib/pricing/calculator';
 import type { Deal, Partner, PricingConfig, SovraIdPlan } from '@/types';
 
+import { logger } from '@/lib/logger';
 interface QuoteBuilderProps {
   deal: Deal;
   partner: Partner;
@@ -79,7 +80,7 @@ export function QuoteBuilder({ deal, partner, pricingConfig, locale }: QuoteBuil
       const { quote: createdQuote } = await response.json();
       setCreatedQuoteId(createdQuote.id);
     } catch (error) {
-      console.error('Error creating quote:', error);
+      logger.error('Error creating quote:', { error: error });
       alert('Error al crear la cotizacion');
     } finally {
       setIsCreating(false);

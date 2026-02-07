@@ -21,6 +21,7 @@ import { hasPermission } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
 import type { LegalDocument, DocumentAuditEvent, User as UserType, UserRole, DocumentStatus } from '@/types';
 
+import { logger } from '@/lib/logger';
 interface DocumentDetailPageProps {
   params: Promise<{ locale: string; documentId: string }>;
 }
@@ -78,7 +79,7 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
         setDocument(data.document);
         setAuditEvents(data.auditEvents || []);
       } catch (error) {
-        console.error('Failed to fetch document:', error);
+        logger.error('Failed to fetch document:', { error: error });
       } finally {
         setIsLoading(false);
       }
@@ -128,7 +129,7 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
         window.document.body.removeChild(a);
       }
     } catch (error) {
-      console.error('Failed to download document:', error);
+      logger.error('Failed to download document:', { error: error });
     }
   };
 
@@ -149,7 +150,7 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
         window.document.body.removeChild(a);
       }
     } catch (error) {
-      console.error('Failed to download certificate:', error);
+      logger.error('Failed to download certificate:', { error: error });
     }
   };
 

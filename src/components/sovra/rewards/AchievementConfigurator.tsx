@@ -7,6 +7,7 @@ import type { RewardsConfig } from '@/lib/redis/rewards';
 import type { PartnerTier } from '@/types';
 import type { AchievementCategory } from '@/types/achievements';
 
+import { logger } from '@/lib/logger';
 interface AchievementConfiguratorProps {
   config: RewardsConfig;
   onConfigUpdate: (config: RewardsConfig) => void;
@@ -110,7 +111,7 @@ export function AchievementConfigurator({
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al guardar la configuracion';
       setError(message);
-      console.error('Save error:', err);
+      logger.error('Save error:', { error: err });
     } finally {
       setSaving(false);
     }

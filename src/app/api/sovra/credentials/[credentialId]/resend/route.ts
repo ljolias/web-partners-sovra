@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { requireSession } from '@/lib/auth';
 import {
   getPartnerCredential,
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     //   credential.qrCode
     // );
 
-    console.log(`[Mock] Resending QR to ${credential.holderEmail} for credential ${credentialId}`);
+    logger.debug('[Mock] Resending QR to for credential', { holderEmail: credential.holderEmail, credentialId: credentialId });
 
     return NextResponse.json({
       message: 'QR reenviado exitosamente.',
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.error('Resend QR error:', error);
+    logger.error('Resend QR error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

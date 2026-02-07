@@ -7,6 +7,7 @@ import type { Deal, Partner } from '@/types';
 import { Filter } from 'lucide-react';
 import { SovraLoader } from '@/components/ui';
 
+import { logger } from '@/lib/logger';
 export default function ApprovalsPage() {
   const router = useRouter();
   const [deals, setDeals] = useState<(Deal & { partner?: Partner })[]>([]);
@@ -20,7 +21,7 @@ export default function ApprovalsPage() {
       const data = await response.json();
       setDeals(data.deals || []);
     } catch (error) {
-      console.error('Error fetching deals:', error);
+      logger.error('Error fetching deals:', { error: error });
     } finally {
       setLoading(false);
     }

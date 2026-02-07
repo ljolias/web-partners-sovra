@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { cookies } from 'next/headers';
 import {
   exchangeCodeForTokens,
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     // Check for OAuth errors
     if (error) {
-      console.error('OAuth error:', error);
+      logger.error('OAuth error:', { error: error });
       return NextResponse.redirect(new URL('/es/sovra/login?error=oauth_denied', baseUrl));
     }
 
@@ -100,7 +101,7 @@ export async function GET(request: NextRequest) {
     // Redirect to Sovra dashboard
     return NextResponse.redirect(new URL('/es/sovra/dashboard', baseUrl));
   } catch (error) {
-    console.error('Google OAuth callback error:', error);
+    logger.error('Google OAuth callback error:', { error: error });
     return NextResponse.redirect(new URL('/es/sovra/login?error=callback_failed', baseUrl));
   }
 }

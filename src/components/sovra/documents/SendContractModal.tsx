@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { logger } from '@/lib/logger';
 import { X, Send, FileText, AlertCircle, Upload, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
@@ -143,7 +144,7 @@ export function SendContractModal({ isOpen, onClose, partner, onSuccess }: SendC
       }
 
       // Show success message with document info
-      console.log('[SendContractModal] Document created:', responseData.document?.id, 'for partner:', partner.id);
+      logger.info('Document created', { documentId: responseData.document?.id, partnerId: partner.id });
       alert(`Documento creado exitosamente!\n\nID: ${responseData.document?.id}\nPartner: ${partner.companyName} (${partner.id})\n\nNota: DocuSign esta en modo demo, los emails no se enviaran.`);
 
       resetForm();

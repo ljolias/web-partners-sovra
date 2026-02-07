@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withErrorHandling } from '@/lib/api/errorHandler';
+import { logger } from '@/lib/logger';
+import { UnauthorizedError, ForbiddenError, NotFoundError } from '@/lib/errors';
 import { cookies } from 'next/headers';
 import {
   getSession,
@@ -14,17 +17,17 @@ async function requireSovraAdmin() {
   const sessionId = cookieStore.get('partner_session')?.value;
 
   if (!sessionId) {
-    throw new Error('Unauthorized');
+    throw new UnauthorizedError();
   }
 
   const session = await getSession(sessionId);
   if (!session) {
-    throw new Error('Unauthorized');
+    throw new UnauthorizedError();
   }
 
   const user = await getUser(session.userId);
   if (!user || user.role !== 'sovra_admin') {
-    throw new Error('Forbidden');
+    throw new ForbiddenError('Only Sovra Admin can access this resource');
   }
 
   return { user, session };
@@ -35,39 +38,28 @@ interface RouteParams {
 }
 
 // GET - Get document details with audit events
-export async function GET(request: NextRequest, { params }: RouteParams) {
-  try {
-    await requireSovraAdmin();
-    const { documentId } = await params;
+export const GET = withErrorHandling(async (request: NextRequest, { params }: RouteParams) => {
+  await requireSovraAdmin();
+  const { documentId } = await params;
 
-    const document = await getLegalDocumentV2(documentId);
-    if (!document) {
-      return NextResponse.json({ error: 'Document not found' }, { status: 404 });
-    }
-
-    // Get audit events
-    const auditEvents = await getDocumentAuditEvents(documentId);
-
-    // Get partner info
-    const partner = await getPartner(document.partnerId);
-
-    return NextResponse.json({
-      document: {
-        ...document,
-        partner: partner ? { id: partner.id, name: partner.companyName } : null,
-      },
-      auditEvents,
-    });
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === 'Unauthorized') {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
-      if (error.message === 'Forbidden') {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-      }
-    }
-    console.error('Get document error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  const document = await getLegalDocumentV2(documentId);
+  if (!document) {
+    throw new NotFoundError('Document');
   }
-}
+
+  // Get audit events
+  const auditEvents = await getDocumentAuditEvents(documentId);
+
+  // Get partner info
+  const partner = await getPartner(document.partnerId);
+
+  logger.debug('Document retrieved', { documentId });
+
+  return NextResponse.json({
+    document: {
+      ...document,
+      partner: partner ? { id: partner.id, name: partner.companyName } : null,
+    },
+    auditEvents,
+  });
+});

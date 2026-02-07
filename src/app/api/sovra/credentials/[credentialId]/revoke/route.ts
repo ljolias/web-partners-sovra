@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { requireSession } from '@/lib/auth';
 import {
   getPartnerCredential,
@@ -42,19 +43,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Revoke in SovraID if configured and has real credential ID
     if (isSovraIdConfigured() && credential.sovraIdCredentialId && !credential.sovraIdCredentialId.startsWith('mock-')) {
       try {
-        console.log('[Credentials API] Revoking credential in SovraID:', credential.sovraIdCredentialId);
+        logger.debug('[Credentials API] Revoking credential in SovraID:', { sovraIdCredentialId: credential.sovraIdCredentialId });
         const sovraIdClient = getSovraIdClient();
         await sovraIdClient.revokeCredential(credential.sovraIdCredentialId, reason.trim());
-        console.log('[Credentials API] SovraID credential revoked successfully');
+        logger.debug('[Credentials API] SovraID credential revoked successfully');
       } catch (sovraError) {
-        console.error('[Credentials API] SovraID revoke error:', sovraError);
+        logger.error('[Credentials API] SovraID revoke error:', { error: sovraError });
 
         // Log the error but continue with local revocation
         // This ensures the local state is updated even if SovraID is unavailable
         if (!(sovraError instanceof SovraIdApiError)) {
           throw sovraError;
         }
-        console.warn('[Credentials API] Continuing with local revocation despite SovraID error');
+        logger.warn('[Credentials API] Continuing with local revocation despite SovraID error');
       }
     }
 
@@ -92,7 +93,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.error('Revoke credential error:', error);
+    logger.error('Revoke credential error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

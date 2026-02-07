@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import type { Deal, Partner, User } from '@/types';
 
+import { logger } from '@/lib/logger';
 // Lazy initialization to avoid errors during build when API key is not set
 let resend: Resend | null = null;
 
@@ -26,7 +27,7 @@ interface EmailParams {
 async function sendEmail({ to, subject, html }: EmailParams): Promise<boolean> {
   const client = getResendClient();
   if (!client) {
-    console.log('Email not sent (no API key):', { to, subject });
+    logger.warn('Email not sent (no API key)', { to, subject });
     return false;
   }
 
@@ -39,7 +40,7 @@ async function sendEmail({ to, subject, html }: EmailParams): Promise<boolean> {
     });
     return true;
   } catch (error) {
-    console.error('Error sending email:', error);
+    logger.error('Error sending email:', { error: error });
     return false;
   }
 }

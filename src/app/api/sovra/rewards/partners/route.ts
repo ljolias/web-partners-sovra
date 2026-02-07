@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { cookies } from 'next/headers';
 import { getSession, getUser, getAllPartners, getPartnersByTier } from '@/lib/redis/operations';
 import { getPartnerAchievements } from '@/lib/achievements/tracker';
@@ -113,7 +114,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
-    console.error('Get partners with points error:', error);
+    logger.error('Get partners with points error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -6,6 +6,7 @@ import { SovraLoader } from '@/components/ui';
 import { TierChangeModal } from './TierChangeModal';
 import type { PartnerTier } from '@/types';
 
+import { logger } from '@/lib/logger';
 interface Partner {
   id: string;
   companyName: string;
@@ -60,7 +61,7 @@ export function PartnerTierManager() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error loading partners';
       setError(message);
-      console.error('Load partners error:', err);
+      logger.error('Load partners error:', { error: err });
     } finally {
       setLoading(false);
     }

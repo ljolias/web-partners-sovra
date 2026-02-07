@@ -26,6 +26,7 @@ import { SovraLogo } from '@/components/ui/SovraLogo';
 import type { Partner, User } from '@/types';
 import { useState, useEffect, useRef } from 'react';
 
+import { logger } from '@/lib/logger';
 interface SidebarProps {
   partner: Partner;
   user: User;
@@ -161,7 +162,7 @@ export function Sidebar({ partner, user, locale, onLogout, isOpen = true, onClos
           setPendingDocsCount(pendingCount);
         }
       } catch (error) {
-        console.error('Failed to fetch pending docs:', error);
+        logger.error('Failed to fetch pending docs:', { error: error });
       }
     }
 

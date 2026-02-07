@@ -3,6 +3,7 @@ import { keys } from '@/lib/redis/keys';
 import type { RatingEvent, RatingEventType } from '@/types';
 import { checkAndAwardAchievement, getAchievementCount, incrementAnnualMetric } from '@/lib/achievements';
 
+import { logger } from '@/lib/logger';
 // Points awarded/deducted for each event type
 export const EVENT_POINTS: Record<RatingEventType, number> = {
   COPILOT_SESSION_COMPLETED: 2,
@@ -70,7 +71,7 @@ async function processAchievementsForEvent(
       }
     }
   } catch (error) {
-    console.error('Error processing achievements for event:', error);
+    logger.error('Error processing achievements for event:', { error: error });
     // Don't throw - we don't want achievement processing to block rating event logging
   }
 }
@@ -103,7 +104,7 @@ export async function logRatingEvent(
   // Process achievement awards based on event type
   // Run in background to avoid blocking the response
   processAchievementsForEvent(partnerId, eventType).catch((error) => {
-    console.error('Background achievement processing error:', error);
+    logger.error('Background achievement processing error:', { error: error });
   });
 
   return event;

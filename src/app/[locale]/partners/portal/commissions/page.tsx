@@ -9,6 +9,7 @@ import { formatCurrency, formatDate } from '@/lib/utils';
 import { hasPermission } from '@/lib/permissions';
 import type { Commission, User, UserRole } from '@/types';
 
+import { logger } from '@/lib/logger';
 interface CommissionsPageProps {
   params: Promise<{ locale: string }>;
 }
@@ -51,7 +52,7 @@ export default function CommissionsPage({ params }: CommissionsPageProps) {
           setCommissions(data.commissions || []);
         }
       } catch (error) {
-        console.error('Failed to fetch commissions:', error);
+        logger.error('Failed to fetch commissions:', { error: error });
       } finally {
         setIsLoading(false);
       }

@@ -94,5 +94,15 @@ export function isSovraEmail(email: string): boolean {
 }
 
 export function generateOAuthState(): string {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  // Use cryptographically secure random bytes instead of Math.random()
+  if (typeof window !== 'undefined' && window.crypto) {
+    // Client-side: use Web Crypto API
+    const array = new Uint8Array(32);
+    window.crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+  } else {
+    // Server-side: use Node.js crypto
+    const { randomBytes } = require('crypto');
+    return randomBytes(32).toString('base64url');
+  }
 }

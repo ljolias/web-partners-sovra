@@ -1,9 +1,17 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { ArrowLeft, Lock } from 'lucide-react';
 import { getSession, getUser, getPartner, getDeal, getPricingConfig } from '@/lib/redis/operations';
-import { QuoteBuilder } from '@/components/portal/quotes/QuoteBuilder';
+
+// Lazy load QuoteBuilder - it's a heavy component with complex calculations
+const QuoteBuilder = dynamic(
+  () => import('@/components/portal/quotes/QuoteBuilder').then(mod => ({ default: mod.QuoteBuilder })),
+  {
+    ssr: false, // Quote builder doesn't need SSR
+  }
+);
 
 interface PageProps {
   params: Promise<{ locale: string; dealId: string }>;

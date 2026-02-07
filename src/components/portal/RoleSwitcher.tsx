@@ -7,6 +7,7 @@ import { Shield, ChevronDown, Check, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { UserRole } from '@/types';
 
+import { logger } from '@/lib/logger';
 interface RoleSwitcherProps {
   currentRole: UserRole;
   locale?: string;
@@ -47,7 +48,7 @@ export function RoleSwitcher({ currentRole, locale = 'es' }: RoleSwitcherProps) 
         }
       }
     } catch (error) {
-      console.error('Failed to switch role:', error);
+      logger.error('Failed to switch role:', { error: error });
     } finally {
       setIsLoading(false);
       setIsOpen(false);

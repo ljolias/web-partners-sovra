@@ -6,6 +6,7 @@ import { SovraLoader } from '@/components/ui';
 import { getTierRequirements } from '@/lib/achievements/tiers';
 import type { PartnerTier } from '@/types';
 
+import { logger } from '@/lib/logger';
 interface TierChangeModalProps {
   partner: {
     id: string;
@@ -75,7 +76,7 @@ export function TierChangeModal({
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error changing tier';
       setError(message);
-      console.error('Tier change error:', err);
+      logger.error('Tier change error:', { error: err });
     } finally {
       setLoading(false);
     }
