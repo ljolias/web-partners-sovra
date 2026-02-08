@@ -8,6 +8,7 @@ import {
   getDocumentAuditEvents,
   addDocumentAuditLog,
 } from '@/lib/redis';
+import { getClientIp } from '@/lib/security/ip';
 
 interface RouteContext {
   params: Promise<{ documentId: string }>;
@@ -33,10 +34,7 @@ export const GET = withErrorHandling(async (request: NextRequest, context: Route
   const auditEvents = await getDocumentAuditEvents(documentId);
 
   // Log view event
-  const ipAddress =
-    request.headers.get('x-forwarded-for') ||
-    request.headers.get('x-real-ip') ||
-    'unknown';
+  const ipAddress = getClientIp(request);
   const userAgent = request.headers.get('user-agent') || 'unknown';
 
   await addDocumentAuditLog(

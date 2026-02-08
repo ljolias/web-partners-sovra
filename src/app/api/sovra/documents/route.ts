@@ -20,6 +20,7 @@ import {
 } from '@/lib/storage';
 import { getCategoriesForActor } from '@/lib/docusign/templates';
 import type { LegalDocument, DocumentCategory, UploadMetadata } from '@/types';
+import { getClientIp } from '@/lib/security/ip';
 
 // Helper to verify Sovra admin
 async function requireSovraAdmin() {
@@ -133,10 +134,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   );
 
   // Get IP and user agent for audit
-  const ipAddress =
-    request.headers.get('x-forwarded-for') ||
-    request.headers.get('x-real-ip') ||
-    'unknown';
+  const ipAddress = getClientIp(request);
   const userAgent = request.headers.get('user-agent') || 'unknown';
 
   // Create document record

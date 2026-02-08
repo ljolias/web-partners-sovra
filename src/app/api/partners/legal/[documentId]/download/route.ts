@@ -8,6 +8,7 @@ import {
   addDocumentAuditLog,
 } from '@/lib/redis';
 import { getSignedDocument, getSigningCertificate } from '@/lib/docusign';
+import { getClientIp } from '@/lib/security/ip';
 
 interface RouteContext {
   params: Promise<{ documentId: string }>;
@@ -33,10 +34,7 @@ export const GET = withErrorHandling(async (request: NextRequest, context: Route
   }
 
   // Get IP and user agent for audit
-  const ipAddress =
-    request.headers.get('x-forwarded-for') ||
-    request.headers.get('x-real-ip') ||
-    'unknown';
+  const ipAddress = getClientIp(request);
   const userAgent = request.headers.get('user-agent') || 'unknown';
 
   let fileBuffer: Buffer;

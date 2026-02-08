@@ -10,6 +10,7 @@ import {
   updateLegalDocumentV2,
   addDocumentAuditLog,
 } from '@/lib/redis/operations';
+import { getClientIp } from '@/lib/security/ip';
 
 interface RouteContext {
   params: Promise<{ documentId: string }>;
@@ -61,10 +62,7 @@ export const POST = withErrorHandling(async (request: NextRequest, context: Rout
   }
 
   // Get IP and user agent for audit
-  const ipAddress =
-    request.headers.get('x-forwarded-for') ||
-    request.headers.get('x-real-ip') ||
-    'unknown';
+  const ipAddress = getClientIp(request);
   const userAgent = request.headers.get('user-agent') || 'unknown';
 
   const now = new Date().toISOString();

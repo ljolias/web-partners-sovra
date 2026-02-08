@@ -4,6 +4,7 @@ import { logger } from '@/lib/logger';
 import { ValidationError, NotFoundError } from '@/lib/errors';
 import { requireSession } from '@/lib/auth';
 import { getLegalDocument, signLegalDocument, generateId } from '@/lib/redis';
+import { getClientIp } from '@/lib/security/ip';
 import type { LegalSignature } from '@/types';
 
 export const POST = withErrorHandling(async (request: NextRequest) => {
@@ -21,9 +22,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     throw new NotFoundError('Document');
   }
 
-  const ipAddress = request.headers.get('x-forwarded-for') ||
-                    request.headers.get('x-real-ip') ||
-                    'unknown';
+  const ipAddress = getClientIp(request);
 
   const signature: LegalSignature = {
     id: generateId(),
@@ -31,7 +30,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     userId: user.id,
     partnerId: partner.id,
     signedAt: new Date().toISOString(),
-    ipAddress: typeof ipAddress === 'string' ? ipAddress : ipAddress[0],
+    ipAddress,
   };
 
   await signLegalDocument(signature);

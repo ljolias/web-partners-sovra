@@ -16,6 +16,7 @@ import {
 } from '@/lib/docusign';
 import { getTemplate, DOCUMENT_TEMPLATES } from '@/lib/docusign/templates';
 import type { LegalDocument, DocuSignMetadata, DocumentCategory } from '@/types';
+import { getClientIp } from '@/lib/security/ip';
 
 // Helper to verify Sovra admin
 async function requireSovraAdmin() {
@@ -232,10 +233,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get IP and user agent for audit
-    const ipAddress =
-      request.headers.get('x-forwarded-for') ||
-      request.headers.get('x-real-ip') ||
-      'unknown';
+    const ipAddress = getClientIp(request);
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
     // Create document record
@@ -295,7 +293,7 @@ export async function POST(request: NextRequest) {
         sovraSigner: { email: sovraSignerEmail, name: sovraSignerName },
         customPdf: !!pdfFile,
       },
-      { ipAddress: typeof ipAddress === 'string' ? ipAddress : ipAddress[0], userAgent }
+      { ipAddress, userAgent }
     );
 
     return NextResponse.json({ document, envelopeId }, { status: 201 });

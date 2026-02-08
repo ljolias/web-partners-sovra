@@ -17,6 +17,7 @@ import {
   formatFileSize,
 } from '@/lib/storage';
 import { getCategoriesForActor } from '@/lib/docusign/templates';
+import { getClientIp } from '@/lib/security/ip';
 import type { LegalDocument, DocumentCategory, UploadMetadata } from '@/types';
 
 // GET - Fetch all documents for the partner (combining legacy and v2)
@@ -106,10 +107,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   );
 
   // Get IP and user agent for audit
-  const ipAddress =
-    request.headers.get('x-forwarded-for') ||
-    request.headers.get('x-real-ip') ||
-    'unknown';
+  const ipAddress = getClientIp(request);
   const userAgent = request.headers.get('user-agent') || 'unknown';
 
   // Create document record
