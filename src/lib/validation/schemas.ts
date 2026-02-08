@@ -183,6 +183,270 @@ export const signatureSchema = z.object({
 export type SignatureInput = z.infer<typeof signatureSchema>;
 
 /**
+ * File upload validation schema
+ */
+export const fileUploadSchema = z.object({
+  file: z.custom<File>((val) => val instanceof File, 'File is required'),
+  category: z.string().min(1, 'Category is required').max(50),
+  title: z.string().min(1, 'Title is required').max(200),
+  description: z.string().max(5000).optional(),
+  expirationDate: z.string().datetime().optional(),
+});
+
+export type FileUploadInput = z.infer<typeof fileUploadSchema>;
+
+/**
+ * File validation helper
+ */
+export const fileValidation = {
+  maxSize: 10 * 1024 * 1024, // 10MB
+  allowedMimeTypes: [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+  ],
+
+  validate(file: File): { valid: boolean; error?: string } {
+    if (file.size > this.maxSize) {
+      return { valid: false, error: 'File size exceeds 10MB limit' };
+    }
+
+    if (!this.allowedMimeTypes.includes(file.type)) {
+      return { valid: false, error: 'File type not allowed' };
+    }
+
+    // Check file extension matches mime type
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    const mimeToExt: Record<string, string[]> = {
+      'application/pdf': ['pdf'],
+      'application/msword': ['doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['docx'],
+      'image/jpeg': ['jpg', 'jpeg'],
+      'image/png': ['png'],
+      'image/gif': ['gif'],
+    };
+
+    const expectedExts = mimeToExt[file.type];
+    if (extension && expectedExts && !expectedExts.includes(extension)) {
+      return { valid: false, error: 'File extension does not match content type' };
+    }
+
+    return { valid: true };
+  },
+};
+
+/**
+ * Training course creation schema
+ */
+export const courseCreateSchema = z.object({
+  title: z.object({
+    en: z.string().min(1, 'English title required').max(200),
+    es: z.string().min(1, 'Spanish title required').max(200),
+  }),
+
+  description: z.object({
+    en: z.string().min(10, 'English description too short').max(5000),
+    es: z.string().min(10, 'Spanish description too short').max(5000),
+  }),
+
+  category: z.enum(['sales', 'technical', 'legal', 'product'], {
+    message: 'Invalid category',
+  }),
+
+  difficulty: z.enum(['beginner', 'intermediate', 'advanced'], {
+    message: 'Invalid difficulty level',
+  }),
+
+  estimatedDuration: z.number().positive('Duration must be positive').int(),
+
+  published: z.boolean().default(false),
+});
+
+export type CourseCreateInput = z.infer<typeof courseCreateSchema>;
+
+/**
+ * Module creation schema
+ */
+export const moduleCreateSchema = z.object({
+  courseId: z.string().min(1, 'Course ID required'),
+
+  title: z.object({
+    en: z.string().min(1).max(200),
+    es: z.string().min(1).max(200),
+  }),
+
+  description: z.object({
+    en: z.string().min(10).max(5000),
+    es: z.string().min(10).max(5000),
+  }),
+
+  order: z.number().int().min(0),
+
+  estimatedDuration: z.number().positive().int(),
+});
+
+export type ModuleCreateInput = z.infer<typeof moduleCreateSchema>;
+
+/**
+ * Lesson creation schema
+ */
+export const lessonCreateSchema = z.object({
+  moduleId: z.string().min(1, 'Module ID required'),
+
+  title: z.object({
+    en: z.string().min(1).max(200),
+    es: z.string().min(1).max(200),
+  }),
+
+  content: z.object({
+    en: z.string().min(10, 'Content too short'),
+    es: z.string().min(10, 'Content too short'),
+  }),
+
+  type: z.enum(['text', 'video', 'interactive'], {
+    message: 'Invalid lesson type',
+  }),
+
+  videoUrl: z.string().url('Invalid video URL').optional(),
+
+  order: z.number().int().min(0),
+
+  estimatedDuration: z.number().positive().int(),
+});
+
+export type LessonCreateInput = z.infer<typeof lessonCreateSchema>;
+
+/**
+ * Team member creation schema
+ */
+export const teamMemberSchema = z.object({
+  email: z.string().email('Invalid email').toLowerCase().max(255),
+
+  name: z
+    .string()
+    .min(1, 'Name required')
+    .max(200, 'Name too long')
+    .regex(/^[a-zA-Z\s\-'áéíóúñÁÉÍÓÚÑüÜ]+$/, 'Invalid characters in name'),
+
+  role: z.enum(['partner_admin', 'partner_user'], {
+    message: 'Invalid role',
+  }),
+
+  phone: z
+    .string()
+    .regex(/^[+]?[0-9\s\-()]{7,20}$/, 'Invalid phone format')
+    .optional()
+    .or(z.literal('')),
+});
+
+export type TeamMemberInput = z.infer<typeof teamMemberSchema>;
+
+/**
+ * Credential issuance schema
+ */
+export const credentialIssuanceSchema = z.object({
+  partnerId: z.string().min(1, 'Partner ID required'),
+
+  holderEmail: z.string().email('Invalid email').toLowerCase(),
+
+  holderName: z
+    .string()
+    .min(1, 'Holder name required')
+    .max(200)
+    .regex(/^[a-zA-Z\s\-'áéíóúñÁÉÍÓÚÑüÜ]+$/, 'Invalid characters'),
+
+  role: z.enum(['partner_admin', 'partner_user', 'sovra_admin'], {
+    message: 'Invalid role',
+  }),
+
+  expirationDate: z.string().datetime().optional(),
+});
+
+export type CredentialIssuanceInput = z.infer<typeof credentialIssuanceSchema>;
+
+/**
+ * User profile update schema
+ */
+export const userProfileUpdateSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Name required')
+    .max(200)
+    .regex(/^[a-zA-Z\s\-'áéíóúñÁÉÍÓÚÑüÜ]+$/, 'Invalid characters')
+    .optional(),
+
+  phone: z
+    .string()
+    .regex(/^[+]?[0-9\s\-()]{7,20}$/, 'Invalid phone format')
+    .optional()
+    .or(z.literal('')),
+
+  avatarUrl: z.string().url('Invalid URL').optional(),
+});
+
+export type UserProfileUpdateInput = z.infer<typeof userProfileUpdateSchema>;
+
+/**
+ * Contract send schema
+ */
+export const contractSendSchema = z.object({
+  partnerId: z.string().min(1, 'Partner ID required'),
+
+  templateId: z.string().min(1, 'Template ID required').optional(),
+
+  title: z.string().min(1, 'Title required').max(200),
+
+  description: z.string().max(5000).optional(),
+
+  partnerSignerEmail: z.string().email('Invalid partner signer email').toLowerCase(),
+
+  partnerSignerName: z.string().min(1, 'Partner signer name required').max(200),
+
+  sovraSignerEmail: z.string().email('Invalid Sovra signer email').toLowerCase(),
+
+  sovraSignerName: z.string().min(1, 'Sovra signer name required').max(200),
+
+  effectiveDate: z.string().datetime().optional(),
+
+  expirationDays: z.number().int().positive().max(3650).optional(), // Max 10 years
+});
+
+export type ContractSendInput = z.infer<typeof contractSendSchema>;
+
+/**
+ * Deal approval/rejection schema
+ */
+export const dealActionSchema = z.object({
+  notes: z
+    .string()
+    .min(10, 'Notes must be at least 10 characters')
+    .max(5000, 'Notes too long'),
+
+  internalNotes: z.string().max(5000).optional(),
+});
+
+export type DealActionInput = z.infer<typeof dealActionSchema>;
+
+/**
+ * Copilot chat message schema
+ */
+export const copilotMessageSchema = z.object({
+  sessionId: z.string().min(1).optional(),
+
+  dealId: z.string().min(1, 'Deal ID required'),
+
+  message: z
+    .string()
+    .min(1, 'Message required')
+    .max(4000, 'Message too long'),
+});
+
+export type CopilotMessageInput = z.infer<typeof copilotMessageSchema>;
+
+/**
  * Sanitizes and trims text input
  */
 export function sanitizeTextInput(text: string, maxLength = 10000): string {

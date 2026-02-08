@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRateLimit, RATE_LIMITS } from '@/lib/api/withRateLimit';
 import { logger } from '@/lib/logger';
+import { ValidationError, NotFoundError } from '@/lib/errors';
+import { contractSendSchema, validateInput } from '@/lib/validation/schemas';
 import { cookies } from 'next/headers';
 import {
   getSession,
@@ -96,11 +98,12 @@ export const POST = withRateLimit(
     let sovraSignerName: string;
     let effectiveDate: string | undefined;
     let expirationDate: string | undefined;
+    let expirationDays: number | undefined;
     let category: DocumentCategory = 'contract';
     let pdfFile: File | null = null;
 
     if (isFormData) {
-      // Handle FormData (custom PDF upload)
+      // Handle FormData (custom PDF upload) - currently not validated
       const formData = await request.formData();
       pdfFile = formData.get('file') as File | null;
       partnerId = formData.get('partnerId') as string;
@@ -113,55 +116,48 @@ export const POST = withRateLimit(
       effectiveDate = formData.get('effectiveDate') as string | undefined;
       expirationDate = formData.get('expirationDate') as string | undefined;
       category = (formData.get('category') as DocumentCategory) || 'contract';
+
+      // Basic validation for FormData
+      if (!pdfFile || !partnerId || !title || !partnerSignerEmail || !partnerSignerName || !sovraSignerEmail || !sovraSignerName) {
+        throw new ValidationError('Missing required fields for file upload');
+      }
     } else {
-      // Handle JSON (template-based)
+      // Handle JSON (template-based) - validate with Zod
       const body = await request.json();
-      partnerId = body.partnerId;
-      templateId = body.templateId;
-      title = body.title;
-      description = body.description;
-      partnerSignerEmail = body.partnerSignerEmail;
-      partnerSignerName = body.partnerSignerName;
-      sovraSignerEmail = body.sovraSignerEmail;
-      sovraSignerName = body.sovraSignerName;
-      effectiveDate = body.effectiveDate;
+      const validation = await validateInput(contractSendSchema, body);
+
+      if (!validation.success) {
+        throw new ValidationError('Validation failed', validation.errors);
+      }
+
+      const validatedData = validation.data;
+      partnerId = validatedData.partnerId;
+      templateId = validatedData.templateId;
+      title = validatedData.title;
+      description = validatedData.description;
+      partnerSignerEmail = validatedData.partnerSignerEmail;
+      partnerSignerName = validatedData.partnerSignerName;
+      sovraSignerEmail = validatedData.sovraSignerEmail;
+      sovraSignerName = validatedData.sovraSignerName;
+      effectiveDate = validatedData.effectiveDate;
+      expirationDays = validatedData.expirationDays;
 
       // Calculate expiration from days
-      if (body.expirationDays) {
-        const days = body.expirationDays;
+      if (expirationDays) {
         const effective = effectiveDate ? new Date(effectiveDate) : new Date();
-        expirationDate = new Date(effective.getTime() + days * 24 * 60 * 60 * 1000).toISOString();
+        expirationDate = new Date(effective.getTime() + expirationDays * 24 * 60 * 60 * 1000).toISOString();
       }
-    }
 
-    // Validate required fields
-    if (!partnerId || !title || !partnerSignerEmail || !partnerSignerName || !sovraSignerEmail || !sovraSignerName) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-    // For FormData, we need a PDF file
-    if (isFormData && !pdfFile) {
-      return NextResponse.json(
-        { error: 'PDF file is required' },
-        { status: 400 }
-      );
-    }
-
-    // For JSON, we need a templateId
-    if (!isFormData && !templateId) {
-      return NextResponse.json(
-        { error: 'Template ID is required' },
-        { status: 400 }
-      );
+      // Template ID is required for JSON requests
+      if (!templateId) {
+        throw new ValidationError('Template ID is required for template-based contracts');
+      }
     }
 
     // Verify partner exists
     const partner = await getPartner(partnerId);
     if (!partner) {
-      return NextResponse.json({ error: 'Partner not found' }, { status: 404 });
+      throw new NotFoundError('Partner');
     }
     logger.info('Creating document for partner', { partnerId, companyName: partner.companyName });
 
@@ -170,7 +166,7 @@ export const POST = withRateLimit(
     if (templateId) {
       template = getTemplate(templateId);
       if (!template) {
-        return NextResponse.json({ error: 'Template not found' }, { status: 404 });
+        throw new NotFoundError('Template');
       }
       category = template.category as DocumentCategory;
     }

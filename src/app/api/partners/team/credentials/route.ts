@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
+import { ValidationError, NotFoundError, ForbiddenError, UnauthorizedError } from '@/lib/errors';
 import { getCurrentSession } from '@/lib/auth';
 import {
   getPartner,
@@ -10,6 +11,7 @@ import {
 } from '@/lib/redis';
 import { getSovraIdClient, isSovraIdConfigured, SovraIdApiError } from '@/lib/sovraid';
 import { sendCredentialEmail } from '@/lib/email';
+import { credentialIssuanceSchema, validateInput } from '@/lib/validation/schemas';
 import type { PartnerCredential, CredentialRole } from '@/types';
 
 /**
@@ -24,60 +26,49 @@ export async function POST(request: NextRequest) {
     const session = await getCurrentSession();
 
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      throw new UnauthorizedError();
     }
 
     const { user, partner } = session;
 
     // Only Partner Admin can issue credentials to their team
     if (user.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Solo el Admin del partner puede agregar miembros al equipo' },
-        { status: 403 }
-      );
+      throw new ForbiddenError('Solo el Admin del partner puede agregar miembros al equipo');
     }
 
     // Get partner details
     const partnerData = await getPartner(partner.id);
     if (!partnerData) {
-      return NextResponse.json({ error: 'Partner no encontrado' }, { status: 404 });
+      throw new NotFoundError('Partner');
     }
 
     if (partnerData.status === 'suspended') {
-      return NextResponse.json(
-        { error: 'No se pueden emitir credenciales mientras el partner esta suspendido' },
-        { status: 400 }
-      );
+      throw new ValidationError('No se pueden emitir credenciales mientras el partner esta suspendido');
     }
 
+    // Validate input
     const body = await request.json();
-    const { holderName, holderEmail, role } = body;
+    const validation = await validateInput(credentialIssuanceSchema, {
+      ...body,
+      partnerId: partner.id,
+    });
 
-    // Validation
-    if (!holderName || !holderEmail || !role) {
-      return NextResponse.json(
-        { error: 'Campos requeridos: holderName, holderEmail, role' },
-        { status: 400 }
-      );
+    if (!validation.success) {
+      throw new ValidationError('Validation failed', validation.errors);
     }
 
-    // Partner Admins can only issue 'sales' and 'legal' roles
-    // 'admin' and 'admin_secondary' require Sovra Admin
+    const { holderName, holderEmail, role } = validation.data;
+
+    // Partner Admins can only issue 'partner_user' and 'partner_admin' roles
     const allowedRoles: CredentialRole[] = ['sales', 'legal'];
-    if (!allowedRoles.includes(role)) {
-      return NextResponse.json(
-        { error: 'Solo puedes asignar roles de Sales o Legal. Para Admin, contacta a Sovra.' },
-        { status: 400 }
-      );
+    if (!allowedRoles.includes(role as CredentialRole)) {
+      throw new ValidationError('Solo puedes asignar roles de Sales o Legal. Para Admin, contacta a Sovra.');
     }
 
     // Check if credential already exists for this email
     const existingCredential = await getCredentialByEmail(holderEmail);
     if (existingCredential && existingCredential.status !== 'revoked') {
-      return NextResponse.json(
-        { error: 'Ya existe una credencial activa para este email' },
-        { status: 400 }
-      );
+      throw new ValidationError('Ya existe una credencial activa para este email');
     }
 
     const now = new Date().toISOString();

@@ -1,7 +1,9 @@
 import { NextRequest } from 'next/server';
 import { withRateLimit, RATE_LIMITS } from '@/lib/api/withRateLimit';
 import { logger } from '@/lib/logger';
+import { ValidationError, NotFoundError, ForbiddenError } from '@/lib/errors';
 import { requireSession } from '@/lib/auth';
+import { copilotMessageSchema, validateInput } from '@/lib/validation/schemas';
 import {
   getDeal,
   getCopilotSession,
@@ -18,30 +20,34 @@ export const POST = withRateLimit(
     try {
       const { user, partner } = await requireSession();
 
-    const { sessionId, dealId, message } = await request.json();
+      // Validate input
+      const body = await request.json();
+      const validation = await validateInput(copilotMessageSchema, body);
 
-    if (!dealId || !message) {
-      return new Response(JSON.stringify({ error: 'Deal ID and message are required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+      if (!validation.success) {
+        return new Response(JSON.stringify({ error: 'Validation failed', errors: validation.errors }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
 
-    const deal = await getDeal(dealId);
+      const { sessionId, dealId, message } = validation.data;
 
-    if (!deal) {
-      return new Response(JSON.stringify({ error: 'Deal not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+      const deal = await getDeal(dealId);
 
-    if (deal.partnerId !== partner.id) {
-      return new Response(JSON.stringify({ error: 'Access denied' }), {
-        status: 403,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+      if (!deal) {
+        return new Response(JSON.stringify({ error: 'Deal not found' }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (deal.partnerId !== partner.id) {
+        return new Response(JSON.stringify({ error: 'Access denied' }), {
+          status: 403,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
 
     if (!anthropic) {
       return new Response(JSON.stringify({ error: 'Copilot is not available' }), {

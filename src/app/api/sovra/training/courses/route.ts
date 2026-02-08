@@ -10,6 +10,7 @@ import {
   generateId,
   addAuditLog,
 } from '@/lib/redis';
+import { courseCreateSchema, validateInput } from '@/lib/validation/schemas';
 import type { TrainingCourse, CourseCategory, CourseLevel, PartnerTier } from '@/types';
 
 // GET - List all training courses
@@ -47,34 +48,34 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   }
 
   const body = await request.json();
+
+  // Validate input with Zod
+  const validation = await validateInput(courseCreateSchema, {
+    title: body.title,
+    description: body.description,
+    category: body.category,
+    difficulty: body.level, // Map 'level' to 'difficulty' for schema
+    estimatedDuration: body.duration || 30,
+    published: body.isPublished || false,
+  });
+
+  if (!validation.success) {
+    throw new ValidationError('Validation failed', validation.errors);
+  }
+
   const {
     title,
     description,
     category,
-    level,
-    duration,
-    passingScore,
-    isRequired,
-    requiredForTiers,
-    certificateEnabled,
-  } = body;
+    difficulty: level,
+    estimatedDuration: duration,
+  } = validation.data;
 
-  // Validation
-  if (!title || !title.es) {
-    throw new ValidationError('Titulo en espanol requerido');
-  }
-
-  if (!description || !description.es) {
-    throw new ValidationError('Descripcion en espanol requerida');
-  }
-
-  if (!['sales', 'technical', 'legal', 'product'].includes(category)) {
-    throw new ValidationError('Categoria invalida');
-  }
-
-  if (!['basic', 'intermediate', 'advanced'].includes(level)) {
-    throw new ValidationError('Nivel invalido');
-  }
+  // Additional fields not in schema
+  const passingScore = body.passingScore || 70;
+  const isRequired = body.isRequired || false;
+  const requiredForTiers = (body.requiredForTiers || []) as PartnerTier[];
+  const certificateEnabled = body.certificateEnabled !== false;
 
   // Get existing courses to determine order
   const existingCourses = await getAllTrainingCourses();
@@ -96,7 +97,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     },
     category: category as CourseCategory,
     level: level as CourseLevel,
-    duration: duration || 30,
+    duration: duration,
     modules: [],
     isPublished: false,
     isRequired: isRequired || false,
