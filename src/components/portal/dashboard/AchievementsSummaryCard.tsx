@@ -34,8 +34,8 @@ export function AchievementsSummaryCard({
     .slice(0, 2);
 
   return (
-    <Card className="p-6 bg-[var(--color-surface)] border border-[var(--color-border)] card-hover-gradient">
-      <div className="space-y-4">
+    <Card className="h-full flex flex-col p-6 bg-[var(--color-surface)] border border-[var(--color-border)] card-hover-gradient">
+      <div className="space-y-4 flex-1">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>

@@ -25,7 +25,7 @@ export function TrainingSummaryCard({
   const activeCerts = certifications.filter(c => c.status === 'active');
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
@@ -39,7 +39,7 @@ export function TrainingSummaryCard({
           </Link>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 flex-1">
         {/* Training Progress */}
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -64,40 +64,40 @@ export function TrainingSummaryCard({
         {/* Stats Grid */}
         <div className="grid grid-cols-3 gap-3">
           {/* Active Certifications */}
-          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-hover)] p-3">
-            <div className="flex items-center justify-center mb-2">
+          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-hover)] p-2">
+            <div className="flex items-center justify-center mb-1">
               <Award className="h-5 w-5 text-amber-500" />
             </div>
             <p className="text-center text-2xl font-bold text-[var(--color-text-primary)]">
               {activeCerts.length}
             </p>
-            <p className="text-center text-xs text-[var(--color-text-secondary)] mt-1">
-              Certificaciones
+            <p className="text-center text-xs text-[var(--color-text-secondary)] mt-1 break-words">
+              Certs
             </p>
           </div>
 
           {/* In Progress Courses */}
-          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-hover)] p-3">
-            <div className="flex items-center justify-center mb-2">
+          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-hover)] p-2">
+            <div className="flex items-center justify-center mb-1">
               <TrendingUp className="h-5 w-5 text-blue-500" />
             </div>
             <p className="text-center text-2xl font-bold text-[var(--color-text-primary)]">
               {inProgressCourses}
             </p>
-            <p className="text-center text-xs text-[var(--color-text-secondary)] mt-1">
+            <p className="text-center text-xs text-[var(--color-text-secondary)] mt-1 break-words">
               En progreso
             </p>
           </div>
 
           {/* Completion Rate */}
-          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-hover)] p-3">
-            <div className="flex items-center justify-center mb-2">
+          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-hover)] p-2">
+            <div className="flex items-center justify-center mb-1">
               <GraduationCap className="h-5 w-5 text-green-500" />
             </div>
             <p className="text-center text-2xl font-bold text-[var(--color-text-primary)]">
               {progressPercentage}%
             </p>
-            <p className="text-center text-xs text-[var(--color-text-secondary)] mt-1">
+            <p className="text-center text-xs text-[var(--color-text-secondary)] mt-1 break-words">
               Completado
             </p>
           </div>

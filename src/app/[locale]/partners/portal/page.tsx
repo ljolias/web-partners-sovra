@@ -159,9 +159,9 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
       </div>
 
       {/* Second Row - Tier, Achievements and Training (3 equal columns) */}
-      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
         {/* Tier / Partner Level */}
-        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-6">
+        <div className="h-full flex flex-col rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-3 sm:mb-4">
             <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-accent-orange)]" />
             <h3 className="text-sm sm:text-base font-semibold text-[var(--color-text-primary)]">{t('stats.tier')}</h3>
