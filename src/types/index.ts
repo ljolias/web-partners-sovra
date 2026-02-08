@@ -651,7 +651,7 @@ export interface TeamMemberMetrics {
 }
 
 export interface TeamMemberSummary {
-  user: Pick<User, 'id' | 'name' | 'email' | 'role'>;
+  user: Pick<User, 'id' | 'name' | 'email' | 'role' | 'avatarUrl'>;
   certifications: Certification[];
   trainingProgress: Record<string, TrainingProgress>;
   deals: Deal[];
