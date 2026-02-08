@@ -70,11 +70,6 @@ export const keys = {
   copilotMeddic: (sessionId: string) => `copilot:session:${sessionId}:meddic`,
   dealCopilotSessions: (dealId: string) => `deal:${dealId}:copilot:sessions`,
 
-  // Commissions
-  commission: (id: string) => `commission:${id}`,
-  partnerCommissions: (partnerId: string) => `partner:${partnerId}:commissions`,
-  dealCommission: (dealId: string) => `deal:${dealId}:commission`,
-
   // Rating
   ratingEvents: (partnerId: string) => `partner:${partnerId}:rating:events`,
   ratingCalculation: (partnerId: string) => `partner:${partnerId}:rating:calculation`,

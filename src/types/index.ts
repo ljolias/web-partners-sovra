@@ -551,18 +551,6 @@ export interface CopilotMessage {
   createdAt: string;
 }
 
-// Commission Types
-export interface Commission {
-  id: string;
-  partnerId: string;
-  dealId: string;
-  amount: number;
-  currency: 'USD' | 'EUR' | 'BRL';
-  status: 'pending' | 'approved' | 'paid';
-  paidAt: string | null;
-  createdAt: string;
-}
-
 // Dashboard Types
 export interface DashboardStats {
   totalDeals: number;
@@ -571,7 +559,6 @@ export interface DashboardStats {
   totalRevenue: number;
   rating: number;
   certifications: number;
-  pendingCommissions: number;
 }
 
 // API Response Types

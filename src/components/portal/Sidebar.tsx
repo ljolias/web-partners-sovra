@@ -9,7 +9,6 @@ import {
   Briefcase,
   GraduationCap,
   FileText,
-  DollarSign,
   LogOut,
   Sun,
   Moon,
@@ -177,7 +176,6 @@ export function Sidebar({ partner, user, locale, onLogout, isOpen = true, onClos
     { href: `${basePath}/training-center`, icon: GraduationCap, label: t('trainingCenter'), permission: 'training:view' as Permission, badge: 0 },
     { href: `${basePath}/legal`, icon: FileText, label: t('legal'), permission: 'legal:view' as Permission, badge: pendingDocsCount },
     { href: `${basePath}/rewards`, icon: Trophy, label: t('rewards'), permission: null, badge: 0 },
-    { href: `${basePath}/commissions`, icon: DollarSign, label: t('commissions'), permission: 'commissions:view' as Permission, badge: 0 },
     { href: `${basePath}/team`, icon: Users, label: t('team'), permission: 'team:view' as Permission, badge: 0 },
   ];
 

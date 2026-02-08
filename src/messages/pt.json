@@ -41,7 +41,6 @@
     "certifications": "Certificacoes",
     "legal": "Documentos Legais",
     "rewards": "Recompensas",
-    "commissions": "Comissoes",
     "copilot": "Sales Copilot",
     "team": "Minha Equipe"
   },
@@ -55,8 +54,7 @@
       "totalRevenue": "Receita Total",
       "tier": "Nivel do Parceiro",
       "rating": "Rating do Parceiro",
-      "certifications": "Certificacoes Ativas",
-      "pendingCommissions": "Comissoes Pendentes"
+      "certifications": "Certificacoes Ativas"
     },
     "alerts": {
       "certExpiring": "Sua certificacao expira em {days} dias",
@@ -260,17 +258,6 @@
       "uploadFailed": "Erro ao enviar. Por favor tente novamente.",
       "requiredFields": "Por favor preencha todos os campos obrigatorios."
     }
-  },
-  "commissions": {
-    "title": "Comissoes",
-    "pending": "Pendente",
-    "approved": "Aprovada",
-    "paid": "Paga",
-    "total": "Comissoes Totais",
-    "deal": "Oportunidade",
-    "amount": "Valor",
-    "status": "Status",
-    "empty": "Nenhuma comissao ainda"
   },
   "trainingCenter": {
     "title": "Centro de Treinamento",

@@ -41,7 +41,6 @@
     "certifications": "Certificaciones",
     "legal": "Documentos Legales",
     "rewards": "Recompensas",
-    "commissions": "Comisiones",
     "copilot": "Sales Copilot",
     "team": "Mi Equipo"
   },
@@ -55,8 +54,7 @@
       "totalRevenue": "Ingresos Totales",
       "tier": "Nivel del Partner",
       "rating": "Rating del Partner",
-      "certifications": "Certificaciones Activas",
-      "pendingCommissions": "Comisiones Pendientes"
+      "certifications": "Certificaciones Activas"
     },
     "alerts": {
       "certExpiring": "Tu certificacion expira en {days} dias",
@@ -260,17 +258,6 @@
       "uploadFailed": "Error al subir. Por favor intenta de nuevo.",
       "requiredFields": "Por favor completa todos los campos requeridos."
     }
-  },
-  "commissions": {
-    "title": "Comisiones",
-    "pending": "Pendiente",
-    "approved": "Aprobada",
-    "paid": "Pagada",
-    "total": "Comisiones Totales",
-    "deal": "Oportunidad",
-    "amount": "Monto",
-    "status": "Estado",
-    "empty": "No hay comisiones aun"
   },
   "trainingCenter": {
     "title": "Centro de Entrenamiento",

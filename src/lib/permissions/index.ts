@@ -7,7 +7,6 @@ export type Permission =
   | 'deals:create'
   | 'training:view'
   | 'legal:view'
-  | 'commissions:view'
   | 'team:view'
   | 'sovra:manage';
 
@@ -18,7 +17,6 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     'deals:create',
     'training:view',
     'legal:view',
-    'commissions:view',
     'team:view',
   ],
   sales: [
@@ -42,7 +40,6 @@ const routePermissions: Record<string, Permission> = {
   '/partners/portal/training-center': 'training:view',
   '/partners/portal/certifications': 'training:view',
   '/partners/portal/legal': 'legal:view',
-  '/partners/portal/commissions': 'commissions:view',
   '/partners/portal/team': 'team:view',
 };
 

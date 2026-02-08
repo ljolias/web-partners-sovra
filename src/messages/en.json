@@ -41,7 +41,6 @@
     "certifications": "Certifications",
     "legal": "Legal Documents",
     "rewards": "Rewards",
-    "commissions": "Commissions",
     "copilot": "Sales Copilot",
     "team": "My Team"
   },
@@ -55,8 +54,7 @@
       "totalRevenue": "Total Revenue",
       "tier": "Partner Tier",
       "rating": "Partner Rating",
-      "certifications": "Active Certifications",
-      "pendingCommissions": "Pending Commissions"
+      "certifications": "Active Certifications"
     },
     "alerts": {
       "certExpiring": "Your certification expires in {days} days",
@@ -260,17 +258,6 @@
       "uploadFailed": "Upload failed. Please try again.",
       "requiredFields": "Please fill in all required fields."
     }
-  },
-  "commissions": {
-    "title": "Commissions",
-    "pending": "Pending",
-    "approved": "Approved",
-    "paid": "Paid",
-    "total": "Total Commissions",
-    "deal": "Deal",
-    "amount": "Amount",
-    "status": "Status",
-    "empty": "No commissions yet"
   },
   "trainingCenter": {
     "title": "Training Center",

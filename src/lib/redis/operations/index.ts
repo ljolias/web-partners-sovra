@@ -8,7 +8,6 @@ export * from './training';
 export * from './certifications';
 export * from './legal-legacy';
 export * from './copilot';
-export * from './commissions';
 export * from './quotes';
 export * from './pricing';
 export * from './documents';
