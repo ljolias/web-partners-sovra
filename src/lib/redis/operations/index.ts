@@ -17,3 +17,4 @@ export * from './audit';
 export * from './achievements';
 export * from './tierHistory';
 export * from './annualProgress';
+export * from './teamAnalytics';

@@ -1,6 +1,13 @@
 import { getTranslations } from 'next-intl/server';
 import { getCurrentSession } from '@/lib/auth';
-import { getPartnerDeals } from '@/lib/redis';
+import {
+  getPartnerDeals,
+  getUserCertifications,
+  getTeamPerformance,
+  getTopPerformersByDeals,
+  getTopPerformersByRevenue,
+  getTopPerformersByCertifications,
+} from '@/lib/redis';
 import { getPartnerAchievements, getNextTierRequirements } from '@/lib/achievements';
 import { StatsCard } from '@/components/portal/dashboard/StatsCard';
 import { TierDisplay } from '@/components/portal/dashboard/TierDisplay';
@@ -8,7 +15,10 @@ import { RatingFactorsCard } from '@/components/portal/dashboard/RatingFactorsCa
 import { AlertsList } from '@/components/portal/dashboard/AlertsList';
 import { RecentDeals } from '@/components/portal/dashboard/RecentDeals';
 import { AchievementsSummaryCard } from '@/components/portal/dashboard/AchievementsSummaryCard';
-import { Trophy } from 'lucide-react';
+import { TrainingSummaryCard } from '@/components/portal/dashboard/TrainingSummaryCard';
+import { TeamPerformanceCard } from '@/components/portal/dashboard/TeamPerformanceCard';
+import { TeamLeaderboardCard } from '@/components/portal/dashboard/TeamLeaderboardCard';
+import { Trophy, Users } from 'lucide-react';
 
 interface DashboardPageProps {
   params: Promise<{ locale: string }>;
@@ -26,11 +36,20 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
 
   const { user, partner } = session;
 
-  const [deals, achievements, nextTierReqs] = await Promise.all([
-    getPartnerDeals(partner.id),
-    getPartnerAchievements(partner.id),
-    getNextTierRequirements(partner.id),
-  ]);
+  // Fetch team data if user is admin
+  const isAdmin = user.role === 'admin';
+
+  const [deals, achievements, nextTierReqs, certifications, teamPerformance, topByDeals, topByRevenue, topByCerts] =
+    await Promise.all([
+      getPartnerDeals(partner.id),
+      getPartnerAchievements(partner.id),
+      getNextTierRequirements(partner.id),
+      getUserCertifications(user.id),
+      isAdmin ? getTeamPerformance(partner.id) : Promise.resolve(null),
+      isAdmin ? getTopPerformersByDeals(partner.id, 5) : Promise.resolve([]),
+      isAdmin ? getTopPerformersByRevenue(partner.id, 5) : Promise.resolve([]),
+      isAdmin ? getTopPerformersByCertifications(partner.id, 5) : Promise.resolve([]),
+    ]);
 
   const pendingDeals = deals.filter(
     (d) => d.status === 'pending_approval' || d.status === 'more_info'
@@ -62,6 +81,53 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
       {/* Alerts */}
       {alerts.length > 0 && (
         <AlertsList alerts={alerts} />
+      )}
+
+      {/* Team Dashboard (Admin Only) */}
+      {isAdmin && teamPerformance && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-blue-500" />
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+              Dashboard del Equipo
+            </h2>
+          </div>
+
+          {/* Team Performance Overview */}
+          <TeamPerformanceCard performance={teamPerformance} />
+
+          {/* Leaderboards */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <TeamLeaderboardCard
+              title="Top por Oportunidades"
+              entries={topByDeals}
+              icon="briefcase"
+              emptyMessage="No hay datos de oportunidades"
+            />
+            <TeamLeaderboardCard
+              title="Top por Revenue"
+              entries={topByRevenue}
+              icon="trending"
+              emptyMessage="No hay datos de revenue"
+            />
+            <TeamLeaderboardCard
+              title="Top por Certificaciones"
+              entries={topByCerts}
+              icon="award"
+              emptyMessage="No hay datos de certificaciones"
+            />
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-[var(--color-border)] pt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Trophy className="h-5 w-5 text-amber-500" />
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+                Mi Desempeño Personal
+              </h2>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Stats Grid */}
@@ -111,6 +177,15 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
           />
         </div>
       </div>
+
+      {/* Training Summary */}
+      <TrainingSummaryCard
+        locale={locale}
+        certifications={certifications}
+        completedModules={0}
+        totalModules={10}
+        inProgressCourses={0}
+      />
 
       {/* Recent Deals */}
       <div>

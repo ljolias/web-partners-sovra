@@ -12,6 +12,8 @@ export type Permission =
 
 // Permissions granted to each role
 export const rolePermissions: Record<UserRole, Permission[]> = {
+  // Partner Admin has all sales permissions + team management + legal
+  // Admin can register deals, take training, AND manage their team
   admin: [
     'deals:view',
     'deals:create',
