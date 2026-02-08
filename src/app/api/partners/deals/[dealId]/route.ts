@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withErrorHandling } from '@/lib/api/errorHandler';
+import { withRateLimit, RATE_LIMITS } from '@/lib/api/withRateLimit';
 import { logger } from '@/lib/logger';
+import { NotFoundError, ForbiddenError, ValidationError } from '@/lib/errors';
 import { z } from 'zod';
 import { requireSession } from '@/lib/auth';
 import { getDeal, updateDeal } from '@/lib/redis';
@@ -17,58 +20,50 @@ const updateSchema = z.object({
   partnerGeneratedLead: z.boolean().optional(),
 });
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ dealId: string }> }
-) {
-  try {
+export const GET = withRateLimit(
+  withErrorHandling(async (
+    _request: NextRequest,
+    { params }: { params: Promise<{ dealId: string }> }
+  ) => {
     const { partner } = await requireSession();
     const { dealId } = await params;
 
     const deal = await getDeal(dealId);
 
     if (!deal) {
-      return NextResponse.json({ error: 'Deal not found' }, { status: 404 });
+      throw new NotFoundError('Deal');
     }
 
     if (deal.partnerId !== partner.id) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+      throw new ForbiddenError('Access denied to this deal');
     }
 
     return NextResponse.json({ deal });
-  } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    logger.error('Get deal error:', { error: error });
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+  }),
+  RATE_LIMITS.READ
+);
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ dealId: string }> }
-) {
-  try {
+export const PUT = withRateLimit(
+  withErrorHandling(async (
+    request: NextRequest,
+    { params }: { params: Promise<{ dealId: string }> }
+  ) => {
     const { user, partner } = await requireSession();
     const { dealId } = await params;
 
     const deal = await getDeal(dealId);
 
     if (!deal) {
-      return NextResponse.json({ error: 'Deal not found' }, { status: 404 });
+      throw new NotFoundError('Deal');
     }
 
     if (deal.partnerId !== partner.id) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+      throw new ForbiddenError('Access denied to this deal');
     }
 
     // Only allow updates for deals in pending_approval or more_info status
     if (deal.status !== 'pending_approval' && deal.status !== 'more_info') {
-      return NextResponse.json(
-        { error: 'Cannot update deal in current status' },
-        { status: 400 }
-      );
+      throw new ValidationError('Cannot update deal in current status');
     }
 
     const body = await request.json();
@@ -76,10 +71,7 @@ export async function PUT(
 
     if (!validation.success) {
       const issues = validation.error.issues;
-      return NextResponse.json(
-        { error: issues[0]?.message || 'Validation failed' },
-        { status: 400 }
-      );
+      throw new ValidationError(issues[0]?.message || 'Validation failed');
     }
 
     // If updating from more_info, reset to pending_approval
@@ -92,12 +84,9 @@ export async function PUT(
     await updateDeal(dealId, updates);
     const updatedDeal = await getDeal(dealId);
 
+    logger.info('Deal updated', { dealId, partnerId: partner.id });
+
     return NextResponse.json({ deal: updatedDeal });
-  } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    logger.error('Update deal error:', { error: error });
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+  }),
+  RATE_LIMITS.UPDATE
+);

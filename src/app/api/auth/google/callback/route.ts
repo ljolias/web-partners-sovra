@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRateLimit, RATE_LIMITS } from '@/lib/api/withRateLimit';
 import { logger } from '@/lib/logger';
 import { cookies } from 'next/headers';
 import {
@@ -16,7 +17,8 @@ import {
 
 const SOVRA_PARTNER_ID = 'sovra-internal';
 
-export async function GET(request: NextRequest) {
+export const GET = withRateLimit(
+  async (request: NextRequest) => {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
   try {
@@ -104,4 +106,6 @@ export async function GET(request: NextRequest) {
     logger.error('Google OAuth callback error:', { error: error });
     return NextResponse.redirect(new URL('/es/sovra/login?error=callback_failed', baseUrl));
   }
-}
+  },
+  RATE_LIMITS.LOGIN
+);

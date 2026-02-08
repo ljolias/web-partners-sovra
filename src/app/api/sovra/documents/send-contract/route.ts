@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRateLimit, RATE_LIMITS } from '@/lib/api/withRateLimit';
 import { logger } from '@/lib/logger';
 import { cookies } from 'next/headers';
 import {
@@ -41,9 +42,10 @@ async function requireSovraAdmin() {
 }
 
 // GET - List available contract templates
-export async function GET() {
-  try {
-    await requireSovraAdmin();
+export const GET = withRateLimit(
+  async (request: NextRequest) => {
+    try {
+      await requireSovraAdmin();
 
     const templates = DOCUMENT_TEMPLATES.map((t) => ({
       id: t.id,
@@ -70,12 +72,15 @@ export async function GET() {
     logger.error('Get templates error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+  },
+  RATE_LIMITS.READ
+);
 
 // POST - Send a contract for signature (supports both template-based and custom PDF)
-export async function POST(request: NextRequest) {
-  try {
-    const { user } = await requireSovraAdmin();
+export const POST = withRateLimit(
+  async (request: NextRequest) => {
+    try {
+      const { user } = await requireSovraAdmin();
 
     // Check content type to determine if it's FormData or JSON
     const contentType = request.headers.get('content-type') || '';
@@ -309,4 +314,6 @@ export async function POST(request: NextRequest) {
     logger.error('Send contract error:', { error: error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+  },
+  RATE_LIMITS.CREATE
+);

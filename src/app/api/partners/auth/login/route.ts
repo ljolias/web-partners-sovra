@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withErrorHandling } from '@/lib/api/errorHandler';
+import { withRateLimit, RATE_LIMITS } from '@/lib/api/withRateLimit';
 import { logger } from '@/lib/logger';
 import { ValidationError, UnauthorizedError } from '@/lib/errors';
 import { login } from '@/lib/auth';
 import { updatePartnerLastLogin } from '@/lib/rating';
 
-export const POST = withErrorHandling(async (request: NextRequest) => {
+export const POST = withRateLimit(
+  withErrorHandling(async (request: NextRequest) => {
   const { email, password } = await request.json();
 
   if (!email || !password) {
@@ -38,4 +40,6 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       rating: sessionData.partner.rating,
     },
   });
-});
+  }),
+  RATE_LIMITS.LOGIN
+);

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withErrorHandling } from '@/lib/api/errorHandler';
+import { withRateLimit, RATE_LIMITS } from '@/lib/api/withRateLimit';
 import { logger } from '@/lib/logger';
 import { UnauthorizedError, ForbiddenError, ValidationError, NotFoundError } from '@/lib/errors';
 import { cookies } from 'next/headers';
@@ -87,8 +88,9 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
 });
 
 // POST - Share/upload a document to a partner
-export const POST = withErrorHandling(async (request: NextRequest) => {
-  const { user } = await requireSovraAdmin();
+export const POST = withRateLimit(
+  withErrorHandling(async (request: NextRequest) => {
+    const { user } = await requireSovraAdmin();
 
   const formData = await request.formData();
   const file = formData.get('file') as File | null;
@@ -188,4 +190,6 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   logger.info('Document shared', { documentId, partnerId, category });
 
   return NextResponse.json({ document }, { status: 201 });
-});
+  }),
+  RATE_LIMITS.UPLOAD
+);

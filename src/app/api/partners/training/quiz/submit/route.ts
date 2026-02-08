@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withErrorHandling } from '@/lib/api/errorHandler';
+import { withRateLimit, RATE_LIMITS } from '@/lib/api/withRateLimit';
 import { logger } from '@/lib/logger';
 import { ValidationError, NotFoundError } from '@/lib/errors';
 import { z } from 'zod';
@@ -20,8 +21,9 @@ const submitSchema = z.object({
   answers: z.array(z.number()),
 });
 
-export const POST = withErrorHandling(async (request: NextRequest) => {
-  const { user, partner } = await requireSession();
+export const POST = withRateLimit(
+  withErrorHandling(async (request: NextRequest) => {
+    const { user, partner } = await requireSession();
 
   const body = await request.json();
   const validation = submitSchema.safeParse(body);
@@ -132,4 +134,6 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   }
 
   return NextResponse.json({ passed, score, progress });
-});
+  }),
+  RATE_LIMITS.QUIZ_SUBMIT
+);

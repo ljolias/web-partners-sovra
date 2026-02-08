@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { withRateLimit, RATE_LIMITS } from '@/lib/api/withRateLimit';
 import { logger } from '@/lib/logger';
 import { requireSession } from '@/lib/auth';
 import {
@@ -12,9 +13,10 @@ import { anthropic, MODEL, buildSystemPrompt, parseScoreSuggestions, cleanRespon
 import { logRatingEvent, recalculateAndUpdatePartner } from '@/lib/rating';
 import type { CopilotMessage, CopilotSession } from '@/types';
 
-export async function POST(request: NextRequest) {
-  try {
-    const { user, partner } = await requireSession();
+export const POST = withRateLimit(
+  async (request: NextRequest) => {
+    try {
+      const { user, partner } = await requireSession();
 
     const { sessionId, dealId, message } = await request.json();
 
@@ -182,4 +184,6 @@ export async function POST(request: NextRequest) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
-}
+  },
+  RATE_LIMITS.CREATE
+);

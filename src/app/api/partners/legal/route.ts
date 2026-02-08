@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withErrorHandling } from '@/lib/api/errorHandler';
+import { withRateLimit, RATE_LIMITS } from '@/lib/api/withRateLimit';
 import { logger } from '@/lib/logger';
 import { ValidationError } from '@/lib/errors';
 import { requireSession } from '@/lib/auth';
@@ -67,8 +68,9 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
 });
 
 // POST - Upload a new document
-export const POST = withErrorHandling(async (request: NextRequest) => {
-  const { user, partner } = await requireSession();
+export const POST = withRateLimit(
+  withErrorHandling(async (request: NextRequest) => {
+    const { user, partner } = await requireSession();
 
   const formData = await request.formData();
   const file = formData.get('file') as File | null;
@@ -160,4 +162,6 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   logger.info('Document uploaded', { documentId, partnerId: partner.id, category });
 
   return NextResponse.json({ document }, { status: 201 });
-});
+  }),
+  RATE_LIMITS.UPLOAD
+);

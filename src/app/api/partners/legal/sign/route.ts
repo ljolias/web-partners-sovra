@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withErrorHandling } from '@/lib/api/errorHandler';
+import { withRateLimit, RATE_LIMITS } from '@/lib/api/withRateLimit';
 import { logger } from '@/lib/logger';
 import { ValidationError, NotFoundError } from '@/lib/errors';
 import { requireSession } from '@/lib/auth';
@@ -7,8 +8,9 @@ import { getLegalDocument, signLegalDocument, generateId } from '@/lib/redis';
 import { getClientIp } from '@/lib/security/ip';
 import type { LegalSignature } from '@/types';
 
-export const POST = withErrorHandling(async (request: NextRequest) => {
-  const { user, partner } = await requireSession();
+export const POST = withRateLimit(
+  withErrorHandling(async (request: NextRequest) => {
+    const { user, partner } = await requireSession();
 
   const { documentId } = await request.json();
 
@@ -38,4 +40,6 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   logger.info('Document signed', { documentId, userId: user.id, partnerId: partner.id });
 
   return NextResponse.json({ signature });
-});
+  }),
+  RATE_LIMITS.CREATE
+);

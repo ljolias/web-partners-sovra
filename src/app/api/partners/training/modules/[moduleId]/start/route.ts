@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withErrorHandling } from '@/lib/api/errorHandler';
+import { withRateLimit, RATE_LIMITS } from '@/lib/api/withRateLimit';
 import { logger } from '@/lib/logger';
 import { NotFoundError } from '@/lib/errors';
 import { requireSession } from '@/lib/auth';
 import { getTrainingModule, updateTrainingProgress, getTrainingCourse } from '@/lib/redis';
 import type { TrainingProgress } from '@/types';
 
-export const POST = withErrorHandling(async (
-  _request: NextRequest,
-  { params }: { params: Promise<{ moduleId: string }> }
-) => {
-  const { user } = await requireSession();
+export const POST = withRateLimit(
+  withErrorHandling(async (
+    _request: NextRequest,
+    { params }: { params: Promise<{ moduleId: string }> }
+  ) => {
+    const { user } = await requireSession();
   const { moduleId } = await params;
 
   // Try to get as a legacy module first
@@ -39,4 +41,6 @@ export const POST = withErrorHandling(async (
   logger.debug('Module started', { moduleId, userId: user.id });
 
   return NextResponse.json({ progress });
-});
+  }),
+  RATE_LIMITS.CREATE
+);
