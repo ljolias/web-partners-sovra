@@ -31,7 +31,7 @@ export function AchievementsSummaryCard({
         new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
       );
     })
-    .slice(0, 2);
+    .slice(0, 5);
 
   return (
     <Card className="h-full flex flex-col p-6 bg-[var(--color-surface)] border border-[var(--color-border)] card-hover-gradient">
@@ -55,6 +55,22 @@ export function AchievementsSummaryCard({
           </Badge>
         </div>
 
+        {/* Achievement Stats */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-lg bg-[var(--color-surface-hover)] p-3 border border-[var(--color-border)]">
+            <p className="text-xs text-[var(--color-text-secondary)]">Total Logros</p>
+            <p className="text-xl font-bold text-[var(--color-text-primary)] mt-1">
+              {recentAchievements.length}
+            </p>
+          </div>
+          <div className="rounded-lg bg-[var(--color-surface-hover)] p-3 border border-[var(--color-border)]">
+            <p className="text-xs text-[var(--color-text-secondary)]">Tier Actual</p>
+            <p className="text-xl font-bold text-[var(--color-text-primary)] mt-1 capitalize">
+              {t(`tiers.${currentTierName}`)}
+            </p>
+          </div>
+        </div>
+
         {/* Recent Achievements */}
         {latestAchievements.length > 0 && (
           <div className="space-y-2">
@@ -65,11 +81,11 @@ export function AchievementsSummaryCard({
               {latestAchievements.map((achievement) => (
                 <div
                   key={achievement.id}
-                  className="flex items-center gap-2 text-sm bg-[var(--color-surface-hover)] rounded-lg px-3 py-2 border border-[var(--color-border)]"
+                  className="flex items-center gap-2 text-sm bg-[var(--color-surface-hover)] rounded-lg px-2 py-2 border border-[var(--color-border)]"
                 >
-                  <span className="text-lg">⭐</span>
-                  <span className="text-[var(--color-text-primary)] font-medium">
-                    {t(`${achievement.name}`)}
+                  <span className="text-base">⭐</span>
+                  <span className="text-[var(--color-text-primary)] font-medium text-xs">
+                    {achievement.name}
                   </span>
                 </div>
               ))}
@@ -101,6 +117,21 @@ export function AchievementsSummaryCard({
               }
               className="h-2"
             />
+
+            {/* Next Achievement to Unlock */}
+            {nextMilestone.achievements.remaining.length > 0 && (
+              <div className="mt-2 rounded-lg bg-[var(--color-surface-hover)] p-2 border border-[var(--color-border)]">
+                <p className="text-xs text-[var(--color-text-secondary)] mb-1">
+                  Próximo logro:
+                </p>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">🎯</span>
+                  <span className="text-xs font-medium text-[var(--color-text-primary)]">
+                    {nextMilestone.achievements.remaining[0].name}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

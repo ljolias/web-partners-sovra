@@ -104,26 +104,34 @@ export function TrainingSummaryCard({
         </div>
 
         {/* Active Certifications List */}
-        {activeCerts.length > 0 && (
+        {activeCerts.length > 0 ? (
           <div className="pt-3 border-t border-[var(--color-border)]">
-            <p className="text-sm font-medium text-[var(--color-text-primary)] mb-2">
+            <p className="text-sm font-medium text-[var(--color-text-primary)] mb-3">
               Certificaciones Activas:
             </p>
-            <div className="flex flex-wrap gap-2">
-              {activeCerts.slice(0, 3).map((cert) => (
-                <Badge key={cert.id} variant="success" className="text-xs">
-                  <Award className="h-3 w-3 mr-1" />
-                  {cert.type === 'sales_fundamentals' && 'Fundamentos'}
-                  {cert.type === 'technical_specialist' && 'Técnico'}
-                  {cert.type === 'solution_architect' && 'Arquitecto'}
-                </Badge>
+            <div className="space-y-2">
+              {activeCerts.map((cert) => (
+                <div key={cert.id} className="flex items-center justify-between p-2 rounded-lg bg-[var(--color-surface-hover)]">
+                  <div className="flex items-center gap-2">
+                    <Award className="h-4 w-4 text-amber-500" />
+                    <span className="text-xs font-medium text-[var(--color-text-primary)]">
+                      {cert.type === 'sales_fundamentals' && 'Fundamentos de Ventas'}
+                      {cert.type === 'technical_specialist' && 'Especialista Técnico'}
+                      {cert.type === 'solution_architect' && 'Arquitecto de Soluciones'}
+                    </span>
+                  </div>
+                  <Badge variant="success" className="text-xs">
+                    Activa
+                  </Badge>
+                </div>
               ))}
-              {activeCerts.length > 3 && (
-                <Badge variant="secondary" className="text-xs">
-                  +{activeCerts.length - 3} más
-                </Badge>
-              )}
             </div>
+          </div>
+        ) : (
+          <div className="pt-3 border-t border-[var(--color-border)]">
+            <p className="text-sm text-[var(--color-text-secondary)] text-center py-4">
+              No tienes certificaciones aún. ¡Completa módulos para obtenerlas!
+            </p>
           </div>
         )}
 

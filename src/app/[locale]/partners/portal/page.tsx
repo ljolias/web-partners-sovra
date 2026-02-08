@@ -28,6 +28,7 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
   const { locale } = await params;
   const t = await getTranslations('dashboard');
   const tDeals = await getTranslations('deals');
+  const tTier = await getTranslations('tier');
   const session = await getCurrentSession();
 
   if (!session) {
@@ -166,8 +167,22 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
             <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-accent-orange)]" />
             <h3 className="text-sm sm:text-base font-semibold text-[var(--color-text-primary)]">{t('stats.tier')}</h3>
           </div>
-          <TierDisplay tier={partner.tier} size="lg" />
-          <RatingFactorsCard className="mt-4 pt-4 border-t border-[var(--color-border)]" />
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <TierDisplay tier={partner.tier} size="lg" />
+            <div className="mt-6 w-full space-y-3">
+              <div className="rounded-lg bg-[var(--color-surface-hover)] p-3">
+                <p className="text-xs text-[var(--color-text-secondary)] text-center">Rating del Partner</p>
+                <p className="text-2xl font-bold text-[var(--color-text-primary)] text-center mt-1">
+                  {partner.rating || 0}
+                </p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-[var(--color-text-secondary)]">
+                  Nivel actual: <span className="font-medium text-[var(--color-text-primary)]">{tTier(partner.tier)}</span>
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Achievements / Logros */}

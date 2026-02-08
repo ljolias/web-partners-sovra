@@ -18,6 +18,7 @@ import {
   ChevronDown,
   Trophy,
   User as UserIcon,
+  Menu,
 } from 'lucide-react';
 import { hasPermission, type Permission } from '@/lib/permissions';
 import type { UserRole } from '@/types';
@@ -143,6 +144,22 @@ export function Sidebar({ partner, user, locale, onLogout, isOpen = true, onClos
   const t = useTranslations('nav');
   const tTier = useTranslations('tier');
   const [pendingDocsCount, setPendingDocsCount] = useState(0);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Load collapsed state from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('sovra-sidebar-collapsed');
+    if (saved === 'true') {
+      setIsCollapsed(true);
+    }
+  }, []);
+
+  // Toggle collapsed state
+  const toggleCollapsed = () => {
+    const newState = !isCollapsed;
+    setIsCollapsed(newState);
+    localStorage.setItem('sovra-sidebar-collapsed', String(newState));
+  };
 
   const basePath = `/${locale}/partners/portal`;
   const userRole = user.role as UserRole;
@@ -199,53 +216,89 @@ export function Sidebar({ partner, user, locale, onLogout, isOpen = true, onClos
   const sidebarContent = (
     <>
       {/* Logo */}
-      <div className="flex h-16 items-center justify-between px-4 lg:px-6 border-b border-[var(--color-border)]">
-        <Link href={basePath} className="flex items-center gap-2 lg:gap-3" onClick={onClose}>
-          <SovraLogo size="md" />
-          <span className="hidden sm:inline text-xs font-medium text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2 py-0.5 rounded-full border border-[var(--color-primary)]/20">
-            Partners
-          </span>
-        </Link>
-        {/* Close button for mobile */}
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="lg:hidden p-2 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]"
-          >
-            <X className="h-5 w-5" />
-          </button>
+      <div className={cn(
+        'flex border-b border-[var(--color-border)] transition-all',
+        isCollapsed ? 'h-auto flex-col items-center py-3 gap-2' : 'h-16 items-center justify-between px-4 lg:px-6'
+      )}>
+        {isCollapsed ? (
+          <>
+            {/* Toggle button for desktop - collapsed state */}
+            <button
+              onClick={toggleCollapsed}
+              className="hidden lg:block p-2 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] transition-colors"
+              title="Expandir menú"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            {/* Isologo only */}
+            <Link href={basePath} className="flex items-center" onClick={onClose}>
+              <SovraLogo size="md" showText={false} />
+            </Link>
+          </>
+        ) : (
+          <>
+            <Link href={basePath} className="flex items-center gap-2 lg:gap-3" onClick={onClose}>
+              <SovraLogo size="md" showText={true} />
+              <span className="hidden sm:inline text-xs font-medium text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2 py-0.5 rounded-full border border-[var(--color-primary)]/20">
+                Partners
+              </span>
+            </Link>
+
+            {/* Toggle button for desktop - expanded state */}
+            <button
+              onClick={toggleCollapsed}
+              className="hidden lg:block p-2 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] transition-colors"
+              title="Contraer menú"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+
+            {/* Close button for mobile */}
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="lg:hidden p-2 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            )}
+          </>
         )}
       </div>
 
       {/* Theme & Language */}
-      <div className="px-4 lg:px-6 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
-        <LanguageDropdown
-          locale={locale}
-          pathWithoutLocale={pathWithoutLocale}
-          onSelect={onClose}
-        />
-        <ThemeToggle />
-      </div>
+      {!isCollapsed && (
+        <div className="px-4 lg:px-6 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
+          <LanguageDropdown
+            locale={locale}
+            pathWithoutLocale={pathWithoutLocale}
+            onSelect={onClose}
+          />
+          <ThemeToggle />
+        </div>
+      )}
 
       {/* Partner Info */}
       <div className="p-4 border-b border-[var(--color-border)]">
-        <div className="flex items-center gap-3">
+        <div className={cn('flex items-center gap-3', isCollapsed && 'justify-center')}>
           <div className="flex h-10 lg:h-11 w-10 lg:w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent-purple)] text-white font-bold text-base lg:text-lg shadow-lg shadow-[var(--color-primary)]/20">
             {partner.companyName.charAt(0)}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="truncate text-sm font-semibold text-[var(--color-text-primary)]">{partner.companyName}</p>
-            <div className="flex items-center gap-2 mt-1">
-              <span
-                className={cn(
-                  'text-xs px-2 py-0.5 rounded-full border',
-                  tierBgColors[partner.tier]
-                )}
-              >
-                {tTier(partner.tier)}
-              </span>
+          {!isCollapsed && (
+            <div className="flex-1 min-w-0">
+              <p className="truncate text-sm font-semibold text-[var(--color-text-primary)]">{partner.companyName}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <span
+                  className={cn(
+                    'text-xs px-2 py-0.5 rounded-full border',
+                    tierBgColors[partner.tier]
+                  )}
+                >
+                  {tTier(partner.tier)}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -265,10 +318,11 @@ export function Sidebar({ partner, user, locale, onLogout, isOpen = true, onClos
                     'relative flex items-center gap-3 rounded-xl px-3 lg:px-4 py-2.5 lg:py-3 text-sm font-medium transition-all',
                     isActive
                       ? 'bg-[var(--color-primary)]/10 text-[var(--color-text-primary)]'
-                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)]'
+                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)]',
+                    isCollapsed && 'justify-center'
                   )}
                 >
-                  {isActive && (
+                  {isActive && !isCollapsed && (
                     <motion.div
                       layoutId="sidebar-active"
                       className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 lg:h-8 bg-gradient-to-b from-[var(--color-primary)] to-[var(--color-accent-purple)] rounded-r-full"
@@ -276,10 +330,19 @@ export function Sidebar({ partner, user, locale, onLogout, isOpen = true, onClos
                     />
                   )}
                   <item.icon className={cn('h-5 w-5', isActive && 'text-[var(--color-primary)]')} />
-                  <span className="flex-1">{item.label}</span>
-                  {item.badge > 0 && (
-                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-semibold text-white">
-                      {item.badge > 9 ? '9+' : item.badge}
+                  {!isCollapsed && (
+                    <>
+                      <span className="flex-1">{item.label}</span>
+                      {item.badge > 0 && (
+                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-semibold text-white">
+                          {item.badge > 9 ? '9+' : item.badge}
+                        </span>
+                      )}
+                    </>
+                  )}
+                  {isCollapsed && item.badge > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-semibold text-white">
+                      {item.badge > 9 ? '9' : item.badge}
                     </span>
                   )}
                 </Link>
@@ -291,7 +354,7 @@ export function Sidebar({ partner, user, locale, onLogout, isOpen = true, onClos
 
       {/* User Menu */}
       <div className="border-t border-[var(--color-border)] p-3 lg:p-4">
-        <div className="flex items-center gap-3">
+        <div className={cn('flex items-center gap-3', isCollapsed && 'flex-col')}>
           <div className="flex h-9 lg:h-10 w-9 lg:w-10 items-center justify-center rounded-xl bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] text-sm font-medium border border-[var(--color-border)] overflow-hidden">
             {user.avatarUrl ? (
               <img
@@ -303,17 +366,30 @@ export function Sidebar({ partner, user, locale, onLogout, isOpen = true, onClos
               user.name.charAt(0)
             )}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="truncate text-sm font-medium text-[var(--color-text-primary)]">{user.name}</p>
-            <p className="truncate text-xs text-[var(--color-text-secondary)]">{user.email}</p>
-          </div>
-          <button
-            onClick={onLogout}
-            className="rounded-lg p-2 text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] transition-colors"
-            title="Logout"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
+          {!isCollapsed && (
+            <>
+              <div className="flex-1 min-w-0">
+                <p className="truncate text-sm font-medium text-[var(--color-text-primary)]">{user.name}</p>
+                <p className="truncate text-xs text-[var(--color-text-secondary)]">{user.email}</p>
+              </div>
+              <button
+                onClick={onLogout}
+                className="rounded-lg p-2 text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] transition-colors"
+                title="Logout"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </>
+          )}
+          {isCollapsed && (
+            <button
+              onClick={onLogout}
+              className="rounded-lg p-2 text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] transition-colors"
+              title="Logout"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
     </>
@@ -322,7 +398,10 @@ export function Sidebar({ partner, user, locale, onLogout, isOpen = true, onClos
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex h-screen w-72 flex-col bg-[var(--color-surface)] border-r border-[var(--color-border)]">
+      <aside className={cn(
+        'hidden lg:flex h-screen flex-col bg-[var(--color-surface)] border-r border-[var(--color-border)] transition-all duration-300',
+        isCollapsed ? 'w-20' : 'w-72'
+      )}>
         {sidebarContent}
       </aside>
 
