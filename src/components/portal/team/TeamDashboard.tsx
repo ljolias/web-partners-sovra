@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { Users, UserCheck, Briefcase, DollarSign, Plus, X, AlertCircle, Check, ShieldCheck, Clock, Mail, Eye } from 'lucide-react';
@@ -225,7 +226,13 @@ export function TeamDashboard({ locale }: TeamDashboardProps) {
         {teamMembers.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {teamMembers.map((member, index) => (
-              <TeamMemberCard key={member.user.id} member={member} index={index} />
+              <Link
+                key={member.user.id}
+                href={`/${locale}/partners/portal/team/${member.user.id}`}
+                className="block transition-transform hover:scale-[1.02]"
+              >
+                <TeamMemberCard member={member} index={index} />
+              </Link>
             ))}
           </div>
         ) : (

@@ -71,6 +71,7 @@ interface PartnerDetailData {
   credentials: PartnerCredential[];
   deals: Deal[];
   documents: LegalDocument[];
+  users: Array<{ id: string; name: string; email: string; role: string }>;
   stats: {
     totalDeals: number;
     wonDeals: number;
@@ -1096,9 +1097,15 @@ function TeamTab({ data, onRefresh }: { data: PartnerDetailData; onRefresh: () =
 
 // Tab: Opportunities
 function OpportunitiesTab({ data }: { data: PartnerDetailData }) {
-  const { deals } = data;
+  const { deals, partner, users } = data;
   const params = useParams();
   const locale = params.locale as string;
+
+  // Create user lookup map
+  const userMap = new Map<string, string>();
+  users?.forEach(user => {
+    userMap.set(user.id, user.name);
+  });
 
   const statusLabels: Record<string, { label: string; color: string }> = {
     pending_approval: { label: 'Pendiente', color: 'text-yellow-600 bg-yellow-100' },
@@ -1109,11 +1116,14 @@ function OpportunitiesTab({ data }: { data: PartnerDetailData }) {
     closed_lost: { label: 'Perdida', color: 'text-[var(--color-text-secondary)] bg-[var(--color-surface-hover)]' },
   };
 
-  if (deals.length === 0) {
+  if (!deals || deals.length === 0) {
     return (
       <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-8 text-center">
         <Briefcase className="w-12 h-12 text-[var(--color-text-muted)] mx-auto mb-4" />
-        <p className="text-[var(--color-text-secondary)]">No hay oportunidades registradas</p>
+        <p className="text-[var(--color-text-secondary)] mb-2">No hay oportunidades registradas</p>
+        <p className="text-sm text-[var(--color-text-muted)]">
+          {partner.companyName} aún no ha registrado ninguna oportunidad de venta.
+        </p>
       </div>
     );
   }
@@ -1126,6 +1136,7 @@ function OpportunitiesTab({ data }: { data: PartnerDetailData }) {
             <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase">Cliente</th>
             <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase">Pais</th>
             <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase">Nivel</th>
+            <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase">Registrado por</th>
             <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase">Status</th>
             <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase">Fecha</th>
           </tr>
@@ -1133,6 +1144,7 @@ function OpportunitiesTab({ data }: { data: PartnerDetailData }) {
         <tbody className="divide-y divide-gray-200">
           {deals.map((deal) => {
             const status = statusLabels[deal.status] || { label: deal.status, color: 'text-[var(--color-text-secondary)] bg-[var(--color-surface-hover)]' };
+            const creatorName = deal.createdBy ? userMap.get(deal.createdBy) || 'Desconocido' : 'N/A';
             return (
               <tr key={deal.id} className="hover:bg-[var(--color-surface-hover)]">
                 <td className="px-4 py-3">
@@ -1145,6 +1157,7 @@ function OpportunitiesTab({ data }: { data: PartnerDetailData }) {
                 </td>
                 <td className="px-4 py-3 text-sm text-[var(--color-text-secondary)]">{deal.country}</td>
                 <td className="px-4 py-3 text-sm text-[var(--color-text-secondary)] capitalize">{deal.governmentLevel}</td>
+                <td className="px-4 py-3 text-sm text-[var(--color-text-secondary)]">{creatorName}</td>
                 <td className="px-4 py-3">
                   <span className={cn('px-2 py-1 text-xs font-medium rounded-full', status.color)}>
                     {status.label}

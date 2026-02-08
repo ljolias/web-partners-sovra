@@ -8,6 +8,7 @@ import {
   getPartnerCredentials,
   getPartnerLegalDocuments,
   getPartnerStats,
+  getPartnerUsers,
   addAuditLog,
 } from '@/lib/redis';
 import type { PartnerTier } from '@/types';
@@ -33,11 +34,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Fetch related data
-    const [deals, credentials, documents, stats] = await Promise.all([
+    const [deals, credentials, documents, stats, users] = await Promise.all([
       getPartnerDeals(partnerId),
       getPartnerCredentials(partnerId),
       getPartnerLegalDocuments(partnerId),
       getPartnerStats(partnerId),
+      getPartnerUsers(partnerId),
     ]);
 
     return NextResponse.json({
@@ -46,6 +48,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       credentials,
       documents,
       stats,
+      users,
     });
   } catch (error) {
     if (error instanceof Error && error.message === 'Unauthorized') {
