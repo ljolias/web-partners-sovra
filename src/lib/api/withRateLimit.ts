@@ -8,13 +8,29 @@ import { getClientIp } from '@/lib/security/ip';
 import { logger } from '@/lib/logger';
 
 /**
- * Wraps an API route handler with rate limiting
+ * Wraps an API route handler with rate limiting (without context)
  */
-export function withRateLimit(
-  handler: (request: NextRequest) => Promise<NextResponse>,
+export function withRateLimit<T extends Response = NextResponse>(
+  handler: (request: NextRequest) => Promise<T>,
+  config?: Partial<RateLimitConfig>
+): (request: NextRequest) => Promise<T | NextResponse>;
+
+/**
+ * Wraps an API route handler with rate limiting (with context)
+ */
+export function withRateLimit<T extends Response = NextResponse, Context = any>(
+  handler: (request: NextRequest, context: Context) => Promise<T>,
+  config?: Partial<RateLimitConfig>
+): (request: NextRequest, context: Context) => Promise<T | NextResponse>;
+
+/**
+ * Implementation
+ */
+export function withRateLimit<T extends Response = NextResponse, Context = any>(
+  handler: (request: NextRequest, context?: Context) => Promise<T>,
   config?: Partial<RateLimitConfig>
 ) {
-  return async (request: NextRequest): Promise<NextResponse> => {
+  return async (request: NextRequest, context?: Context): Promise<T | NextResponse> => {
     const identifier = getClientIp(request);
 
     const rateLimitConfig: RateLimitConfig = {
@@ -45,11 +61,11 @@ export function withRateLimit(
             'Retry-After': Math.ceil((result.reset - Date.now()) / 1000).toString(),
           },
         }
-      );
+      ) as T | NextResponse;
     }
 
-    // Execute the handler
-    const response = await handler(request);
+    // Execute the handler with optional context
+    const response = await handler(request, context);
 
     // Add rate limit headers to successful responses
     response.headers.set('X-RateLimit-Limit', result.limit.toString());

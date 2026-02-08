@@ -35,7 +35,7 @@ const WEBHOOK_USER_AGENTS = [
 /**
  * Checks if an origin is allowed
  */
-export function isOriginAllowed(origin: string | null, userAgent?: string | null): boolean {
+export function isOriginAllowed(origin: string | null | undefined, userAgent?: string | null | undefined): boolean {
   if (!origin) {
     // Allow requests without origin if from known webhook services
     if (userAgent && WEBHOOK_USER_AGENTS.some((agent) => userAgent.includes(agent))) {
@@ -51,8 +51,8 @@ export function isOriginAllowed(origin: string | null, userAgent?: string | null
  * Gets CORS headers for a given origin
  */
 export function getCorsHeaders(
-  origin?: string | null,
-  userAgent?: string | null
+  origin?: string | null | undefined,
+  userAgent?: string | null | undefined
 ): Record<string, string> {
   const isAllowed = isOriginAllowed(origin, userAgent);
 
@@ -89,8 +89,8 @@ export function handleCorsPreFlight(request: Request): NextResponse | null {
  */
 export function addCorsHeaders(
   response: NextResponse,
-  origin?: string | null,
-  userAgent?: string | null
+  origin?: string | null | undefined,
+  userAgent?: string | null | undefined
 ): NextResponse {
   const headers = getCorsHeaders(origin, userAgent);
 
@@ -103,11 +103,13 @@ export function addCorsHeaders(
 
 /**
  * Wrapper for API handlers with CORS support
+ *
+ * Supports both Request and NextRequest
  */
-export function withCors(
-  handler: (request: Request) => Promise<NextResponse>
+export function withCors<T extends Request = Request>(
+  handler: (request: T) => Promise<NextResponse>
 ) {
-  return async (request: Request): Promise<NextResponse> => {
+  return async (request: T): Promise<NextResponse> => {
     const origin = request.headers.get('origin');
     const userAgent = request.headers.get('user-agent');
 

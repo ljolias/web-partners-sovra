@@ -87,13 +87,13 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     id: generateId(),
     title: {
       es: title.es,
-      en: title.en || '',
-      pt: title.pt || '',
+      en: title.en,
+      pt: '', // Portuguese not yet supported in schema
     },
     description: {
       es: description.es,
-      en: description.en || '',
-      pt: description.pt || '',
+      en: description.en,
+      pt: '', // Portuguese not yet supported in schema
     },
     category: category as CourseCategory,
     level: level as CourseLevel,

@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
       userId: undefined, // Will be linked when user claims credential
       holderName,
       holderEmail: holderEmail.toLowerCase(),
-      role,
+      role: role as CredentialRole, // Safe cast since we validated it's 'sales' or 'legal'
       status: 'issued',
       issuedAt: now,
       createdAt: now,
