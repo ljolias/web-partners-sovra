@@ -158,8 +158,9 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
         />
       </div>
 
-      {/* Second Row - Tier and Rewards Summary */}
+      {/* Second Row - Tier, Achievements and Training (3 equal columns) */}
       <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Tier / Partner Level */}
         <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-3 sm:mb-4">
             <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-accent-orange)]" />
@@ -169,23 +170,26 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
           <RatingFactorsCard className="mt-4 pt-4 border-t border-[var(--color-border)]" />
         </div>
 
-        <div className="sm:col-span-2 lg:col-span-2">
+        {/* Achievements / Logros */}
+        <div className="sm:col-span-1">
           <AchievementsSummaryCard
             recentAchievements={achievements.slice(0, 3)}
             nextMilestone={nextTierReqs}
             currentTierName={partner.tier}
           />
         </div>
-      </div>
 
-      {/* Training Summary */}
-      <TrainingSummaryCard
-        locale={locale}
-        certifications={certifications}
-        completedModules={0}
-        totalModules={10}
-        inProgressCourses={0}
-      />
+        {/* Training / Capacitación */}
+        <div className="sm:col-span-1">
+          <TrainingSummaryCard
+            locale={locale}
+            certifications={certifications}
+            completedModules={0}
+            totalModules={10}
+            inProgressCourses={0}
+          />
+        </div>
+      </div>
 
       {/* Recent Deals */}
       <div>
