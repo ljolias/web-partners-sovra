@@ -84,7 +84,7 @@ export default function TeamMemberDetailPage({ params }: TeamMemberPageProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <SovraLoader size="lg" />
+        <SovraLoader size="md" className="text-[var(--color-primary)]" />
       </div>
     );
   }

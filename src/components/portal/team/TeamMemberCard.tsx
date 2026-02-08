@@ -33,8 +33,16 @@ export function TeamMemberCard({ member, index }: TeamMemberCardProps) {
         <CardContent className="pt-6">
           {/* Header */}
           <div className="flex items-start gap-4 mb-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent-purple)] text-white font-bold text-lg shadow-lg shadow-[var(--color-primary)]/20">
-              {member.user.name.charAt(0)}
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent-purple)] text-white font-bold text-lg shadow-lg shadow-[var(--color-primary)]/20 overflow-hidden">
+              {member.user.avatarUrl ? (
+                <img
+                  src={member.user.avatarUrl}
+                  alt={member.user.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                member.user.name.charAt(0)
+              )}
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
