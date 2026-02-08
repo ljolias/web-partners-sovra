@@ -1,5 +1,5 @@
 import { getCurrentSession } from '@/lib/auth';
-import { getPartnerDeals } from '@/lib/redis';
+import { getPartnerDeals, getPartnerUsers } from '@/lib/redis';
 import { DealsList } from '@/components/portal/deals/DealsList';
 
 interface DealsPageProps {
@@ -14,7 +14,10 @@ export default async function DealsPage({ params }: DealsPageProps) {
     return null;
   }
 
-  const deals = await getPartnerDeals(session.partner.id);
+  const [deals, users] = await Promise.all([
+    getPartnerDeals(session.partner.id),
+    getPartnerUsers(session.partner.id),
+  ]);
 
-  return <DealsList deals={deals} locale={locale} />;
+  return <DealsList deals={deals} users={users} locale={locale} />;
 }

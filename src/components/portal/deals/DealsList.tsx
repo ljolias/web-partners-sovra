@@ -3,13 +3,14 @@
 import { useState, useMemo, useCallback, memo } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Plus, Search, MapPin, Users, Building2 } from 'lucide-react';
+import { Plus, Search, MapPin, Users, Building2, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatDate } from '@/lib/utils';
-import type { Deal, DealStatus } from '@/types';
+import type { Deal, DealStatus, User as UserType } from '@/types';
 
 interface DealsListProps {
   deals: ExtendedDeal[];
+  users: UserType[];
   locale: string;
 }
 
@@ -36,12 +37,21 @@ const getStatus = (deal: ExtendedDeal): string => {
   return deal.status || deal.stage || 'pending_approval';
 };
 
-export const DealsList = memo(function DealsList({ deals, locale }: DealsListProps) {
+export const DealsList = memo(function DealsList({ deals, users, locale }: DealsListProps) {
   const t = useTranslations('deals');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<DealStatus | 'all'>('all');
 
   const basePath = useMemo(() => `/${locale}/partners/portal/deals`, [locale]);
+
+  // Create user lookup map
+  const userMap = useMemo(() => {
+    const map = new Map<string, string>();
+    users.forEach(user => {
+      map.set(user.id, user.name);
+    });
+    return map;
+  }, [users]);
 
   const statusColors: Record<string, string> = useMemo(() => ({
     // New schema statuses
@@ -224,6 +234,17 @@ export const DealsList = memo(function DealsList({ deals, locale }: DealsListPro
                         <span className="text-[var(--color-text-secondary)]">Creado</span>
                         <span className="text-[var(--color-text-secondary)]">{formatDate(deal.createdAt, locale)}</span>
                       </div>
+                      {deal.createdBy && (
+                        <div className="flex justify-between text-xs sm:text-sm pt-1 border-t border-[var(--color-border)]">
+                          <span className="text-[var(--color-text-secondary)] flex items-center gap-1">
+                            <User className="w-3 h-3" />
+                            Registrado por
+                          </span>
+                          <span className="font-medium text-[var(--color-text-primary)]">
+                            {userMap.get(deal.createdBy) || 'Desconocido'}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Quote button for approved deals */}
