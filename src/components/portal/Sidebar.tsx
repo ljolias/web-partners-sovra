@@ -292,8 +292,16 @@ export function Sidebar({ partner, user, locale, onLogout, isOpen = true, onClos
       {/* User Menu */}
       <div className="border-t border-[var(--color-border)] p-3 lg:p-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 lg:h-10 w-9 lg:w-10 items-center justify-center rounded-xl bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] text-sm font-medium border border-[var(--color-border)]">
-            {user.name.charAt(0)}
+          <div className="flex h-9 lg:h-10 w-9 lg:w-10 items-center justify-center rounded-xl bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] text-sm font-medium border border-[var(--color-border)] overflow-hidden">
+            {user.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt={user.name}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              user.name.charAt(0)
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <p className="truncate text-sm font-medium text-[var(--color-text-primary)]">{user.name}</p>

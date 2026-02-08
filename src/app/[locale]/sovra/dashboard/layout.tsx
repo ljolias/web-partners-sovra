@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
 import { getSession, getUser } from '@/lib/redis/operations';
 import SovraShell from '@/components/sovra/SovraShell';
 
@@ -33,9 +35,13 @@ export default async function SovraDashboardLayout({ children, params }: LayoutP
     redirect(`/${locale}/sovra/login`);
   }
 
+  const messages = await getMessages();
+
   return (
-    <SovraShell user={user} locale={locale}>
-      {children}
-    </SovraShell>
+    <NextIntlClientProvider messages={messages}>
+      <SovraShell user={user} locale={locale}>
+        {children}
+      </SovraShell>
+    </NextIntlClientProvider>
   );
 }

@@ -130,6 +130,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       const data = await res.json();
       setUser(data.user);
       setMessage(t('success.profileUpdated'));
+
+      // Refresh to update sidebar with new user data
+      router.refresh();
     } catch (err) {
       logger.error('Failed to update profile', { error: err });
       setError(err instanceof Error ? err.message : t('errors.updateFailed'));
@@ -162,6 +165,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       const data = await res.json();
       setUser(data.user);
       setMessage(t('success.avatarUpdated'));
+
+      // Refresh to update sidebar with new avatar
+      router.refresh();
     } catch (err) {
       logger.error('Failed to upload avatar', { error: err });
       setError(err instanceof Error ? err.message : t('errors.uploadFailed'));
@@ -188,6 +194,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       setUser(data.user);
       setAvatarPreview('');
       setMessage(t('success.avatarRemoved'));
+
+      // Refresh to update sidebar (remove avatar)
+      router.refresh();
     } catch (err) {
       logger.error('Failed to remove avatar', { error: err });
       setError(err instanceof Error ? err.message : t('errors.removeFailed'));
