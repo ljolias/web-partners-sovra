@@ -67,7 +67,7 @@ export function NextTierCard({ requirements }: NextTierCardProps) {
                 <div key={achievement.id} className="flex items-start gap-2">
                   <Circle className="h-4 w-4 text-[var(--color-text-secondary)]/40 mt-0.5 flex-shrink-0" />
                   <span className="text-sm text-[var(--color-text-secondary)]">
-                    {t(`${achievement.name}`)}
+                    {achievement.name}
                   </span>
                 </div>
               ))}

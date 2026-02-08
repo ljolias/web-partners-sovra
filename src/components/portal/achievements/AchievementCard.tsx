@@ -50,10 +50,10 @@ export function AchievementCard({ achievement, earned }: AchievementCardProps) {
           <div className="flex items-start justify-between gap-2">
             <div>
               <h4 className="font-semibold text-sm text-[var(--color-text-primary)]">
-                {t(`${achievement.name}`)}
+                {achievement.name}
               </h4>
               <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-                {t(`${achievement.description}`)}
+                {achievement.description}
               </p>
             </div>
           </div>
