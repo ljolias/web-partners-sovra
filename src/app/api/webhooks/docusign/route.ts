@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRateLimit, RATE_LIMITS } from '@/lib/api/withRateLimit';
+import { withCors } from '@/lib/security/cors';
 import { logger } from '@/lib/logger';
 import { processWebhookEvent } from '@/lib/docusign/webhooks';
 
 // DocuSign Connect webhook handler
-export const POST = withRateLimit(
-  async (request: NextRequest) => {
+export const POST = withCors(
+  withRateLimit(
+    async (request: NextRequest) => {
   try {
     // Get raw body for signature verification
     const payload = await request.text();
@@ -45,12 +47,13 @@ export const POST = withRateLimit(
     logger.error('DocuSign webhook error:', { error: error });
     // Return 500 to trigger DocuSign retry
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-  },
-  RATE_LIMITS.WEBHOOK
+    }
+    },
+    RATE_LIMITS.WEBHOOK
+  )
 );
 
 // DocuSign may send GET requests to verify the endpoint
-export async function GET() {
+export const GET = withCors(async (request: Request) => {
   return NextResponse.json({ status: 'DocuSign webhook endpoint active' }, { status: 200 });
-}
+});

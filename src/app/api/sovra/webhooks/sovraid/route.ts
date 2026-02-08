@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRateLimit, RATE_LIMITS } from '@/lib/api/withRateLimit';
+import { withCors } from '@/lib/security/cors';
 import { logger } from '@/lib/logger';
 import { updatePartnerCredential, addAuditLog, createUser, getUserByEmail, generateId, getPartner } from '@/lib/redis';
 import { sendWelcomeEmail } from '@/lib/email';
@@ -46,8 +47,9 @@ interface VerificationFinishedData {
   verifiableCredentials: Array<Record<string, unknown>>;
 }
 
-export const POST = withRateLimit(
-  async (request: NextRequest) => {
+export const POST = withCors(
+  withRateLimit(
+    async (request: NextRequest) => {
     try {
       // Log incoming request for debugging
       logger.info('SovraID webhook received');
@@ -105,9 +107,10 @@ export const POST = withRateLimit(
   } catch (error) {
     logger.error('SovraID webhook processing error', { error });
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
-  }
-  },
-  RATE_LIMITS.WEBHOOK
+    }
+    },
+    RATE_LIMITS.WEBHOOK
+  )
 );
 
 /**
