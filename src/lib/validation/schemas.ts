@@ -384,6 +384,40 @@ export const userProfileUpdateSchema = z.object({
     .optional()
     .or(z.literal('')),
 
+  jobTitle: z
+    .string()
+    .max(100, 'Job title too long')
+    .optional()
+    .or(z.literal('')),
+
+  bio: z
+    .string()
+    .max(500, 'Bio too long')
+    .optional()
+    .or(z.literal('')),
+
+  location: z
+    .string()
+    .max(100, 'Location too long')
+    .optional()
+    .or(z.literal('')),
+
+  country: z
+    .string()
+    .max(100, 'Country too long')
+    .optional()
+    .or(z.literal('')),
+
+  language: z
+    .enum(['es', 'en', 'pt'])
+    .optional(),
+
+  linkedIn: z
+    .string()
+    .url('Invalid LinkedIn URL')
+    .optional()
+    .or(z.literal('')),
+
   avatarUrl: z.string().url('Invalid URL').optional(),
 });
 

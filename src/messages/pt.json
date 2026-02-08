@@ -42,7 +42,8 @@
     "legal": "Documentos Legais",
     "rewards": "Recompensas",
     "copilot": "Sales Copilot",
-    "team": "Minha Equipe"
+    "team": "Minha Equipe",
+    "profile": "Meu Perfil"
   },
   "dashboard": {
     "title": "Painel do Parceiro",
@@ -128,6 +129,56 @@
     "acceptScore": "Aceitar",
     "rejectScore": "Rejeitar",
     "thinking": "Pensando..."
+  },
+  "profile": {
+    "title": "Meu Perfil",
+    "subtitle": "Gerencie suas informacoes pessoais e preferencias",
+    "sections": {
+      "avatar": "Foto de Perfil",
+      "basic": "Informacoes Basicas",
+      "additional": "Informacoes Adicionais"
+    },
+    "fields": {
+      "name": "Nome Completo",
+      "email": "Email",
+      "phone": "Telefone",
+      "jobTitle": "Cargo / Titulo",
+      "bio": "Bio",
+      "location": "Cidade",
+      "country": "Pais",
+      "language": "Idioma",
+      "linkedIn": "LinkedIn"
+    },
+    "placeholders": {
+      "name": "Seu nome completo",
+      "phone": "+55 11 91234-5678",
+      "jobTitle": "Gerente de Vendas",
+      "bio": "Conte-nos um pouco sobre voce...",
+      "location": "Sao Paulo",
+      "country": "Brasil",
+      "linkedIn": "https://linkedin.com/in/seu-perfil"
+    },
+    "avatarHelp": "Carregue uma foto de perfil (JPG, PNG, GIF - Max 5MB)",
+    "emailHelp": "O email nao pode ser alterado",
+    "buttons": {
+      "save": "Salvar Alteracoes",
+      "saving": "Salvando...",
+      "saveAvatar": "Salvar Foto",
+      "removeAvatar": "Remover Foto"
+    },
+    "success": {
+      "profileUpdated": "Perfil atualizado com sucesso",
+      "avatarUpdated": "Foto atualizada com sucesso",
+      "avatarRemoved": "Foto removida com sucesso"
+    },
+    "errors": {
+      "fetchFailed": "Erro ao carregar o perfil",
+      "updateFailed": "Erro ao atualizar o perfil",
+      "uploadFailed": "Erro ao enviar a foto",
+      "removeFailed": "Erro ao remover a foto",
+      "invalidFileType": "Tipo de arquivo invalido. Apenas imagens.",
+      "fileTooLarge": "Arquivo muito grande. Maximo 5MB."
+    }
   },
   "training": {
     "title": "Treinamento para Parceiros",

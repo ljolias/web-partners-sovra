@@ -42,7 +42,8 @@
     "legal": "Documentos Legales",
     "rewards": "Recompensas",
     "copilot": "Sales Copilot",
-    "team": "Mi Equipo"
+    "team": "Mi Equipo",
+    "profile": "Mi Perfil"
   },
   "dashboard": {
     "title": "Panel del Partner",
@@ -128,6 +129,56 @@
     "acceptScore": "Aceptar",
     "rejectScore": "Rechazar",
     "thinking": "Pensando..."
+  },
+  "profile": {
+    "title": "Mi Perfil",
+    "subtitle": "Gestiona tu informacion personal y preferencias",
+    "sections": {
+      "avatar": "Foto de Perfil",
+      "basic": "Informacion Basica",
+      "additional": "Informacion Adicional"
+    },
+    "fields": {
+      "name": "Nombre Completo",
+      "email": "Correo Electronico",
+      "phone": "Telefono",
+      "jobTitle": "Cargo / Titulo",
+      "bio": "Bio",
+      "location": "Ciudad",
+      "country": "Pais",
+      "language": "Idioma",
+      "linkedIn": "LinkedIn"
+    },
+    "placeholders": {
+      "name": "Tu nombre completo",
+      "phone": "+54 11 1234 5678",
+      "jobTitle": "Gerente de Ventas",
+      "bio": "Cuentanos un poco sobre ti...",
+      "location": "Buenos Aires",
+      "country": "Argentina",
+      "linkedIn": "https://linkedin.com/in/tu-perfil"
+    },
+    "avatarHelp": "Sube una foto de perfil (JPG, PNG, GIF - Max 5MB)",
+    "emailHelp": "El email no se puede cambiar",
+    "buttons": {
+      "save": "Guardar Cambios",
+      "saving": "Guardando...",
+      "saveAvatar": "Guardar Foto",
+      "removeAvatar": "Eliminar Foto"
+    },
+    "success": {
+      "profileUpdated": "Perfil actualizado correctamente",
+      "avatarUpdated": "Foto actualizada correctamente",
+      "avatarRemoved": "Foto eliminada correctamente"
+    },
+    "errors": {
+      "fetchFailed": "Error al cargar el perfil",
+      "updateFailed": "Error al actualizar el perfil",
+      "uploadFailed": "Error al subir la foto",
+      "removeFailed": "Error al eliminar la foto",
+      "invalidFileType": "Tipo de archivo invalido. Solo imagenes.",
+      "fileTooLarge": "Archivo muy grande. Maximo 5MB."
+    }
   },
   "training": {
     "title": "Capacitacion para Partners",

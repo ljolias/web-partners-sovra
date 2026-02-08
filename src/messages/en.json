@@ -42,7 +42,8 @@
     "legal": "Legal Documents",
     "rewards": "Rewards",
     "copilot": "Sales Copilot",
-    "team": "My Team"
+    "team": "My Team",
+    "profile": "My Profile"
   },
   "dashboard": {
     "title": "Partner Dashboard",
@@ -128,6 +129,56 @@
     "acceptScore": "Accept",
     "rejectScore": "Reject",
     "thinking": "Thinking..."
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "Manage your personal information and preferences",
+    "sections": {
+      "avatar": "Profile Picture",
+      "basic": "Basic Information",
+      "additional": "Additional Information"
+    },
+    "fields": {
+      "name": "Full Name",
+      "email": "Email",
+      "phone": "Phone",
+      "jobTitle": "Job Title",
+      "bio": "Bio",
+      "location": "City",
+      "country": "Country",
+      "language": "Language",
+      "linkedIn": "LinkedIn"
+    },
+    "placeholders": {
+      "name": "Your full name",
+      "phone": "+1 (555) 123-4567",
+      "jobTitle": "Sales Manager",
+      "bio": "Tell us a bit about yourself...",
+      "location": "New York",
+      "country": "United States",
+      "linkedIn": "https://linkedin.com/in/your-profile"
+    },
+    "avatarHelp": "Upload a profile picture (JPG, PNG, GIF - Max 5MB)",
+    "emailHelp": "Email cannot be changed",
+    "buttons": {
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "saveAvatar": "Save Picture",
+      "removeAvatar": "Remove Picture"
+    },
+    "success": {
+      "profileUpdated": "Profile updated successfully",
+      "avatarUpdated": "Picture updated successfully",
+      "avatarRemoved": "Picture removed successfully"
+    },
+    "errors": {
+      "fetchFailed": "Failed to load profile",
+      "updateFailed": "Failed to update profile",
+      "uploadFailed": "Failed to upload picture",
+      "removeFailed": "Failed to remove picture",
+      "invalidFileType": "Invalid file type. Images only.",
+      "fileTooLarge": "File too large. Maximum 5MB."
+    }
   },
   "training": {
     "title": "Partner Training",

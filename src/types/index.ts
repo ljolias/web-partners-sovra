@@ -88,6 +88,14 @@ export interface User {
   // Google OAuth fields (for sovra_admin)
   googleId?: string;
   avatarUrl?: string;
+  // Profile fields
+  phone?: string;
+  jobTitle?: string;
+  bio?: string;
+  location?: string;
+  country?: string;
+  language?: 'es' | 'en' | 'pt';
+  linkedIn?: string;
   createdAt: string;
   updatedAt: string;
 }
