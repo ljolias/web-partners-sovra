@@ -29,6 +29,14 @@ export const keys = {
   dealsByStatus: (status: string) => `deals:by-status:${status}`,
   allDeals: () => `deals:all`,
 
+  // Status history
+  dealStatusHistory: (dealId: string) => `deal:${dealId}:status-history`,
+  dealStatusChange: (changeId: string) => `deal:status-change:${changeId}`,
+
+  // Sovra Admin notifications
+  sovraNotifications: () => `sovra:admin:notifications`,
+  sovraNotification: (id: string) => `sovra:admin:notification:${id}`,
+
   // Quotes
   quote: (id: string) => `quote:${id}`,
   dealQuotes: (dealId: string) => `deal:${dealId}:quotes`,

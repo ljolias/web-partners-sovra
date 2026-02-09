@@ -56,7 +56,7 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
     (d) => d.status === 'pending_approval' || d.status === 'more_info'
   );
   const approvedDeals = deals.filter((d) => d.status === 'approved');
-  const wonDeals = deals.filter((d) => d.status === 'closed_won');
+  const wonDeals = deals.filter((d) => d.status === 'won');
 
   // Generate alerts
   const alerts: { id: string; type: 'warning' | 'info' | 'error'; title: string; message: string }[] = [];

@@ -100,8 +100,8 @@
       "qualified": "Qualified",
       "proposal": "Proposal",
       "negotiation": "Negotiation",
-      "closed_won": "Closed Won",
-      "closed_lost": "Closed Lost"
+      "won": "Closed Won",
+      "lost": "Closed Lost"
     },
     "detail": {
       "exclusivity": "Exclusivity until {date}",
@@ -403,8 +403,8 @@
     "approved": "Approved",
     "rejected": "Rejected",
     "more_info": "More Info Required",
-    "closed_won": "Closed Won",
-    "closed_lost": "Closed Lost"
+    "won": "Closed Won",
+    "lost": "Closed Lost"
   },
   "governmentLevel": {
     "municipality": "Municipality",

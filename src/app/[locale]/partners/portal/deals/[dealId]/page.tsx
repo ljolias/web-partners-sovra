@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getCurrentSession } from '@/lib/auth';
-import { getDeal } from '@/lib/redis';
+import { getDeal, dealHasQuote, getDealStatusHistory } from '@/lib/redis/operations/deals';
+import { getDealQuotes } from '@/lib/redis/operations/quotes';
 import { DealDetail } from '@/components/portal/deals/DealDetail';
 
 interface DealDetailPageProps {
@@ -21,5 +22,22 @@ export default async function DealDetailPage({ params }: DealDetailPageProps) {
     notFound();
   }
 
-  return <DealDetail deal={deal} locale={locale} />;
+  // Obtener datos adicionales para el nuevo sistema de estados
+  const hasQuote = await dealHasQuote(dealId);
+  const statusHistory = await getDealStatusHistory(dealId);
+  const quotes = await getDealQuotes(dealId);
+
+  // Verificar si el usuario puede cambiar el estado
+  const canChangeStatus = deal.createdBy === session.user.id || session.user.role === 'admin';
+
+  return (
+    <DealDetail
+      deal={deal}
+      locale={locale}
+      hasQuote={hasQuote}
+      statusHistory={statusHistory}
+      canChangeStatus={canChangeStatus}
+      quotes={quotes}
+    />
+  );
 }

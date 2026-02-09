@@ -52,31 +52,16 @@ export type CourseCategory = (typeof COURSE_CATEGORIES)[number];
 export const DEAL_STATUSES = {
   PENDING_APPROVAL: 'pending_approval',
   APPROVED: 'approved',
-  IN_PROGRESS: 'in_progress',
-  CLOSED_WON: 'closed_won',
-  CLOSED_LOST: 'closed_lost',
   REJECTED: 'rejected',
+  MORE_INFO: 'more_info',
+  NEGOTIATION: 'negotiation',
+  CONTRACTING: 'contracting',
+  AWARDED: 'awarded',
+  WON: 'won',
+  LOST: 'lost',
 } as const;
 
-export type DealStatus = (typeof DEAL_STATUSES)[keyof typeof DEAL_STATUSES];
-
-export const DEAL_STATUS_LABELS: Record<DealStatus, string> = {
-  pending_approval: 'Pendiente de Aprobación',
-  approved: 'Aprobada',
-  in_progress: 'En Progreso',
-  closed_won: 'Ganada',
-  closed_lost: 'Perdida',
-  rejected: 'Rechazada',
-};
-
-export const DEAL_STATUS_COLORS: Record<DealStatus, string> = {
-  pending_approval: 'yellow',
-  approved: 'blue',
-  in_progress: 'purple',
-  closed_won: 'green',
-  closed_lost: 'red',
-  rejected: 'gray',
-};
+export type DealStatusConstant = (typeof DEAL_STATUSES)[keyof typeof DEAL_STATUSES];
 
 export const COMMISSION_TIERS = [
   { min: 0, max: 10000, rate: 0.1 },

@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
         return {
           ...partner,
           totalDeals: deals.length,
-          wonDeals: deals.filter(d => d.status === 'closed_won').length,
+          wonDeals: deals.filter(d => d.status === 'won').length,
           usersCount: credentials.length,
           certificationsCount: credentials.filter(c => c.status === 'active').length,
         };

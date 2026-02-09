@@ -60,11 +60,11 @@ export async function getTeamPerformance(partnerId: string): Promise<TeamPerform
 
   // Calculate metrics
   const activeDeals = allDeals.filter(d =>
-    d.status !== 'closed_won' && d.status !== 'closed_lost' && d.status !== 'rejected'
+    d.status !== 'won' && d.status !== 'lost' && d.status !== 'rejected'
   ).length;
 
-  const wonDeals = allDeals.filter(d => d.status === 'closed_won').length;
-  const lostDeals = allDeals.filter(d => d.status === 'closed_lost').length;
+  const wonDeals = allDeals.filter(d => d.status === 'won').length;
+  const lostDeals = allDeals.filter(d => d.status === 'lost').length;
 
   // Note: Deal doesn't have estimatedValue field
   // Revenue would need to be calculated from associated quotes
@@ -113,7 +113,7 @@ export async function getTeamMembersPerformance(partnerId: string): Promise<Team
   for (const member of teamMembers) {
     // Get deals for this user
     const userDeals = allDeals.filter(d => d.createdBy === member.id);
-    const wonDeals = userDeals.filter(d => d.status === 'closed_won');
+    const wonDeals = userDeals.filter(d => d.status === 'won');
     // Note: Revenue would need to be calculated from associated quotes
     // For now, we'll set it to 0
     const revenue = 0;

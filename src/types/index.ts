@@ -135,6 +135,10 @@ export interface Deal {
   statusChangedBy?: string;     // userId of admin who changed status
   rejectionReason?: string;
 
+  // Post-quote tracking
+  firstQuoteCreatedAt?: string;   // Timestamp del primer quote
+  statusHistory?: DealStatusChange[]; // Historial de cambios
+
   // Metadata
   createdBy: string;            // ID of the sales rep who created the deal
   createdAt: string;
@@ -143,13 +147,30 @@ export interface Deal {
 
 export type GovernmentLevel = 'municipality' | 'province' | 'nation';
 
+export interface DealStatusChange {
+  id: string;
+  dealId: string;
+  fromStatus: DealStatus | null;
+  toStatus: DealStatus;
+  changedBy: string;              // userId
+  changedByName: string;          // Cached para display
+  changedAt: string;
+  notes?: string;                 // Razón opcional del cambio
+  hasQuote: boolean;              // Si había quote al momento del cambio
+}
+
 export type DealStatus =
+  // Estados pre-aprobación (mantener)
   | 'pending_approval'  // Submitted, waiting for Sovra
   | 'approved'          // Approved, can create quotes
   | 'rejected'          // Rejected
   | 'more_info'         // Sovra requested more information
-  | 'closed_won'        // Deal closed won
-  | 'closed_lost';      // Deal closed lost
+  // Estados post-cotización (reemplazan closed_won/closed_lost)
+  | 'negotiation'       // Negociación con cliente final
+  | 'contracting'       // En proceso de contratación/licitación
+  | 'awarded'           // Licitación adjudicada al partner
+  | 'won'               // Ganada - proyecto en marcha (12 meses)
+  | 'lost';             // Perdida en cualquier punto
 
 // Legacy Deal Stage (kept for backward compatibility)
 export type DealStage =
@@ -696,6 +717,12 @@ export type AuditAction =
   | 'deal.approved'
   | 'deal.rejected'
   | 'deal.info_requested'
+  | 'deal.status_changed'
+  | 'deal.entered_negotiation'
+  | 'deal.entered_contracting'
+  | 'deal.awarded'
+  | 'deal.won'
+  | 'deal.lost'
   | 'document.shared'
   | 'document.verified'
   | 'pricing.updated'

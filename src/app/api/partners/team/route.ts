@@ -45,9 +45,9 @@ export async function GET() {
         // Calculate metrics
         const totalDeals = userDeals.length;
         const activeDeals = userDeals.filter(
-          (d) => !['closed_won', 'closed_lost', 'rejected'].includes(d.status)
+          (d) => !['won', 'lost', 'rejected'].includes(d.status)
         ).length;
-        const wonDeals = userDeals.filter((d) => d.status === 'closed_won').length;
+        const wonDeals = userDeals.filter((d) => d.status === 'won').length;
         // Note: totalRevenue would need to be calculated from quotes in the new schema
         const totalRevenue = 0;
 

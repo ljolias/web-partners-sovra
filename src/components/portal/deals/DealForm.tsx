@@ -115,6 +115,15 @@ export function DealForm({ locale, hasCertification, hasSignedLegal, userRole }:
 
       if (!response.ok) {
         const data = await response.json();
+
+        // If we have validation errors, show them field by field
+        if (data.errors && typeof data.errors === 'object') {
+          const errorMessages = Object.entries(data.errors)
+            .map(([field, message]) => `${field}: ${message}`)
+            .join('\n');
+          throw new Error(`Errores de validación:\n${errorMessages}`);
+        }
+
         throw new Error(data.error || 'Failed to create deal');
       }
 
@@ -202,7 +211,9 @@ export function DealForm({ locale, hasCertification, hasSignedLegal, userRole }:
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <Alert variant="error">{error}</Alert>
+        <Alert variant="error">
+          <div className="whitespace-pre-wrap">{error}</div>
+        </Alert>
       )}
 
       {/* Client Information */}

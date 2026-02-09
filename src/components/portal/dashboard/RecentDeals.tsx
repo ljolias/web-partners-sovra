@@ -12,33 +12,39 @@ interface RecentDealsProps {
 }
 
 const statusColors: Record<string, string> = {
-  // New schema statuses
+  // Pre-approval statuses
   pending_approval: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
   approved: 'bg-green-500/10 text-green-600 border-green-500/20',
   rejected: 'bg-red-500/10 text-red-600 border-red-500/20',
   more_info: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
-  closed_won: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-  closed_lost: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
+  // Post-quote statuses
+  negotiation: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+  contracting: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20',
+  awarded: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+  won: 'bg-green-600/10 text-green-700 border-green-600/20',
+  lost: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
   // Old schema stages (for backwards compatibility)
   registered: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
   qualified: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
   proposal: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
-  negotiation: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
 };
 
 const statusLabels: Record<string, string> = {
-  // New schema statuses
+  // Pre-approval statuses
   pending_approval: 'Pendiente',
   approved: 'Aprobada',
   rejected: 'Rechazada',
   more_info: 'Mas Info',
-  closed_won: 'Ganada',
-  closed_lost: 'Perdida',
+  // Post-quote statuses
+  negotiation: 'Negociacion',
+  contracting: 'Contratacion',
+  awarded: 'Adjudicada',
+  won: 'Ganada',
+  lost: 'Perdida',
   // Old schema stages (for backwards compatibility)
   registered: 'Registrado',
   qualified: 'Calificado',
   proposal: 'Propuesta',
-  negotiation: 'Negociacion',
 };
 
 export function RecentDeals({

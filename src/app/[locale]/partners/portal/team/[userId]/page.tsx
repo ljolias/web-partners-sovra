@@ -44,12 +44,17 @@ interface TeamMemberData {
 }
 
 const dealStatusConfig: Record<string, { label: string; color: string; icon: any }> = {
+  // Estados pre-aprobación
   pending_approval: { label: 'Pendiente', color: 'text-yellow-600 bg-yellow-100 border-yellow-200', icon: Clock },
   approved: { label: 'Aprobada', color: 'text-green-600 bg-green-100 border-green-200', icon: CheckCircle },
   more_info: { label: 'Info Requerida', color: 'text-orange-600 bg-orange-100 border-orange-200', icon: AlertCircle },
   rejected: { label: 'Rechazada', color: 'text-red-600 bg-red-100 border-red-200', icon: XCircle },
-  closed_won: { label: 'Ganada', color: 'text-emerald-600 bg-emerald-100 border-emerald-200', icon: TrendingUp },
-  closed_lost: { label: 'Perdida', color: 'text-gray-600 bg-gray-100 border-gray-200', icon: XCircle },
+  // Estados post-cotización
+  negotiation: { label: 'Negociacion', color: 'text-blue-600 bg-blue-100 border-blue-200', icon: Clock },
+  contracting: { label: 'Contratacion', color: 'text-indigo-600 bg-indigo-100 border-indigo-200', icon: Clock },
+  awarded: { label: 'Adjudicada', color: 'text-purple-600 bg-purple-100 border-purple-200', icon: CheckCircle },
+  won: { label: 'Ganada', color: 'text-emerald-600 bg-emerald-100 border-emerald-200', icon: TrendingUp },
+  lost: { label: 'Perdida', color: 'text-gray-600 bg-gray-100 border-gray-200', icon: XCircle },
 };
 
 export default function TeamMemberDetailPage({ params }: TeamMemberPageProps) {

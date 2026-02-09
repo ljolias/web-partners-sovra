@@ -49,15 +49,15 @@ function calculateDealQualityFactor(deals: Deal[]): number {
 
   // Calculate approval rate (how many deals get approved)
   const approvedOrClosedDeals = deals.filter((d) =>
-    ['approved', 'closed_won', 'closed_lost'].includes(d.status)
+    ['approved', 'won', 'lost'].includes(d.status)
   );
   const approvalRate = deals.length > 0 ? approvedOrClosedDeals.length / deals.length : 0;
 
   // Calculate win rate for closed deals
   const closedDeals = deals.filter((d) =>
-    ['closed_won', 'closed_lost'].includes(d.status)
+    ['won', 'lost'].includes(d.status)
   );
-  const wonDeals = closedDeals.filter((d) => d.status === 'closed_won');
+  const wonDeals = closedDeals.filter((d) => d.status === 'won');
   const winRate = closedDeals.length > 0 ? wonDeals.length / closedDeals.length : 0;
 
   // Calculate partner lead generation rate
@@ -152,7 +152,7 @@ async function calculateComplianceFactor(
  * Based on closed deals (count-based since deal values are in quotes now)
  */
 function calculateRevenueFactor(deals: Deal[]): number {
-  const wonDeals = deals.filter((d) => d.status === 'closed_won');
+  const wonDeals = deals.filter((d) => d.status === 'won');
 
   if (wonDeals.length === 0) return 30; // Minimum score for new partners
 

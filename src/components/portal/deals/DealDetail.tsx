@@ -5,11 +5,18 @@ import { useTranslations } from 'next-intl';
 import { ArrowLeft, Mail, Phone, Building2, MapPin, Users, FileText, Calendar } from 'lucide-react';
 import { Button, Badge, Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 import { formatDate } from '@/lib/utils';
-import type { Deal } from '@/types';
+import { StatusChangeForm } from './StatusChangeForm';
+import { StatusTimeline } from './StatusTimeline';
+import { QuoteSummary } from './QuoteSummary';
+import type { Deal, DealStatusChange, Quote } from '@/types';
 
 interface DealDetailProps {
   deal: Deal;
   locale: string;
+  hasQuote: boolean;
+  statusHistory: DealStatusChange[];
+  canChangeStatus: boolean;
+  quotes: Quote[];
 }
 
 const governmentLevelLabels: Record<string, string> = {
@@ -23,8 +30,11 @@ const statusVariants: Record<string, 'default' | 'success' | 'warning' | 'danger
   approved: 'success',
   rejected: 'danger',
   more_info: 'warning',
-  closed_won: 'success',
-  closed_lost: 'danger',
+  negotiation: 'info',
+  contracting: 'info',
+  awarded: 'success',
+  won: 'success',
+  lost: 'danger',
 };
 
 const statusLabels: Record<string, string> = {
@@ -32,11 +42,14 @@ const statusLabels: Record<string, string> = {
   approved: 'Aprobada',
   rejected: 'Rechazada',
   more_info: 'Mas Informacion Requerida',
-  closed_won: 'Cerrada Ganada',
-  closed_lost: 'Cerrada Perdida',
+  negotiation: 'En Negociacion',
+  contracting: 'En Contratacion',
+  awarded: 'Adjudicada',
+  won: 'Ganada',
+  lost: 'Perdida',
 };
 
-export function DealDetail({ deal, locale }: DealDetailProps) {
+export function DealDetail({ deal, locale, hasQuote, statusHistory, canChangeStatus, quotes }: DealDetailProps) {
   const t = useTranslations('deals');
 
   const basePath = `/${locale}/partners/portal/deals`;
@@ -168,34 +181,73 @@ export function DealDetail({ deal, locale }: DealDetailProps) {
         </div>
 
         {/* Sidebar */}
-        <div className="w-full lg:w-80">
+        <div className="w-full lg:w-80 space-y-6">
+          {/* Estado y Gestión */}
           <Card>
             <CardHeader>
               <CardTitle>Estado</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Estado actual */}
               <div>
-                <p className="text-sm text-gray-500">Estado actual</p>
-                <Badge variant={statusVariants[deal.status]} className="mt-1">
+                <p className="text-sm text-gray-500 mb-1">Estado actual</p>
+                <Badge variant={statusVariants[deal.status]} className="text-sm">
                   {statusLabels[deal.status]}
                 </Badge>
               </div>
+
+              {/* Último cambio */}
               <div>
-                <p className="text-sm text-gray-500">Ultimo cambio</p>
-                <p className="font-medium">{formatDate(deal.statusChangedAt, locale)}</p>
+                <p className="text-sm text-gray-500 mb-1">Ultimo cambio</p>
+                <p className="text-sm font-medium">{formatDate(deal.statusChangedAt, locale)}</p>
               </div>
-              {deal.status === 'approved' && (
+
+              {/* Si está aprobado y NO tiene cotización: botón crear */}
+              {deal.status === 'approved' && !hasQuote && (
+                <>
+                  <div className="pt-4 border-t border-gray-200">
+                    <Link href={`${basePath}/${deal.id}/quote`}>
+                      <Button className="w-full">
+                        <FileText className="mr-2 h-4 w-4" />
+                        Crear Cotizacion
+                      </Button>
+                    </Link>
+                  </div>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p className="text-xs text-blue-800">
+                      💡 Crea una cotización para poder actualizar el estado a fases de negociación y contratación.
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {/* Si tiene cotización: formulario de cambio de estado */}
+              {hasQuote && (
                 <div className="pt-4 border-t border-gray-200">
-                  <Link href={`${basePath}/${deal.id}/quote`}>
-                    <Button className="w-full">
-                      <FileText className="mr-2 h-4 w-4" />
-                      Crear Cotizacion
-                    </Button>
-                  </Link>
+                  <StatusChangeForm
+                    deal={deal}
+                    hasQuote={hasQuote}
+                    canChange={canChangeStatus}
+                  />
                 </div>
               )}
             </CardContent>
           </Card>
+
+          {/* Resumen de Cotización */}
+          <QuoteSummary quotes={quotes} locale={locale} />
+
+          {/* Historial de Estados */}
+          {statusHistory.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Historial de Estado</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <StatusTimeline history={statusHistory} />
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

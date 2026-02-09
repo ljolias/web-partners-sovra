@@ -465,6 +465,26 @@ export const dealActionSchema = z.object({
 export type DealActionInput = z.infer<typeof dealActionSchema>;
 
 /**
+ * Deal status update schema
+ */
+export const dealStatusUpdateSchema = z.object({
+  status: z.enum([
+    'pending_approval',
+    'approved',
+    'rejected',
+    'more_info',
+    'negotiation',
+    'contracting',
+    'awarded',
+    'won',
+    'lost'
+  ]),
+  notes: z.string().max(1000).optional(),
+});
+
+export type DealStatusUpdateInput = z.infer<typeof dealStatusUpdateSchema>;
+
+/**
  * Copilot chat message schema
  */
 export const copilotMessageSchema = z.object({

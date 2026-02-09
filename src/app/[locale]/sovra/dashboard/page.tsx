@@ -59,8 +59,8 @@ export default async function SovraDashboardPage({ params }: PageProps) {
     getAllAuditLogs(10),
   ]);
 
-  const closedWonDeals = allDeals.filter(d => d.status === 'closed_won');
-  const closedLostDeals = allDeals.filter(d => d.status === 'closed_lost');
+  const closedWonDeals = allDeals.filter(d => d.status === 'won');
+  const closedLostDeals = allDeals.filter(d => d.status === 'lost');
 
   // Calculate partner tier distribution
   const tierCounts = {
@@ -84,7 +84,7 @@ export default async function SovraDashboardPage({ params }: PageProps) {
     .map(partner => ({
       ...partner,
       dealCount: partnerDealCounts.get(partner.id) || 0,
-      wonCount: allDeals.filter(d => d.partnerId === partner.id && d.status === 'closed_won').length,
+      wonCount: allDeals.filter(d => d.partnerId === partner.id && d.status === 'won').length,
     }))
     .sort((a, b) => b.dealCount - a.dealCount)
     .slice(0, 3);
@@ -170,6 +170,12 @@ export default async function SovraDashboardPage({ params }: PageProps) {
       'deal.approved': 'aprobo una oportunidad',
       'deal.rejected': 'rechazo una oportunidad',
       'deal.info_requested': 'solicito mas informacion',
+      'deal.status_changed': 'cambio el estado de una oportunidad',
+      'deal.entered_negotiation': 'oportunidad en negociacion',
+      'deal.entered_contracting': 'oportunidad en contratacion',
+      'deal.awarded': 'oportunidad adjudicada',
+      'deal.won': 'oportunidad ganada',
+      'deal.lost': 'oportunidad perdida',
       'document.shared': 'compartio un documento',
       'document.verified': 'verifico un documento',
       'pricing.updated': 'actualizo los precios',
@@ -454,12 +460,17 @@ export default async function SovraDashboardPage({ params }: PageProps) {
 
 function StatusBadge({ status }: { status: string }) {
   const statusConfig: Record<string, { label: string; className: string }> = {
+    // Estados pre-aprobación
     pending_approval: { label: 'Pendiente', className: 'bg-amber-500/10 text-amber-500' },
     approved: { label: 'Aprobada', className: 'bg-green-500/10 text-green-500' },
     rejected: { label: 'Rechazada', className: 'bg-red-500/10 text-red-500' },
     more_info: { label: 'Mas Info', className: 'bg-orange-500/10 text-orange-500' },
-    closed_won: { label: 'Ganada', className: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' },
-    closed_lost: { label: 'Perdida', className: 'bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]' },
+    // Estados post-cotización
+    negotiation: { label: 'Negociacion', className: 'bg-blue-500/10 text-blue-500' },
+    contracting: { label: 'Contratacion', className: 'bg-indigo-500/10 text-indigo-500' },
+    awarded: { label: 'Adjudicada', className: 'bg-purple-500/10 text-purple-500' },
+    won: { label: 'Ganada', className: 'bg-emerald-500/10 text-emerald-500' },
+    lost: { label: 'Perdida', className: 'bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]' },
   };
 
   const config = statusConfig[status] || { label: status, className: 'bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]' };

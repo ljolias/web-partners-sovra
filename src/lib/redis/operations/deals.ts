@@ -1,7 +1,7 @@
 import { redis } from '../client';
 import { keys } from '../keys';
-import type { Deal, DealStage, DealStatus } from '@/types';
-import { toRedisHash } from './helpers';
+import type { Deal, DealStage, DealStatus, DealStatusChange } from '@/types';
+import { toRedisHash, generateId } from './helpers';
 import { paginateZRange, type PaginationParams, type PaginatedResult } from '../pagination';
 
 export async function getDeal(id: string): Promise<Deal | null> {
@@ -114,4 +114,104 @@ export async function getDealsByStage(stage: DealStage): Promise<Deal[]> {
   if (!dealIds.length) return [];
   const deals = await Promise.all(dealIds.map((id) => getDeal(id)));
   return deals.filter((d): d is Deal => d !== null);
+}
+
+/**
+ * Verificar si un deal tiene cotización
+ */
+export async function dealHasQuote(dealId: string): Promise<boolean> {
+  const quoteIds = await redis.zrange<string[]>(keys.dealQuotes(dealId), 0, 0);
+  return quoteIds.length > 0;
+}
+
+/**
+ * Registrar cambio de estado en el historial
+ */
+export async function recordStatusChange(
+  dealId: string,
+  fromStatus: DealStatus | null,
+  toStatus: DealStatus,
+  changedBy: { id: string; name: string },
+  options?: { notes?: string; hasQuote?: boolean }
+): Promise<DealStatusChange> {
+  const change: DealStatusChange = {
+    id: generateId(),
+    dealId,
+    fromStatus,
+    toStatus,
+    changedBy: changedBy.id,
+    changedByName: changedBy.name,
+    changedAt: new Date().toISOString(),
+    notes: options?.notes,
+    hasQuote: options?.hasQuote || false,
+  };
+
+  const pipeline = redis.pipeline();
+
+  // Guardar el cambio
+  pipeline.hset(keys.dealStatusChange(change.id), toRedisHash(change));
+
+  // Agregar al historial del deal (sorted by timestamp)
+  pipeline.zadd(keys.dealStatusHistory(dealId), {
+    score: new Date(change.changedAt).getTime(),
+    member: change.id,
+  });
+
+  await pipeline.exec();
+  return change;
+}
+
+/**
+ * Obtener historial de cambios de estado
+ */
+export async function getDealStatusHistory(dealId: string): Promise<DealStatusChange[]> {
+  const changeIds = await redis.zrange<string[]>(
+    keys.dealStatusHistory(dealId),
+    0,
+    -1,
+    { rev: false } // Orden cronológico
+  );
+
+  if (!changeIds.length) return [];
+
+  const changes = await Promise.all(
+    changeIds.map(async (id) => {
+      const data = await redis.hgetall(keys.dealStatusChange(id));
+      if (!data || !data.id) return null;
+
+      // Convert hasQuote to boolean if stored as string
+      if (typeof data.hasQuote === 'string') {
+        data.hasQuote = data.hasQuote === 'true';
+      }
+
+      return data as unknown as DealStatusChange;
+    })
+  );
+
+  return changes.filter((c): c is DealStatusChange => c !== null);
+}
+
+/**
+ * Actualizar estado del deal con validación e historial
+ */
+export async function updateDealStatus(
+  dealId: string,
+  newStatus: DealStatus,
+  changedBy: { id: string; name: string },
+  options?: { notes?: string; hasQuote?: boolean }
+): Promise<void> {
+  const deal = await getDeal(dealId);
+  if (!deal) throw new Error('Deal not found');
+
+  const oldStatus = deal.status;
+
+  // Registrar en historial
+  await recordStatusChange(dealId, oldStatus, newStatus, changedBy, options);
+
+  // Actualizar deal
+  await updateDeal(dealId, {
+    status: newStatus,
+    statusChangedAt: new Date().toISOString(),
+    statusChangedBy: changedBy.id,
+  });
 }

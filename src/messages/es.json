@@ -100,8 +100,8 @@
       "qualified": "Calificada",
       "proposal": "Propuesta",
       "negotiation": "Negociacion",
-      "closed_won": "Ganada",
-      "closed_lost": "Perdida"
+      "won": "Ganada",
+      "lost": "Perdida"
     },
     "detail": {
       "exclusivity": "Exclusividad hasta {date}",
@@ -403,8 +403,8 @@
     "approved": "Aprobada",
     "rejected": "Rechazada",
     "more_info": "Mas Informacion Requerida",
-    "closed_won": "Cerrada Ganada",
-    "closed_lost": "Cerrada Perdida"
+    "won": "Cerrada Ganada",
+    "lost": "Cerrada Perdida"
   },
   "governmentLevel": {
     "municipality": "Municipio",

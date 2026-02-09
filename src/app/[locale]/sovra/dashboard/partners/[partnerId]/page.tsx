@@ -1108,12 +1108,17 @@ function OpportunitiesTab({ data }: { data: PartnerDetailData }) {
   });
 
   const statusLabels: Record<string, { label: string; color: string }> = {
+    // Estados pre-aprobación
     pending_approval: { label: 'Pendiente', color: 'text-yellow-600 bg-yellow-100' },
     approved: { label: 'Aprobada', color: 'text-green-600 bg-green-100' },
     rejected: { label: 'Rechazada', color: 'text-red-600 bg-red-100' },
     more_info: { label: 'Info requerida', color: 'text-[var(--color-primary)] bg-blue-100' },
-    closed_won: { label: 'Ganada', color: 'text-emerald-600 bg-emerald-100' },
-    closed_lost: { label: 'Perdida', color: 'text-[var(--color-text-secondary)] bg-[var(--color-surface-hover)]' },
+    // Estados post-cotización
+    negotiation: { label: 'Negociacion', color: 'text-blue-600 bg-blue-100' },
+    contracting: { label: 'Contratacion', color: 'text-indigo-600 bg-indigo-100' },
+    awarded: { label: 'Adjudicada', color: 'text-purple-600 bg-purple-100' },
+    won: { label: 'Ganada', color: 'text-emerald-600 bg-emerald-100' },
+    lost: { label: 'Perdida', color: 'text-[var(--color-text-secondary)] bg-[var(--color-surface-hover)]' },
   };
 
   if (!deals || deals.length === 0) {

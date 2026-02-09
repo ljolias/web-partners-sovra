@@ -255,9 +255,9 @@ export async function getPartnerStats(partnerId: string): Promise<{
     getPartnerCredentials(partnerId),
   ]);
 
-  const wonDeals = deals.filter((d: any) => d.status === 'closed_won').length;
-  const lostDeals = deals.filter((d: any) => d.status === 'closed_lost').length;
-  const pendingDeals = deals.filter((d: any) => !['closed_won', 'closed_lost', 'rejected'].includes(d.status)).length;
+  const wonDeals = deals.filter((d: any) => d.status === 'won').length;
+  const lostDeals = deals.filter((d: any) => d.status === 'lost').length;
+  const pendingDeals = deals.filter((d: any) => !['won', 'lost', 'rejected'].includes(d.status)).length;
 
   return {
     totalDeals: deals.length,

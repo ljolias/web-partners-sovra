@@ -8,6 +8,7 @@ import {
   getPartnerQuotes,
   getNextQuoteVersion,
   generateId,
+  updateDeal,
 } from '@/lib/redis';
 import type { Quote } from '@/types';
 
@@ -65,7 +66,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { partner } = await requireSession();
+    const { user, partner } = await requireSession();
 
     const body = await request.json();
     const validation = quoteSchema.safeParse(body);
@@ -118,6 +119,29 @@ export async function POST(request: NextRequest) {
     };
 
     await createQuote(quote);
+
+    // Trackear primer quote y cambiar estado a "negotiation"
+    if (!deal.firstQuoteCreatedAt) {
+      await updateDeal(deal.id, {
+        firstQuoteCreatedAt: now,
+        status: 'negotiation', // Cambiar automáticamente a "En Negociación"
+        statusChangedAt: now,
+        statusChangedBy: user.id,
+      });
+
+      // Registrar el cambio de estado en el historial
+      const { recordStatusChange } = await import('@/lib/redis/operations/deals');
+      await recordStatusChange(
+        deal.id,
+        'approved',
+        'negotiation',
+        { id: user.id, name: user.name },
+        {
+          notes: 'Estado actualizado automáticamente al crear la cotización',
+          hasQuote: true
+        }
+      );
+    }
 
     return NextResponse.json({ quote }, { status: 201 });
   } catch (error) {
