@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { AlertCircle, FileText } from 'lucide-react';
 import { Button, Input, Select, Textarea, Alert } from '@/components/ui';
 import type { DealFormData, GovernmentLevel } from '@/types';
 
@@ -10,6 +11,7 @@ interface DealFormProps {
   locale: string;
   hasCertification: boolean;
   hasSignedLegal: boolean;
+  userRole: string;
 }
 
 const COUNTRIES = [
@@ -39,11 +41,13 @@ const GOVERNMENT_LEVELS: { value: GovernmentLevel; label: string }[] = [
   { value: 'nation', label: 'Nacional' },
 ];
 
-export function DealForm({ locale, hasCertification, hasSignedLegal }: DealFormProps) {
+export function DealForm({ locale, hasCertification, hasSignedLegal, userRole }: DealFormProps) {
   const router = useRouter();
   const t = useTranslations('deals');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showLegalReminder, setShowLegalReminder] = useState(false);
+  const [createdDealId, setCreatedDealId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<DealFormData>({
     clientName: '',
@@ -114,11 +118,18 @@ export function DealForm({ locale, hasCertification, hasSignedLegal }: DealFormP
         throw new Error(data.error || 'Failed to create deal');
       }
 
-      const { deal } = await response.json();
-      router.push(`/${locale}/partners/portal/deals/${deal.id}`);
+      const { deal, hasUnsignedDocs, userRole: responseUserRole } = await response.json();
+
+      // Show legal reminder only for admins with unsigned docs
+      if (hasUnsignedDocs && (userRole === 'admin' || responseUserRole === 'admin')) {
+        setCreatedDealId(deal.id);
+        setShowLegalReminder(true);
+        setIsLoading(false);
+      } else {
+        router.push(`/${locale}/partners/portal/deals/${deal.id}`);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create deal');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -138,11 +149,53 @@ export function DealForm({ locale, hasCertification, hasSignedLegal }: DealFormP
     );
   }
 
-  if (!hasSignedLegal) {
+  // Show legal reminder modal after deal creation (admin only)
+  if (showLegalReminder && createdDealId) {
     return (
-      <Alert variant="warning" title="Legal Documents Required">
-        {t('validation.legalRequired')}
-      </Alert>
+      <div className="space-y-6">
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                <FileText className="w-6 h-6 text-amber-600" />
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-amber-900 mb-2">
+                Oportunidad Creada Exitosamente
+              </h3>
+              <p className="text-amber-800 mb-4">
+                Tu oportunidad ha sido registrada correctamente. Sin embargo, tienes documentos legales pendientes de firma.
+              </p>
+              <div className="bg-white border border-amber-200 rounded-lg p-4 mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertCircle className="w-4 h-4 text-amber-600" />
+                  <span className="text-sm font-medium text-amber-900">
+                    Recordatorio: Documentos Legales Pendientes
+                  </span>
+                </div>
+                <p className="text-sm text-amber-700">
+                  Para continuar operando sin restricciones, te recomendamos completar la firma de los documentos legales requeridos.
+                  Puedes hacerlo desde la seccion de Documentos Legales en el menu principal.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => router.push(`/${locale}/partners/portal/legal`)}
+                  variant="outline"
+                >
+                  Ir a Documentos Legales
+                </Button>
+                <Button
+                  onClick={() => router.push(`/${locale}/partners/portal/deals/${createdDealId}`)}
+                >
+                  Ver Oportunidad
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 

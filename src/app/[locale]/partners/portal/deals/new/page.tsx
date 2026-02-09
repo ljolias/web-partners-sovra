@@ -17,13 +17,10 @@ export default async function NewDealPage({ params }: NewDealPageProps) {
     return null;
   }
 
-  // Disabled for testing - TODO: re-enable in production
-  // const [hasCert, hasLegal] = await Promise.all([
-  //   hasValidCertification(session.user.id),
-  //   hasSignedRequiredDocs(session.user.id),
-  // ]);
-  const hasCert = true; // Bypassed for testing
-  const hasLegal = true; // Bypassed for testing
+  const [hasCert, hasLegal] = await Promise.all([
+    hasValidCertification(session.user.id),
+    hasSignedRequiredDocs(session.user.id),
+  ]);
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -36,6 +33,7 @@ export default async function NewDealPage({ params }: NewDealPageProps) {
             locale={locale}
             hasCertification={hasCert}
             hasSignedLegal={hasLegal}
+            userRole={session.user.role}
           />
         </CardContent>
       </Card>

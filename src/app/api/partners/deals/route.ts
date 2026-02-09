@@ -55,17 +55,8 @@ export const POST = withRateLimit(
       }
     }
 
-    // Validate legal documents (can be disabled via ENFORCE_LEGAL_DOCS=false)
-    // Note: This check uses the legacy document system.
-    // In the new V2 system, documents are partner-specific via DocuSign.
-    if (SECURITY_FEATURES.ENFORCE_LEGAL_DOCS) {
-      const hasLegal = await hasSignedRequiredDocs(user.id);
-      if (!hasLegal) {
-        throw new ForbiddenError(
-          'Debes firmar todos los documentos legales requeridos antes de registrar deals'
-        );
-      }
-    }
+    // Check for unsigned legal documents (informational only, non-blocking)
+    const hasUnsignedDocs = !(await hasSignedRequiredDocs(user.id));
 
     const body = await request.json();
     const validation = dealSchema.safeParse(body);
@@ -135,7 +126,11 @@ export const POST = withRateLimit(
       userId: user.id,
     });
 
-    return NextResponse.json({ deal }, { status: 201 });
+    return NextResponse.json({
+      deal,
+      hasUnsignedDocs,
+      userRole: user.role,
+    }, { status: 201 });
   }),
   RATE_LIMITS.CREATE
 );
