@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireSession } from '@/lib/auth';
 import { logger } from '@/lib/logger';
+import { redis } from '@/lib/redis/client';
 import {
   getPartnerDeals,
   createDeal,
@@ -46,17 +47,41 @@ export const POST = withRateLimit(
     const { user, partner } = await requireSession();
 
     // Validate certification (can be disabled via ENFORCE_CERTIFICATION=false)
-    if (SECURITY_FEATURES.ENFORCE_CERTIFICATION) {
-      const hasCert = await hasValidCertification(user.id);
-      if (!hasCert) {
-        throw new ForbiddenError(
-          'Necesitas una certificación activa para registrar deals'
-        );
+    // DISABLED: Certification requirement removed per user request
+    // if (SECURITY_FEATURES.ENFORCE_CERTIFICATION) {
+    //   const hasCert = await hasValidCertification(user.id);
+    //   if (!hasCert) {
+    //     throw new ForbiddenError(
+    //       'Necesitas una certificación activa para registrar deals'
+    //     );
+    //   }
+    // }
+
+    // Check for unsigned legal documents (informational only, non-blocking)
+    // Only check for documents that belong to this partner
+    const partnerDocs = await redis.zrange<string[]>(
+      `partner:${partner.id}:legal:documents`,
+      0,
+      -1
+    );
+
+    // Get required documents for this partner
+    const requiredDocs = [];
+    for (const docId of partnerDocs) {
+      const doc = await redis.hgetall(`legal:${docId}`);
+      if (doc?.requiredForDeals === 'true' || doc?.requiredForDeals === true) {
+        requiredDocs.push(doc);
       }
     }
 
-    // Check for unsigned legal documents (informational only, non-blocking)
-    const hasUnsignedDocs = !(await hasSignedRequiredDocs(user.id));
+    // Check if user has signed all required docs
+    const signatures = await redis.zrange<string[]>(
+      `user:${user.id}:signatures`,
+      0,
+      -1
+    );
+    const signedDocIds = new Set(signatures);
+    const hasUnsignedDocs = requiredDocs.some(doc => !signedDocIds.has(doc.id as string));
 
     const body = await request.json();
     const validation = dealSchema.safeParse(body);

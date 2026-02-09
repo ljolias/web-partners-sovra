@@ -5,6 +5,7 @@ import {
   getPartnersByStatus,
   getAllAuditLogs,
   getPartnerDeals,
+  getAllQuotes,
 } from '@/lib/redis/operations';
 import {
   Clock,
@@ -19,6 +20,7 @@ import {
   TrendingUp,
   BadgeCheck,
   Activity,
+  Briefcase,
 } from 'lucide-react';
 import Link from 'next/link';
 import type { Partner, PartnerTier } from '@/types';
@@ -34,6 +36,10 @@ const tierConfig: Record<PartnerTier, { label: string; emoji: string }> = {
   platinum: { label: 'Platinum', emoji: '' },
 };
 
+// Force dynamic rendering to always fetch fresh data
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function SovraDashboardPage({ params }: PageProps) {
   const { locale } = await params;
 
@@ -47,6 +53,7 @@ export default async function SovraDashboardPage({ params }: PageProps) {
     activePartners,
     suspendedPartners,
     recentAuditLogs,
+    allQuotes,
   ] = await Promise.all([
     getAllDeals(),
     getDealsByStatus('pending_approval'),
@@ -57,10 +64,14 @@ export default async function SovraDashboardPage({ params }: PageProps) {
     getPartnersByStatus('active'),
     getPartnersByStatus('suspended'),
     getAllAuditLogs(10),
+    getAllQuotes(),
   ]);
 
-  const closedWonDeals = allDeals.filter(d => d.status === 'won');
-  const closedLostDeals = allDeals.filter(d => d.status === 'lost');
+  const wonDeals = allDeals.filter(d => d.status === 'won');
+  const lostDeals = allDeals.filter(d => d.status === 'lost');
+  const negotiationDeals = allDeals.filter(d => d.status === 'negotiation');
+  const contractingDeals = allDeals.filter(d => d.status === 'contracting');
+  const awardedDeals = allDeals.filter(d => d.status === 'awarded');
 
   // Calculate partner tier distribution
   const tierCounts = {
@@ -70,8 +81,8 @@ export default async function SovraDashboardPage({ params }: PageProps) {
     platinum: allPartners.filter(p => p.tier === 'platinum').length,
   };
 
-  // Calculate estimated pipeline value (mock calculation based on deals)
-  const pipelineValue = approvedDeals.length * 50000 + pendingDeals.length * 30000;
+  // Calculate REAL pipeline value from all quotes
+  const pipelineValue = allQuotes.reduce((sum, quote) => sum + (quote.total || 0), 0);
 
   // Calculate top partners by deal count
   const partnerDealCounts = new Map<string, number>();
@@ -127,6 +138,13 @@ export default async function SovraDashboardPage({ params }: PageProps) {
   // Opportunity stats
   const dealStats = [
     {
+      label: 'Total Oportunidades',
+      value: allDeals.length,
+      icon: Briefcase,
+      color: 'text-blue-500',
+      bgColor: 'bg-blue-500/10',
+    },
+    {
       label: 'Pendientes',
       value: pendingDeals.length,
       icon: Clock,
@@ -143,14 +161,14 @@ export default async function SovraDashboardPage({ params }: PageProps) {
     },
     {
       label: 'Ganadas',
-      value: closedWonDeals.length,
+      value: wonDeals.length,
       icon: Trophy,
       color: 'text-[var(--color-primary)]',
       bgColor: 'bg-[var(--color-primary)]/10',
     },
     {
       label: 'Perdidas',
-      value: closedLostDeals.length,
+      value: lostDeals.length,
       icon: XCircle,
       color: 'text-[var(--color-text-secondary)]',
       bgColor: 'bg-[var(--color-surface-hover)]',

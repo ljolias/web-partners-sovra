@@ -79,3 +79,23 @@ export async function getNextQuoteVersion(dealId: string): Promise<number> {
   if (!quotes.length) return 1;
   return Math.max(...quotes.map(q => q.version)) + 1;
 }
+
+export async function getAllQuotes(): Promise<Quote[]> {
+  // Get all quote IDs from all partners
+  const allPartnerIds = await redis.zrange<string[]>('partners:all', 0, -1);
+  const allQuoteIds: string[] = [];
+
+  for (const partnerId of allPartnerIds) {
+    const partnerQuoteIds = await redis.zrange<string[]>(
+      keys.partnerQuotes(partnerId),
+      0,
+      -1
+    );
+    allQuoteIds.push(...partnerQuoteIds);
+  }
+
+  if (!allQuoteIds.length) return [];
+
+  const quotes = await Promise.all(allQuoteIds.map((id) => getQuote(id)));
+  return quotes.filter((q): q is Quote => q !== null);
+}

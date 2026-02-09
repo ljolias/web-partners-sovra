@@ -9,6 +9,7 @@ import {
   getPartnerLegalDocuments,
   getPartnerStats,
   getPartnerUsers,
+  getPartnerQuotes,
   addAuditLog,
 } from '@/lib/redis';
 import type { PartnerTier } from '@/types';
@@ -34,21 +35,39 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Fetch related data
-    const [deals, credentials, documents, stats, users] = await Promise.all([
+    const [deals, credentials, documents, stats, users, quotes] = await Promise.all([
       getPartnerDeals(partnerId),
       getPartnerCredentials(partnerId),
       getPartnerLegalDocuments(partnerId),
       getPartnerStats(partnerId),
       getPartnerUsers(partnerId),
+      getPartnerQuotes(partnerId),
     ]);
+
+    // Create a map of dealId -> quote for quick lookup
+    const dealQuoteMap = new Map();
+    for (const quote of quotes) {
+      // Store the latest quote for each deal
+      if (!dealQuoteMap.has(quote.dealId) || quote.version > dealQuoteMap.get(quote.dealId).version) {
+        dealQuoteMap.set(quote.dealId, quote);
+      }
+    }
+
+    // Add quote info to each deal
+    const dealsWithQuotes = deals.map(deal => ({
+      ...deal,
+      quoteTotal: dealQuoteMap.has(deal.id) ? dealQuoteMap.get(deal.id).total : null,
+      quoteCurrency: dealQuoteMap.has(deal.id) ? dealQuoteMap.get(deal.id).currency : null,
+    }));
 
     return NextResponse.json({
       partner,
-      deals,
+      deals: dealsWithQuotes,
       credentials,
       documents,
       stats,
       users,
+      quotes,
     });
   } catch (error) {
     if (error instanceof Error && error.message === 'Unauthorized') {

@@ -1141,15 +1141,17 @@ function OpportunitiesTab({ data }: { data: PartnerDetailData }) {
             <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase">Cliente</th>
             <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase">Pais</th>
             <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase">Nivel</th>
-            <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase">Registrado por</th>
+            <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase">Cotizacion</th>
             <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase">Status</th>
             <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase">Fecha</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
-          {deals.map((deal) => {
+          {deals.map((deal: any) => {
             const status = statusLabels[deal.status] || { label: deal.status, color: 'text-[var(--color-text-secondary)] bg-[var(--color-surface-hover)]' };
-            const creatorName = deal.createdBy ? userMap.get(deal.createdBy) || 'Desconocido' : 'N/A';
+            const quoteDisplay = deal.quoteTotal
+              ? `$${deal.quoteTotal.toLocaleString('en-US')} ${deal.quoteCurrency || 'USD'}`
+              : '-';
             return (
               <tr key={deal.id} className="hover:bg-[var(--color-surface-hover)]">
                 <td className="px-4 py-3">
@@ -1162,7 +1164,9 @@ function OpportunitiesTab({ data }: { data: PartnerDetailData }) {
                 </td>
                 <td className="px-4 py-3 text-sm text-[var(--color-text-secondary)]">{deal.country}</td>
                 <td className="px-4 py-3 text-sm text-[var(--color-text-secondary)] capitalize">{deal.governmentLevel}</td>
-                <td className="px-4 py-3 text-sm text-[var(--color-text-secondary)]">{creatorName}</td>
+                <td className="px-4 py-3 text-sm text-[var(--color-text-secondary)] font-medium">
+                  {quoteDisplay}
+                </td>
                 <td className="px-4 py-3">
                   <span className={cn('px-2 py-1 text-xs font-medium rounded-full', status.color)}>
                     {status.label}

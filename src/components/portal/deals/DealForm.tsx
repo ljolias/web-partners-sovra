@@ -150,13 +150,14 @@ export function DealForm({ locale, hasCertification, hasSignedLegal, userRole }:
     }
   };
 
-  if (!hasCertification) {
-    return (
-      <Alert variant="warning" title="Certification Required">
-        {t('validation.certRequired')}
-      </Alert>
-    );
-  }
+  // DISABLED: Certification requirement removed per user request
+  // if (!hasCertification) {
+  //   return (
+  //     <Alert variant="warning" title="Certification Required">
+  //       {t('validation.certRequired')}
+  //     </Alert>
+  //   );
+  // }
 
   // Show legal reminder modal after deal creation (admin only)
   if (showLegalReminder && createdDealId) {
