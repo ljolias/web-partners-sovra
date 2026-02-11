@@ -358,7 +358,7 @@ export const credentialIssuanceSchema = z.object({
     .max(200)
     .regex(/^[a-zA-Z\s\-'áéíóúñÁÉÍÓÚÑüÜ]+$/, 'Invalid characters'),
 
-  role: z.enum(['partner_admin', 'partner_user', 'sovra_admin'], {
+  role: z.enum(['admin', 'sales', 'legal', 'admin_secondary'], {
     message: 'Invalid role',
   }),
 

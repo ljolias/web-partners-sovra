@@ -84,6 +84,33 @@ export default async function SovraDashboardPage({ params }: PageProps) {
   // Calculate REAL pipeline value from all quotes
   const pipelineValue = allQuotes.reduce((sum, quote) => sum + (quote.total || 0), 0);
 
+  // Calculate pipeline breakdown by deal status
+  // Create a map of dealId -> deal for quick lookup
+  const dealMap = new Map(allDeals.map(deal => [deal.id, deal]));
+
+  const pipelineByStatus = {
+    negotiation: 0,
+    contracting: 0,
+    awarded: 0,
+    won: 0,
+  };
+
+  // Sum quotes by deal status
+  for (const quote of allQuotes) {
+    const deal = dealMap.get(quote.dealId);
+    if (deal) {
+      if (deal.status === 'negotiation') {
+        pipelineByStatus.negotiation += quote.total || 0;
+      } else if (deal.status === 'contracting') {
+        pipelineByStatus.contracting += quote.total || 0;
+      } else if (deal.status === 'awarded') {
+        pipelineByStatus.awarded += quote.total || 0;
+      } else if (deal.status === 'won') {
+        pipelineByStatus.won += quote.total || 0;
+      }
+    }
+  }
+
   // Calculate top partners by deal count
   const partnerDealCounts = new Map<string, number>();
   for (const deal of allDeals) {
@@ -136,14 +163,10 @@ export default async function SovraDashboardPage({ params }: PageProps) {
   ];
 
   // Opportunity stats
+  // "Aprobadas" includes: negotiation, contracting, and awarded
+  const approvedCount = negotiationDeals.length + contractingDeals.length + awardedDeals.length;
+
   const dealStats = [
-    {
-      label: 'Total Oportunidades',
-      value: allDeals.length,
-      icon: Briefcase,
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-500/10',
-    },
     {
       label: 'Pendientes',
       value: pendingDeals.length,
@@ -154,7 +177,7 @@ export default async function SovraDashboardPage({ params }: PageProps) {
     },
     {
       label: 'Aprobadas',
-      value: approvedDeals.length,
+      value: approvedCount,
       icon: CheckCircle,
       color: 'text-green-500',
       bgColor: 'bg-green-500/10',
@@ -221,6 +244,87 @@ export default async function SovraDashboardPage({ params }: PageProps) {
           <span className="text-[var(--color-primary)]">Dashboard</span>
         </h1>
         <p className="text-[var(--color-text-secondary)]">Panel de administracion Sovra</p>
+      </div>
+
+      {/* Pipeline Section - FIRST */}
+      <div>
+        <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
+          <DollarSign className="w-5 h-5" />
+          Pipeline Estimado
+        </h2>
+
+        {/* Total Pipeline */}
+        <div className="bg-gradient-to-r from-[var(--color-primary)]/10 to-[var(--color-accent-purple)]/10 rounded-xl border border-[var(--color-primary)]/20 p-6 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-[var(--color-primary)]/20 rounded-lg flex items-center justify-center">
+              <DollarSign className="w-6 h-6 text-[var(--color-primary)]" />
+            </div>
+            <div>
+              <p className="text-sm text-[var(--color-text-secondary)]">Total Pipeline</p>
+              <p className="text-3xl font-bold text-[var(--color-text-primary)]">
+                ${pipelineValue.toLocaleString('en-US')} USD
+              </p>
+              <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                Suma de todas las cotizaciones generadas
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Pipeline Breakdown */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4">
+            <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center mb-3">
+              <TrendingUp className="w-5 h-5 text-blue-500" />
+            </div>
+            <p className="text-xl font-bold text-[var(--color-text-primary)]">
+              ${pipelineByStatus.negotiation.toLocaleString('en-US')}
+            </p>
+            <p className="text-sm text-[var(--color-text-secondary)]">En Negociación</p>
+            <p className="text-xs text-[var(--color-text-muted)] mt-1">
+              {negotiationDeals.length} oportunidades
+            </p>
+          </div>
+
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4">
+            <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center mb-3">
+              <Activity className="w-5 h-5 text-indigo-500" />
+            </div>
+            <p className="text-xl font-bold text-[var(--color-text-primary)]">
+              ${pipelineByStatus.contracting.toLocaleString('en-US')}
+            </p>
+            <p className="text-sm text-[var(--color-text-secondary)]">En Contratación</p>
+            <p className="text-xs text-[var(--color-text-muted)] mt-1">
+              {contractingDeals.length} oportunidades
+            </p>
+          </div>
+
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4">
+            <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center mb-3">
+              <CheckCircle className="w-5 h-5 text-purple-500" />
+            </div>
+            <p className="text-xl font-bold text-[var(--color-text-primary)]">
+              ${pipelineByStatus.awarded.toLocaleString('en-US')}
+            </p>
+            <p className="text-sm text-[var(--color-text-secondary)]">Adjudicadas</p>
+            <p className="text-xs text-[var(--color-text-muted)] mt-1">
+              {awardedDeals.length} oportunidades
+            </p>
+          </div>
+
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4">
+            <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center mb-3">
+              <Trophy className="w-5 h-5 text-emerald-500" />
+            </div>
+            <p className="text-xl font-bold text-[var(--color-text-primary)]">
+              ${pipelineByStatus.won.toLocaleString('en-US')}
+            </p>
+            <p className="text-sm text-[var(--color-text-secondary)]">Ganadas</p>
+            <p className="text-xs text-[var(--color-text-muted)] mt-1">
+              {wonDeals.length} oportunidades
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Partners Section */}
@@ -299,19 +403,6 @@ export default async function SovraDashboardPage({ params }: PageProps) {
 
             return <div key={stat.label}>{content}</div>;
           })}
-        </div>
-
-        {/* Pipeline Value */}
-        <div className="mt-4 bg-gradient-to-r from-[var(--color-primary)]/10 to-[var(--color-accent-purple)]/10 rounded-xl border border-[var(--color-primary)]/20 p-4">
-          <div className="flex items-center gap-3">
-            <DollarSign className="w-6 h-6 text-[var(--color-primary)]" />
-            <div>
-              <p className="text-sm text-[var(--color-text-secondary)]">Pipeline Estimado</p>
-              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
-                ${pipelineValue.toLocaleString('en-US')} USD
-              </p>
-            </div>
-          </div>
         </div>
       </div>
 
